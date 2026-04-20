@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DocumentTypeModel {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents DocumentModel[]
+
+  @@map("document_types")
+}
+
+model DocumentModel {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String
+  branch   BranchModel @relation(fields: [branchId], references: [id])
+
+  creatorId String
+  creator   UserModel @relation(fields: [creatorId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  documentTypeId String?
+  documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
+
+  attachments AttachmentModel[]
+
+  @@map("documents")
+}
+
+model UserModel {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branchId String
+  branch   BranchModel @relation(fields: [branchId], references: [id])
+
+  documents DocumentModel[]
+
+  @@map("users")
+}
+
+model AttachmentModel {
+  id         String   @id @default(uuid())
+  fileName   String
+  filePath   String
+  mimeType   String
+  size       Int
+  documentId String
+  createdAt  DateTime @default(now())
+
+  document DocumentModel @relation(fields: [documentId], references: [id])
+
+  @@map("attachments")
+}
+
+model FolderModel {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branchId String
+  branch   BranchModel @relation(fields: [branchId], references: [id])
+
+  documents DocumentModel[]
+
+  @@map("folders")
+}
+
+model BranchModel {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     UserModel[]
+  folders   FolderModel[]
+  documents DocumentModel[]
+
+  @@map("branches")
+}
+
+model AuditLogModel {
+  id         String   @id @default(uuid())
+  action     String
+  details    String?
+  entityId   String
+  entityType String
+  actorId    String
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+}
