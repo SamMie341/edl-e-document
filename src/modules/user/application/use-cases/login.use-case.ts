@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import * as userRepositoryInterface from "../../domain/repositories/user.repository.interface";
 import { JwtService } from "@nestjs/jwt";
 import { LoginDto } from "../dtos/login.dto";
@@ -22,7 +22,7 @@ export class LoginUseCase {
 
         const user = await this.userRepository.findByUsername(dto.username);
         if (!user) {
-            throw new UnauthorizedException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ...');
+            throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ...');
         }
 
         const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);

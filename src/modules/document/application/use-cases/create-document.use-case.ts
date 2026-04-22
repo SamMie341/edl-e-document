@@ -21,7 +21,7 @@ export class CreateDocumentUseCase {
         private readonly folderRepository: folderRepositoryInterface.IFolderRepository,
     ) { }
 
-    async execute(dto: CreateDocumentDto, user: any): Promise<Document> {
+    async execute(dto: CreateDocumentDto): Promise<Document> {
         if (dto.folderId) {
             const folder = await this.folderRepository.findById(dto.folderId);
 
@@ -34,7 +34,7 @@ export class CreateDocumentUseCase {
                 );
             }
 
-            if (folder.branchId !== user.branchId) {
+            if (folder.branchId !== dto.branchId) {
                 throw new AppException(
                     'FORBIDDEN',
                     'ທ່ານບໍ່ມີສິດນຳເອກະສານໄປໃສ່ໃນໂກໂລໂນສາຂາອື່ນ',
@@ -51,8 +51,8 @@ export class CreateDocumentUseCase {
             dto.title,
             dto.content,
             DocumentStatus.DRAFT,
-            user.userId,
-            user.branchId,
+            dto.creatorId,
+            dto.branchId,
             dto.folderId || '',
             now,
             now,
@@ -66,7 +66,7 @@ export class CreateDocumentUseCase {
             'ສ້າງເອກະສານສະບັບຮ່າງ',
             newDocument.id,
             'DOCUMENT',
-            user.userId,
+            dto.creatorId,
             new Date(),
         );
 

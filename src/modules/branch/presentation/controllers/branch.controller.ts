@@ -16,7 +16,7 @@ export class BranchController {
     ) { }
 
     @Post()
-    // @Roles(Role.SUPER_ADMIN)
+    @Roles(Role.SUPER_ADMIN)
     async createBranch(@Body() dto: CreateBranchDto, @Req() req: any) {
         const branch = await this.createBranchUseCase.execute(dto, req.user.role);
         return {

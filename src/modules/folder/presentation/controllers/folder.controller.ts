@@ -15,8 +15,8 @@ export class FolderController {
 
     @Post()
     @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.SUPER_ADMIN)
-    async createFolder(@Body() dto: CreateFolderDto, @Req() req: any) {
-        const foler = await this.createFolderUseCase.execute(dto, req.user.branchId);
+    async createFolder(@Body() dto: CreateFolderDto) {
+        const foler = await this.createFolderUseCase.execute(dto);
         return {
             message: 'ສ້າງໂກໂລໂນສຳເລັດ',
             data: foler,

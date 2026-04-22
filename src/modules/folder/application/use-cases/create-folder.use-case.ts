@@ -16,14 +16,14 @@ export class CreateFolderUseCase {
         private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository
     ) { }
 
-    async execute(dto: CreateFolderDto, branchId: string): Promise<Folder> {
+    async execute(dto: CreateFolderDto): Promise<Folder> {
         const now = new Date();
 
         const newFolder = new Folder(
             uuidv4(),
             dto.name,
             dto.description || null,
-            branchId,
+            dto.branchId,
             now,
             now,
         );
@@ -36,7 +36,7 @@ export class CreateFolderUseCase {
             ``,
             newFolder.id,
             'FOLDER',
-            branchId,
+            dto.branchId,
             new Date(),
         );
 

@@ -20,5 +20,9 @@ export class CreateDocumentDto {
 
     @IsOptional()
     @IsString()
-    folderId?: string;
+    folderId: string;
+
+    @IsOptional()
+    @IsString()
+    documentTypeId: string;
 }

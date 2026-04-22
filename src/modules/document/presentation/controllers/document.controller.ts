@@ -55,9 +55,9 @@ export class DocumentController {
 
     @Post()
     @Roles(Role.USER, Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-    async createDocument(@Body() dto: CreateDocumentDto, @Req() req: any) {
+    async createDocument(@Body() dto: CreateDocumentDto) {
 
-        const document = await this.createDocumentUseCase.execute(dto, req.user.userId);
+        const document = await this.createDocumentUseCase.execute(dto);
 
         return {
             message: 'ສ້າງເອກະສຳເລັດ',

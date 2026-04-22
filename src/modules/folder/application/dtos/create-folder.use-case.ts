@@ -8,4 +8,8 @@ export class CreateFolderDto {
     @IsString()
     @IsOptional()
     description?: string;
+
+    @IsString()
+    @IsNotEmpty()
+    branchId: string;
 }
