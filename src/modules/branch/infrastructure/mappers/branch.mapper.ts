@@ -4,9 +4,9 @@ import { Branch } from "../../domain/entities/branch.entity";
 export class BranchMapper {
     static toDomain(model: BranchModel): Branch {
         return new Branch(
-            model.id,
+            model.code || '',
             model.name,
-            model.address,
+            model.status || '',
             model.createdAt,
             model.updatedAt,
         )
@@ -14,9 +14,8 @@ export class BranchMapper {
 
     static toPersistence(entity: Branch): any {
         return {
-            id: entity.id,
             name: entity.name,
-            address: entity.address,
+            address: entity.status,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

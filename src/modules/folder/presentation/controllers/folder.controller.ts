@@ -18,7 +18,7 @@ export class FolderController {
     async createFolder(@Body() dto: CreateFolderDto) {
         const foler = await this.createFolderUseCase.execute(dto);
         return {
-            message: 'ສ້າງໂກໂລໂນສຳເລັດ',
+            message: 'ສ້າງໂກໂນສຳເລັດ',
             data: foler,
         };
     }

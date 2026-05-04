@@ -27,7 +27,7 @@ export class GetAttachmentUseCase {
 
         const doc = attachment.document;
 
-        if (user.role === Role.USER && doc.creatorId !== user.userId) {
+        if (user.role === Role.USER && doc.userId !== user.userId) {
             throw new AppException('UNAUTHORIZATION', 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ຂອງເອກະສານສະບັບນີ້', '', HttpStatus.UNAUTHORIZED);
         }
         if (user.role === Role.BRANCH_ADMIN && doc.branchId !== user.branchId) {

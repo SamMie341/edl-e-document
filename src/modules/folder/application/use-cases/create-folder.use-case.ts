@@ -23,7 +23,6 @@ export class CreateFolderUseCase {
             uuidv4(),
             dto.name,
             dto.description || null,
-            dto.branchId,
             now,
             now,
         );
@@ -36,7 +35,7 @@ export class CreateFolderUseCase {
             ``,
             newFolder.id,
             'FOLDER',
-            dto.branchId,
+            '',
             new Date(),
         );
 

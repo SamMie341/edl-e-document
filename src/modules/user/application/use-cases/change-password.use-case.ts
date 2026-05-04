@@ -21,12 +21,12 @@ export class ChangePasswordUseCase {
         const user = await this.userRepository.findById(userId);
         if (!user) throw new AppException('NOT_FOUND', 'ບໍ່ພົບຜູ້ໃຊ້ງານ!', { userId }, HttpStatus.NOT_FOUND);
 
-        const isOldPasswordValid = await bcrypt.compare(dto.oldPassword, user.passwordHash);
+        const isOldPasswordValid = await bcrypt.compare(dto.oldPassword, user.password);
         if (!isOldPasswordValid) {
             throw new AppException('BAD_REQUEST', 'ລະຫັດຜ່ານເກົ່າບໍ່ຖືກຕ້ອງ!', '', HttpStatus.BAD_REQUEST);
         }
 
-        const isSameAsOld = await bcrypt.compare(dto.newPassword, user.passwordHash);
+        const isSameAsOld = await bcrypt.compare(dto.newPassword, user.password);
         if (isSameAsOld) {
             throw new AppException('BAD_REQUEST', 'ລະຫັດຜ່ານໃໝ່ຕ້ອງບໍ່ຊ້ຳກັບລະຫັດຜ່ານເກົ່າ!', '', HttpStatus.BAD_REQUEST);
         }

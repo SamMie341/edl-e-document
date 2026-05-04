@@ -10,7 +10,7 @@ export class DocumentMapper {
             prismaModel.title,
             prismaModel.content,
             prismaModel.status as DocumentStatus, // Casting string กลับเป็น Enum
-            prismaModel.creatorId,
+            prismaModel.userId,
             prismaModel.branchId,
             prismaModel.folderId || '',
             prismaModel.createdAt,
@@ -25,7 +25,7 @@ export class DocumentMapper {
             title: domainEntity.title,
             content: domainEntity.content,
             status: domainEntity.status,
-            creatorId: domainEntity.creatorId,
+            creatorId: domainEntity.userId,
             createdAt: domainEntity.createdAt,
             updatedAt: domainEntity.updatedAt,
         }

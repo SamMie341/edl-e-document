@@ -14,14 +14,6 @@ export class PrismaFolderRepository implements IFolderRepository {
         return FolderMapper.toDomain(model);
     }
 
-    async findByBranchId(branchId: string): Promise<Folder[]> {
-        const models = await this.prisma.folderModel.findMany({
-            where: { branchId },
-            orderBy: { createdAt: 'desc' }
-        });
-        return models.map(FolderMapper.toDomain);
-    }
-
     async save(folder: Folder): Promise<void> {
         const data = FolderMapper.toPersistence(folder);
         await this.prisma.folderModel.upsert({

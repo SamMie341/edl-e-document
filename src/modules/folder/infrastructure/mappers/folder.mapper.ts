@@ -5,9 +5,8 @@ export class FolderMapper {
     static toDomain(model: FolderModel): Folder {
         return new Folder(
             model.id,
-            model.name,
-            model.description,
-            model.branchId,
+            model.folderCode,
+            model.contentName,
             model.createdAt,
             model.updatedAt,
         );
@@ -18,7 +17,6 @@ export class FolderMapper {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            branchId: entity.branchId,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

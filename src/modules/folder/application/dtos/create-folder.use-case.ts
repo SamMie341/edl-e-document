@@ -11,5 +11,5 @@ export class CreateFolderDto {
 
     @IsString()
     @IsNotEmpty()
-    branchId: string;
+    branchId: number;
 }

@@ -20,7 +20,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let errorCode = 'INTERNAL_SERVER_ERROR';
-        let message = 'เกิดข้อผิดพลาดภายในระบบ';
+        let message = 'ເກີດຂໍ້ຜິດພາດພາຍໃນລະບົບ';
         let details = null;
 
         if (exception instanceof AppException) {
@@ -35,7 +35,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
             if (status === HttpStatus.BAD_REQUEST && Array.isArray(responseBody.message)) {
                 errorCode = 'VALIDATION_ERROR';
-                message = 'ข้อมูลที่ส่งมาไม่ถูกต้อง';
+                message = 'ຂໍ້ມູນທີ່ສົ່ງມາບໍ່ຖືກຕ້ອງ';
                 details = responseBody.message;
             } else {
                 errorCode = `HTTP_ERROR_${status}`;

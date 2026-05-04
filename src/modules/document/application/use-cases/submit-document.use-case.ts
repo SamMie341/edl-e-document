@@ -22,7 +22,7 @@ export class SubmitDocumentUseCase {
             throw new AppException('NOT_FOUND', 'ບໍ່ພົບເອກະສານໃນລະບົບ...', { document }, HttpStatus.NOT_FOUND);
         }
 
-        if (document.creatorId !== userId) {
+        if (document.userId !== userId) {
             throw new AppException('FORBIDDEN', 'ທ່ານບໍ່ມີສິດສົ່ງເອກະສານທີ່ທ່ານບໍ່ໄດ້ສ້າງ...', '', HttpStatus.FORBIDDEN);
         }
         document.submitForApproval();

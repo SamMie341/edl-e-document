@@ -15,7 +15,7 @@ export class PrismaBranchRepositoy implements IBranchRepository {
         return models.map(BranchMapper.toDomain);
     }
 
-    async findById(id: string): Promise<Branch | null> {
+    async findById(id: number): Promise<Branch | null> {
         const model = await this.prisma.branchModel.findUnique({ where: { id } });
         if (!model) return null;
         return BranchMapper.toDomain(model);

@@ -20,7 +20,7 @@ export class UploadAttachmentUseCase {
     async execute(documentId: string, file: any, userId: string): Promise<any> {
         const document = await this.prisma.documentModel.findUnique({ where: { id: documentId } });
         if (!document) throw new AppException('NOT_FOUND', 'ບໍ່ພົບເອກະສານ', { documentId }, HttpStatus.NOT_FOUND);
-        if (document.creatorId !== userId) throw new AppException('FORBIDDEN', 'ສະເພາະເຈົ້າຂອງເອກະສານເທົ່ານັ້ນທີ່ເພີ່ມໄຟລ໌ໄດ້', '', HttpStatus.FORBIDDEN);
+        if (document.userId !== userId) throw new AppException('FORBIDDEN', 'ສະເພາະເຈົ້າຂອງເອກະສານເທົ່ານັ້ນທີ່ເພີ່ມໄຟລ໌ໄດ້', '', HttpStatus.FORBIDDEN);
 
         const savedFile = await this.fileStorage.uploadAndCompress(file);
 

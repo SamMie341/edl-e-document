@@ -4,5 +4,5 @@ export class ResetPasswordDto {
     @IsString()
     @IsNotEmpty()
     @MinLength(6, { message: 'ລະຫັດຜ່ານໃໝ່ຕ້ອງມີຢ່າງນ້ອຍ 6 ຕົວ' })
-    newPassword: string;
+    newPassword: string = 'EDL1234';
 }

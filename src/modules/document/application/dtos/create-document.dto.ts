@@ -16,7 +16,7 @@ export class CreateDocumentDto {
 
     @IsString()
     @IsNotEmpty()
-    branchId: string;
+    branchId: number;
 
     @IsOptional()
     @IsString()

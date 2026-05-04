@@ -1,81 +1,45 @@
-import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
-import { Role } from './core/auth/constants/role.enum';
 
-async function bootstrap() {
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+const prisma = new PrismaClient();
+
+async function main() {
+    console.log('🌱 ກຳລັງເລີ່ມສ້າງບັນຊີ Super Admin...');
+
+    // 🌟 ตั้งรหัสผ่านตั้งต้น (เปลี่ยนได้ตามต้องการ)
+    const defaultPassword = 'AdminPassword123!';
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(defaultPassword, salt);
+
+    // 🌟 ใช้คำสั่ง upsert เพื่อป้องกัน Error กรณีที่กด Seed ซ้ำ
+    const superAdmin = await prisma.userModel.upsert({
+        where: { username: 'superadmin' }, // เช็คว่ามี username นี้หรือยัง
+        update: {}, // ถ้ามีแล้ว ไม่ต้องทำอะไร
+        create: {
+            username: 'superadmin',
+            password: hashedPassword,
+            role: 'SUPER_ADMIN', // 👈 ต้องตรงกับ Enum หรือรูปแบบสิทธิ์ในระบบของคุณ
+            empCode: 'ADMIN000',
+            empId: 0,
+            firstNameLa: 'ຜູ້ເບິ່ງແຍງລະບົບ',
+            lastNameLa: 'ສູງສຸດ',
+            firstNameEng: 'Super',
+            lastNameEng: 'Admin',
+            email: 'superadmin@edl.com.la',
+            status: 'A', // ถ้าใน Schema มีสถานะ (A = Active)
+        },
     });
-    const adapter = new PrismaPg(pool);
-    const prisma = new PrismaClient({ adapter });
 
-    console.log('🌱 ເລີ່ມຕົ້ນຈຳລອງຂໍ້ມູນ (Seeding)...');
-
-    try {
-        const hqBranchId = 'branch-hq-001';
-        const cnxBranchId = 'branch-cnx-001';
-        const vteBranchId = 'branch-vte-001';
-
-        // 1. ສ້າງຂໍ້ມູນສາຂາ (Branches)
-        console.log('🏢 ກຳລັງສ້າງຂໍ້ມູນສາຂາ (Branches)...');
-        await prisma.branchModel.upsert({
-            where: { id: hqBranchId },
-            update: { name: 'ສຳນັກງານໃຫຍ່ (HQ)', address: 'ນະຄອນຫຼວງວຽງຈັນ' },
-            create: { id: hqBranchId, name: 'ສຳນັກງານໃຫຍ່ (HQ)', address: 'ນະຄອນຫຼວງວຽງຈັນ' },
-        });
-
-        await prisma.branchModel.upsert({
-            where: { id: cnxBranchId },
-            update: { name: 'ສາຂາ ຊຽງຂວາງ', address: 'ແຂວງຊຽງຂວາງ' },
-            create: { id: cnxBranchId, name: 'ສາຂາ ຊຽງຂວາງ', address: 'ແຂວງຊຽງຂວາງ' },
-        });
-
-        await prisma.branchModel.upsert({
-            where: { id: vteBranchId },
-            update: { name: 'ສາຂາ ວຽງຈັນ (VTE)', address: 'ນະຄອນຫຼວງວຽງຈັນ' },
-            create: { id: vteBranchId, name: 'ສາຂາ ວຽງຈັນ (VTE)', address: 'ນະຄອນຫຼວງວຽງຈັນ' },
-        });
-
-        const salt = await bcrypt.genSalt(10);
-        const defaultPassword = await bcrypt.hash('password123', salt);
-
-        // 2. ສ້າງຂໍ້ມູນຜູ້ໃຊ້ (Users)
-        console.log('👥 ກຳລັງສ້າງຂໍ້ມູນຜູ້ໃຊ້ (Users)...');
-        
-        const usersToSeed = [
-            { username: 'superadmin', role: Role.SUPER_ADMIN, branchId: hqBranchId },
-            { username: 'hqadmin', role: Role.HQ_ADMIN, branchId: hqBranchId },
-            { username: 'branchadmin_cnx', role: Role.BRANCH_ADMIN, branchId: cnxBranchId },
-            { username: 'branchadmin_vte', role: Role.BRANCH_ADMIN, branchId: vteBranchId },
-            { username: 'user1_cnx', role: Role.USER, branchId: cnxBranchId },
-            { username: 'user2_vte', role: Role.USER, branchId: vteBranchId },
-        ];
-
-        for (const userData of usersToSeed) {
-            const user = await prisma.userModel.upsert({
-                where: { username: userData.username },
-                update: { password: defaultPassword, role: userData.role, branchId: userData.branchId },
-                create: {
-                    username: userData.username,
-                    password: defaultPassword,
-                    role: userData.role,
-                    branchId: userData.branchId,
-                },
-            });
-            console.log(`✅ Created ${userData.role}: ${user.username}`);
-        }
-
-        console.log('🎉 Seeding ສຳເລັດຮຽບຮ້ອຍ!');
-    } catch (error) {
-        console.error('❌ ເກີດຂໍ້ຜິດພາດໃນການ Seeding:', error);
-    } finally {
-        await prisma.$disconnect();
-        await pool.end();
-        process.exit(0);
-    }
+    console.log(`✅ ສ້າງ Super Admin ສຳເລັດແລ້ວ!`);
+    console.log(`👤 Username: ${superAdmin.username}`);
+    console.log(`🔑 Password: ${defaultPassword}`);
 }
 
-bootstrap();
+main()
+    .catch((e) => {
+        console.error('❌ ເກີດຂໍ້ຜິດພາດໃນການ Seed:', e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

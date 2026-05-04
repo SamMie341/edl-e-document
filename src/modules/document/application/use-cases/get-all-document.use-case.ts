@@ -11,7 +11,7 @@ export class GetAllDocumentUseCase {
     ) { }
 
     async execute() {
-        const doc = await this.documentRepository.findAll
+        const doc = await this.documentRepository.findAll();
         if (!doc) {
             throw new AppException(
                 'DOCUMENT_NOT_FOUND',

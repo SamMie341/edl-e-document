@@ -13,25 +13,25 @@ export class CreateBranchUseCase {
         private readonly branchRepository: branchRepositoryInterface.IBranchRepository,
     ) { }
 
-    async execute(dto: CreateBranchDto, userRole: string): Promise<Branch> {
-        // if (userRole !== Role.SUPER_ADMIN) {
-        //     throw new AppException(
-        //         'DO_NOT_CREATE_BRANCH',
-        //         'ສະເພາະ Super Admin ເທົ່ານັ້ນທີ່ສາມາດເພີ່ມສາຂາໄດ້',
-        //         '',
-        //         HttpStatus.NOT_FOUND,
-        //     );
-        // }
+    // async execute(dto: CreateBranchDto, userRole: string): Promise<Branch> {
+    // if (userRole !== Role.SUPER_ADMIN) {
+    //     throw new AppException(
+    //         'DO_NOT_CREATE_BRANCH',
+    //         'ສະເພາະ Super Admin ເທົ່ານັ້ນທີ່ສາມາດເພີ່ມສາຂາໄດ້',
+    //         '',
+    //         HttpStatus.NOT_FOUND,
+    //     );
+    // }
 
-        const now = new Date();
-        const newBranch = new Branch(
-            uuidv4(),
-            dto.name,
-            dto.address,
-            now,
-            now,
-        );
-        await this.branchRepository.save(newBranch);
-        return newBranch;
-    }
+    // const now = new Date();
+    // const newBranch = new Branch(
+    //     dto.code,
+    //     dto.name,
+    //     dto.status,
+    //     now,
+    //     now,
+    // );
+    // await this.branchRepository.save(newBranch);
+    // return newBranch;
+    // }
 }

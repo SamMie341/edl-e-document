@@ -34,14 +34,7 @@ export class CreateDocumentUseCase {
                 );
             }
 
-            if (folder.branchId !== dto.branchId) {
-                throw new AppException(
-                    'FORBIDDEN',
-                    'ທ່ານບໍ່ມີສິດນຳເອກະສານໄປໃສ່ໃນໂກໂລໂນສາຂາອື່ນ',
-                    '',
-                    HttpStatus.FORBIDDEN,
-                );
-            }
+
         }
 
         const documentId = uuidv4();

@@ -15,15 +15,15 @@ export class BranchController {
         private readonly getBranchesUseCase: GetBranchesUseCase
     ) { }
 
-    @Post()
-    @Roles(Role.SUPER_ADMIN)
-    async createBranch(@Body() dto: CreateBranchDto, @Req() req: any) {
-        const branch = await this.createBranchUseCase.execute(dto, req.user.role);
-        return {
-            message: 'ເພີ່ມສາຂາສຳເລັດ...',
-            data: branch,
-        };
-    }
+    // @Post()
+    // @Roles(Role.SUPER_ADMIN)
+    // async createBranch(@Body() dto: CreateBranchDto, @Req() req: any) {
+    //     const branch = await this.createBranchUseCase.execute(dto, req.user.role);
+    //     return {
+    //         message: 'ເພີ່ມສາຂາສຳເລັດ...',
+    //         data: branch,
+    //     };
+    // }
 
     @Get()
     @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.SUPER_ADMIN, Role.USER)

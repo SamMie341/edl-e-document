@@ -7,6 +7,7 @@ import { AuditLog } from "src/modules/audit/domain/entities/audit-log.entity";
 import * as auditLogRepositoryInterface from "src/modules/audit/domain/repositories/audit-log.repository.interface";
 import { v4 as uuidv4 } from 'uuid';
 import { AuditAction } from "src/core/constants/audit-action.enum";
+import { SyncUserFromHrmUseCase } from "./sync-user-from-hrm.use-case";
 
 @Injectable()
 export class LoginUseCase {
@@ -16,16 +17,21 @@ export class LoginUseCase {
         private readonly jwtService: JwtService,
         @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
         private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+        private readonly syncUserFromHrmUseCase: SyncUserFromHrmUseCase,
     ) { }
 
     async execute(dto: LoginDto): Promise<{ accessToken: string, user: any }> {
 
-        const user = await this.userRepository.findByUsername(dto.username);
+        let user = await this.userRepository.findByUsername(dto.username);
         if (!user) {
-            throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ...');
+            user = await this.syncUserFromHrmUseCase.execute(dto.username);
+
+            if (!user) {
+                throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ...');
+            }
         }
 
-        const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+        const isPasswordValid = await bcrypt.compare(dto.password, user.password);
         if (!isPasswordValid) {
             throw new UnauthorizedException('ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
         }
@@ -34,7 +40,6 @@ export class LoginUseCase {
             sub: user.id,
             username: user.username,
             role: user.role,
-            branchId: user.branchId,
         };
 
         const log = new AuditLog(
