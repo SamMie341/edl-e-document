@@ -82,7 +82,8 @@ export class SyncUserFromHrmUseCase {
 
             return newUser;
         } catch (error) {
-            throw new InternalServerErrorException('ບໍ່ສາມາດດຶງຂໍ້ມູນພະນັກງານຈາກ HRMS ໄດ້!');
+            console.log(error);
+            throw new InternalServerErrorException('ບໍ່ສາມາດດຶງຂໍ້ມູນພະນັກງານຈາກ HRMS ໄດ້!', error);
         }
     }
 }
