@@ -1,28 +1,55 @@
-import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsString, IsNotEmpty, MaxLength, IsOptional, IsDate } from 'class-validator';
 
 export class CreateDocumentDto {
+    @IsNotEmpty()
     @IsString()
+    docNo: string;
+
+    @IsNotEmpty()
+    @Transform(({ value }) => value ? new Date(value) : value)
+    @IsDate()
+    docDate: Date;
+
+    @IsOptional()
+    @IsString()
+    subDocNo?: string;
+
+    @IsOptional()
+    @Transform(({ value }) => value ? new Date(value) : value)
+    @IsDate()
+    subDocDate?: Date;
+
     @IsNotEmpty({ message: 'ຫົວຂໍ້ເອກະສານຫ້າມເປັນຄ່າວ່າງ' })
-    // @MaxLength(200, { message: 'หัวข้อเอกสารต้องยาวไม่เกิน 200 ตัวอักษร' })
+    @IsString()
     title: string;
 
+    @IsOptional()
     @IsString()
-    @IsNotEmpty({ message: 'ເນື້ອໃນເອກະສານຫ້າມເປັນຄ່າວ່າງ' })
-    content: string;
+    description: string;
 
-    @IsString()
-    @IsNotEmpty({ message: 'ລະຫັດຜູ້ສ້າງເແກະສານຫ້າມເປັນຄ່າວ່າງ' })
-    creatorId: string;
-
-    @IsString()
     @IsNotEmpty()
-    branchId: number;
+    @IsString()
+    status: string;
+
+    @IsNotEmpty()
+    @Transform(({ value }) => value ? new Date(value) : value)
+    @IsDate()
+    docExpire: Date;
 
     @IsOptional()
     @IsString()
-    folderId: string;
+    qrCode?: string;
 
     @IsOptional()
     @IsString()
-    documentTypeId: string;
+    userId: string;
+
+    @IsOptional()
+    @IsString()
+    folderId?: string;
+
+    @IsOptional()
+    @IsString()
+    documentTypeId?: string;
 }

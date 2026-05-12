@@ -40,6 +40,11 @@ export class LoginUseCase {
             sub: user.id,
             username: user.username,
             role: user.role,
+            branchId: user.branchId,
+            departmentId: user.departmentId,
+            divisionId: user.divisionId,
+            officeId: user.officeId,
+            unitId: user.unitId,
         };
 
         const log = new AuditLog(

@@ -43,11 +43,16 @@ export class User {
             role: this.role,
             gender: this.gender,
             status: this.status,
-            branch: this.branchData || null,
-            department: this.departmentData || null,
-            division: this.divisionData || null,
-            office: this.officeData || null,
-            unit: this.unitData || null,
+            branch: this.branchId || null,
+            department: this.departmentId || null,
+            division: this.divisionId || null,
+            office: this.officeId || null,
+            unit: this.unitId || null,
+            branchData: this.branchData || null,
+            departmentData: this.departmentData || null,
+            divisionData: this.divisionData || null,
+            officeData: this.officeData || null,
+            unitData: this.unitData || null,
         }
     }
 

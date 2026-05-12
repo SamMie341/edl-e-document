@@ -6,8 +6,10 @@ export class ShelfMapper {
         return new Shelf(
             model.id,
             model.code,
+            model.name || null,
             model.description,
             model.status,
+            model.maxQty,
             model.lockerId,
             model.createdAt,
             model.updatedAt,

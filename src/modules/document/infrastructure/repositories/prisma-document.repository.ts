@@ -1,60 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { IDocumentRepository } from '../../domain/repositories/document.repository.interface';
-import { Document } from '../../domain/entities/document.entity';
-import { DocumentMapper } from '../mappers/document.mapper';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { PaginatedResult } from 'src/core/interfaces/paginated-result.interface';
+import { DocumentEntity } from '../../domain/entities/document.entity';
+import { DocumentMapper } from '../mappers/document.mapper';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findManyWithPagination(whereClause: any, page: number, limit: number): Promise<PaginatedResult<Document>> {
-        const skip = (page - 1) * limit;
-
-        const [total, models] = await this.prisma.$transaction([
-            this.prisma.documentModel.count({ where: whereClause }),
-            this.prisma.documentModel.findMany({
-                where: whereClause,
-                skip: skip,
-                take: limit,
-                orderBy: { createdAt: 'desc' },
-            }),
-        ]);
-
-        return {
-            data: models.map(DocumentMapper.toDomain),
-            meta: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            }
+    async create(data: any): Promise<DocumentEntity> {
+        const existing = await this.prisma.documentModel.findFirst({
+            where: { docNo: data.docNo }
+        });
+        if (existing) {
+            throw new ConflictException(`ເລກທີ່ເອກະສານ '${data.docNo}' ມີຢູ່ໃນລະບົບແລ້ວ`);
         }
-    }
 
-    async save(document: Document): Promise<void> {
-        const data = DocumentMapper.toPersistence(document);
+        const { attachments, ...documentData } = data;
 
-        await this.prisma.documentModel.upsert({
-            where: { id: data.id },
-            update: data,
-            create: data,
+        const model = await this.prisma.documentModel.create({
+            data: {
+                ...documentData,
+                attachments: attachments && attachments.length > 0 ? {
+                    create: attachments,
+                } : undefined
+            },
+            include: {
+                attachments: true,
+                folder: true,
+                documentType: true,
+            }
         });
-    }
-
-    async findById(id: string): Promise<Document | null> {
-        const model = await this.prisma.documentModel.findUnique({
-            where: { id },
-        });
-
-        if (!model) return null;
-
         return DocumentMapper.toDomain(model);
     }
 
-    async findAll(): Promise<Document[]> {
-        const models = await this.prisma.documentModel.findMany();
-        return models.map(model => DocumentMapper.toDomain(model));
+    async findAll(skip?: number, take?: number): Promise<{ data: DocumentEntity[]; total: number; }> {
+        const [models, total] = await this.prisma.$transaction([
+            this.prisma.documentModel.findMany({
+                skip, take,
+                orderBy: { createdAt: 'desc' },
+                include: { documentType: true, folder: true }
+            }),
+            this.prisma.documentModel.count()
+        ]);
+        return { data: models.map(DocumentMapper.toDomain), total };
     }
+
+    async findById(id: string): Promise<DocumentEntity | null> {
+        const model = await this.prisma.documentModel.findUnique({
+            where: { id },
+            include: { attachments: true, documentType: true, folder: true, user: true }
+        });
+        if (!model) return null;
+        return DocumentMapper.toDomain(model);
+    }
+
+
 }

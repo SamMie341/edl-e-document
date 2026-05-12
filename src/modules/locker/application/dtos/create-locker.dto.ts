@@ -1,8 +1,7 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateLockerDto {
-
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດຕູ້' })
     @IsString()
     code: string;
 
@@ -14,11 +13,7 @@ export class CreateLockerDto {
     @IsString()
     description?: string;
 
-    @IsOptional()
-    @IsNumber()
-    branchId?: number;
-
-    @IsOptional()
-    @IsNumber()
-    departmentId?: number;
+    @IsOptional({ message: 'ກະລຸນາລະບຸ ID ຂອງສາງເອກະສານ' })
+    @IsString()
+    warehouseId?: string;
 }

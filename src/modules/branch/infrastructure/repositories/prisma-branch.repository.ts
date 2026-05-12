@@ -21,13 +21,4 @@ export class PrismaBranchRepositoy implements IBranchRepository {
         return BranchMapper.toDomain(model);
     }
 
-    async save(branch: Branch): Promise<void> {
-        const data = BranchMapper.toPersistence(branch);
-        await this.prisma.branchModel.upsert({
-            where: { id: data.id },
-            update: data,
-            create: data,
-        });
-    }
-
 }

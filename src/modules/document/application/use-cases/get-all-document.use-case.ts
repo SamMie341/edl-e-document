@@ -1,7 +1,6 @@
-
 import * as documentRepositoryInterface from '../../domain/repositories/document.repository.interface';
-import { HttpStatus, Inject, Injectable } from "@nestjs/common";
-import { AppException } from 'src/core/exceptions/app.exception';
+import { Inject, Injectable } from "@nestjs/common";
+import { PaginatedResult } from 'src/core/interfaces/paginated-result.interface';
 
 @Injectable()
 export class GetAllDocumentUseCase {
@@ -10,16 +9,11 @@ export class GetAllDocumentUseCase {
         private readonly documentRepository: documentRepositoryInterface.IDocumentRepository
     ) { }
 
-    async execute() {
-        const doc = await this.documentRepository.findAll();
-        if (!doc) {
-            throw new AppException(
-                'DOCUMENT_NOT_FOUND',
-                'ບໍ່ພົບເອກະສານ...',
-                '',
-                HttpStatus.NOT_FOUND,
-            );
-        }
-        return doc;
+    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
+        const skip = (page - 1) * limit;
+        const { data, total } = await this.documentRepository.findAll(skip, limit);
+        const totalPages = Math.ceil(total / limit);
+
+        return { data, meta: { total, page, limit, totalPages } };
     }
 }

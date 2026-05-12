@@ -5,9 +5,9 @@ export class DocumentTypeMapper {
     static toDomain(model: DocumentTypeModel): DocumentType {
         return new DocumentType(
             model.id,
+            model.code,
             model.name,
             model.description,
-            model.isActive,
             model.createdAt,
             model.updatedAt,
         );
@@ -16,9 +16,9 @@ export class DocumentTypeMapper {
     static toPersistence(entity: DocumentType): any {
         return {
             id: entity.id,
+            code: entity.code,
             name: entity.name,
             description: entity.description,
-            isActive: entity.isActive,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

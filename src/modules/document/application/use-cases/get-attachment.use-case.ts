@@ -30,9 +30,9 @@ export class GetAttachmentUseCase {
         if (user.role === Role.USER && doc.userId !== user.userId) {
             throw new AppException('UNAUTHORIZATION', 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ຂອງເອກະສານສະບັບນີ້', '', HttpStatus.UNAUTHORIZED);
         }
-        if (user.role === Role.BRANCH_ADMIN && doc.branchId !== user.branchId) {
-            throw new AppException('UNAUTHORIZATION', 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ສາຂາອື່ນ', '', HttpStatus.UNAUTHORIZED);
-        }
+        // if (user.role === Role.BRANCH_ADMIN && doc.branchId !== user.branchId) {
+        //     throw new AppException('UNAUTHORIZATION', 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ສາຂາອື່ນ', '', HttpStatus.UNAUTHORIZED);
+        // }
 
         if (!fs.existsSync(attachment.filePath)) {
             throw new AppException('NOT_FOUND', 'ໄຟລ໌ສຸູນຫາຍ ຫຼື ຖືກລຶບອອກຈາກລະບົບແລ້ວ', `${attachment.filePath}`, HttpStatus.NOT_FOUND);

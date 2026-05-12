@@ -35,13 +35,7 @@ export class UpdateDocumentTypeUseCase {
             }
         }
 
-        documentType.update(
-            dto.name ?? documentType.name,
-            dto.description,
-            dto.isActive,
-        );
-
-        await this.documentTypeRepository.save(documentType);
+        await this.documentTypeRepository.create(documentType);
         return documentType;
     }
 }

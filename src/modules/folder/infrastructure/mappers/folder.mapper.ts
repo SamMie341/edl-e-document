@@ -5,8 +5,12 @@ export class FolderMapper {
     static toDomain(model: FolderModel): Folder {
         return new Folder(
             model.id,
-            model.folderCode,
-            model.contentName,
+            model.code,
+            model.name,
+            model.status,
+            model.qrCode,
+            model.locationRef,
+            model.shelfId,
             model.createdAt,
             model.updatedAt,
         );
@@ -15,8 +19,12 @@ export class FolderMapper {
     static toPersistence(entity: Folder): any {
         return {
             id: entity.id,
-            name: entity.name,
-            description: entity.description,
+            folderCode: entity.code,
+            contentName: entity.name,
+            status: entity.status,
+            qrCode: entity.qrCode,
+            locationRef: entity.locationRef,
+            shelfId: entity.shelfId,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
         };

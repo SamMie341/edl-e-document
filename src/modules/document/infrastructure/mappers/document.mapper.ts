@@ -1,33 +1,38 @@
-import { DocumentModel } from '@prisma/client';
-import { Document } from '../../domain/entities/document.entity';
-import { DocumentStatus } from '../../domain/value-objects/document-status.enum';
+
+import { DocumentEntity } from '../../domain/entities/document.entity';
 
 export class DocumentMapper {
-    // แปลงจาก Database Model -> Domain Entity
-    static toDomain(prismaModel: DocumentModel): Document {
-        return new Document(
-            prismaModel.id,
-            prismaModel.title,
-            prismaModel.content,
-            prismaModel.status as DocumentStatus, // Casting string กลับเป็น Enum
-            prismaModel.userId,
-            prismaModel.branchId,
-            prismaModel.folderId || '',
-            prismaModel.createdAt,
-            prismaModel.updatedAt,
+    static toDomain(model: any): DocumentEntity {
+        return new DocumentEntity(
+            model.id,
+            model.docNo,
+            model.docDate,
+            model.subDocNo,
+            model.subDocDate,
+            model.title,
+            model.description,
+            model.status,
+            model.docExpire,
+            model.qrCode,
+            model.userId,
+            model.folderId,
+            model.documentTypeId,
+            model.createdAt,
+            model.updatedAt,
+            model.attachments || [],
         );
     }
 
     // แปลงจาก Domain Entity -> Database Model (เพื่อนำไป save)
-    static toPersistence(domainEntity: Document): any {
-        return {
-            id: domainEntity.id,
-            title: domainEntity.title,
-            content: domainEntity.content,
-            status: domainEntity.status,
-            creatorId: domainEntity.userId,
-            createdAt: domainEntity.createdAt,
-            updatedAt: domainEntity.updatedAt,
-        }
-    }
+    // static toPersistence(domainEntity: Document): any {
+    //     return {
+    //         id: domainEntity.id,
+    //         title: domainEntity.title,
+    //         content: domainEntity.content,
+    //         status: domainEntity.status,
+    //         creatorId: domainEntity.userId,
+    //         createdAt: domainEntity.createdAt,
+    //         updatedAt: domainEntity.updatedAt,
+    //     }
+    // }
 }

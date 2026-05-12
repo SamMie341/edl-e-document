@@ -11,46 +11,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model DocumentTypeModel {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  documents DocumentModel[]
-
-  @@map("document_types")
-}
-
-model DocumentModel {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  branchId Int?
-
-  userId String
-  user   UserModel @relation(fields: [userId], references: [id])
-
-  folderId String?
-  folder   FolderModel? @relation(fields: [folderId], references: [id])
-
-  documentTypeId String?
-  documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
-
-  departmentId Int?
-  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
-
-  attachments AttachmentModel[]
-
-  @@map("documents")
-}
-
 model UserModel {
   id       String @id @default(uuid())
   username String @unique
@@ -105,24 +65,6 @@ model AttachmentModel {
   @@map("attachments")
 }
 
-model FolderModel {
-  id          String  @id @default(uuid())
-  folderCode  String  @unique
-  contentName String
-  locationRef String?
-  status      String  @default("A")
-
-  documents DocumentModel[]
-
-  shelfId String
-  shelf   ShelfModel @relation(fields: [shelfId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("folders")
-}
-
 model BranchModel {
   id     Int     @id
   code   String?
@@ -134,7 +76,8 @@ model BranchModel {
 
   divisions DivisionModel[]
   users     UserModel[]
-  lockers   LockerModel[]
+  warehouse WarehouseModel[]
+  addresses AddressModel[]
 
   @@map("branches")
 }
@@ -150,9 +93,10 @@ model DepartmentModel {
   updatedAt DateTime @updatedAt
 
   users     UserModel[]
-  documents DocumentModel[]
   divisions DivisionModel[]
-  lockers   LockerModel[]
+  offices   OfficeModel[]
+  units     UnitModel[]
+  // warehouses WarehouseModel[]
 
   @@map("departments")
 }
@@ -173,9 +117,11 @@ model DivisionModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users   UserModel[]
-  offices OfficeModel[]
-  units   UnitModel[]
+  users     UserModel[]
+  offices   OfficeModel[]
+  units     UnitModel[]
+  // warehouses WarehouseModel[]
+  addresses AddressModel[]
 
   @@map("divisions")
 }
@@ -186,8 +132,10 @@ model OfficeModel {
   name   String
   status String
 
-  divisionId Int?
-  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
 
   users UserModel[]
   units UnitModel[]
@@ -205,11 +153,12 @@ model UnitModel {
   type   String
   status String
 
-  officeId Int?
-  office   OfficeModel? @relation(fields: [officeId], references: [id])
-
-  divisionId Int?
-  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  officeId     Int?
+  office       OfficeModel?     @relation(fields: [officeId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
 
   users UserModel[]
 
@@ -219,6 +168,50 @@ model UnitModel {
   @@map("units")
 }
 
+model AddressModel {
+  id      String @id @default(uuid())
+  code    String @unique
+  name    String
+  details String
+  status  String @default("A")
+
+  branchId   Int?
+  branch     BranchModel?   @relation(fields: [branchId], references: [id])
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+
+  warehouses WarehouseModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+model WarehouseModel {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String?
+  status      String  @default("A")
+
+  addressId String?
+  address   AddressModel? @relation(fields: [addressId], references: [id])
+  branchId  Int
+  branch    BranchModel   @relation(fields: [branchId], references: [id])
+  // departmentId Int?
+  // department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  // divisionId   Int?
+  // division     DivisionModel?   @relation(fields: [divisionId], references: [id])
+
+  lockers LockerModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("warehouses")
+}
+
 model LockerModel {
   id          String  @id @default(uuid())
   code        String  @unique
@@ -226,10 +219,8 @@ model LockerModel {
   description String?
   status      String  @default("A")
 
-  branchId     Int?
-  branch       BranchModel?     @relation(fields: [branchId], references: [id])
-  departmentId Int?
-  deparment    DepartmentModel? @relation(fields: [departmentId], references: [id])
+  warehouseId String?
+  warehouse   WarehouseModel? @relation(fields: [warehouseId], references: [id])
 
   shelves ShelfModel[]
 
@@ -241,9 +232,11 @@ model LockerModel {
 
 model ShelfModel {
   id          String  @id @default(uuid())
-  code        String
+  code        String  @unique
+  name        String
   description String?
   status      String  @default("A")
+  maxQty      Int
 
   lockerId String
   locker   LockerModel @relation(fields: [lockerId], references: [id])
@@ -254,6 +247,67 @@ model ShelfModel {
   updatedAt DateTime @updatedAt
 
   @@map("shelves")
+}
+
+model FolderModel {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  status      String  @default("A")
+  qrCode      String
+  locationRef String?
+
+  shelfId String
+  shelf   ShelfModel @relation(fields: [shelfId], references: [id])
+
+  documents DocumentModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("folders")
+}
+
+model DocumentTypeModel {
+  id          String   @id @default(uuid())
+  code        String?
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents DocumentModel[]
+
+  @@map("document_types")
+}
+
+model DocumentModel {
+  id          String    @id @default(uuid())
+  docNo       String    @unique
+  docDate     DateTime
+  subDocNo    String?
+  subDocDate  DateTime?
+  title       String
+  description String
+  status      String
+  docExpire   DateTime
+  qrCode      String
+
+  userId String
+  user   UserModel @relation(fields: [userId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  documentTypeId String?
+  documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
+
+  attachments AttachmentModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("documents")
 }
 
 model AuditLogModel {

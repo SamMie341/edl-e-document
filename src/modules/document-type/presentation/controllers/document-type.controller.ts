@@ -8,6 +8,7 @@ import {
     Param,
     Post,
     Put,
+    Query,
     UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
@@ -36,20 +37,27 @@ export class DocumentTypeController {
     ) { }
 
     @Post()
-    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
+    @Roles(Role.HQ_ADMIN)
     async create(@Body() dto: CreateDocumentTypeDto) {
-        const documentType = await this.createDocumentTypeUseCase.execute(dto);
+        const type = await this.createDocumentTypeUseCase.execute(dto);
         return {
             message: 'ເພີ່ມປະເພດເອກະສານສຳເລັດ',
-            data: documentType,
+            data: type,
         };
     }
 
     @Get()
-    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
-    async findAll() {
-        const documentTypes = await this.getAllDocumentTypesUseCase.execute();
-        return { data: documentTypes };
+    async findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '100',
+    ) {
+        const pageNumber = parseInt(page, 10) || 1;
+        const limitNumber = parseInt(limit, 10) || 100;
+        const result = await this.getAllDocumentTypesUseCase.execute(pageNumber, limitNumber);
+        return {
+            message: 'Success',
+            ...result,
+        };
     }
 
     @Get('name/:name')

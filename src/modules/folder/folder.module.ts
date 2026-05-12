@@ -4,12 +4,16 @@ import { CreateFolderUseCase } from "./application/use-cases/create-folder.use-c
 import { FOLDER_REPOSITORY } from "./domain/repositories/folder.repository.interface";
 import { PrismaFolderRepository } from "./infrastructure/repositories/prisma-folder.repository";
 import { AuditModule } from "../audit/audit.module";
+import { GetFoldersByShelfUseCase } from "./application/use-cases/get-folders-by-shelf.use-case";
+import { GetAllFolderUseCase } from "./application/use-cases/get-all-folders.use-case";
 
 @Module({
     imports: [AuditModule],
     controllers: [FolderController],
     providers: [
         CreateFolderUseCase,
+        GetAllFolderUseCase,
+        GetFoldersByShelfUseCase,
         {
             provide: FOLDER_REPOSITORY,
             useClass: PrismaFolderRepository,

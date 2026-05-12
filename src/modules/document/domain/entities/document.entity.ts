@@ -1,50 +1,23 @@
+import { DocStatus } from 'src/core/constants/document-status.enum';
 import { DocumentStatus } from '../value-objects/document-status.enum';
 
-export class Document {
+export class DocumentEntity {
     constructor(
-        public readonly id: string, // ใช้ string (UUID)
+        public readonly id: string,
+        public docNo: string,
+        public docDate: Date,
+        public subDocNo: string | null,
+        public subDocDate: Date | null,
         public title: string,
-        public content: string,
-        public status: DocumentStatus,
-        public readonly userId: string,
-        public branchId: number | null,
-        public readonly folderId: string,
+        public description: string,
+        public status: string,
+        public docExpire: Date,
+        public qrCode: string,
+        public userId: string,
+        public folderId: string | null,
+        public documentTypeId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
+        public attachments?: any[],
     ) { }
-
-    // ---------------------------------------------------------
-    // Business Behaviors (กฎของธุรกิจ)
-    // ---------------------------------------------------------
-
-    // การส่งเอกสารเพื่อขออนุมัติ
-    submitForApproval(): void {
-        if (this.status !== DocumentStatus.DRAFT) {
-            throw new Error('สามารถส่งขออนุมัติได้เฉพาะเอกสารที่มีสถานะ DRAFT เท่านั้น');
-        }
-        this.status = DocumentStatus.PENDING;
-        this.markAsUpdated();
-    }
-
-    // การอนุมัติเอกสาร
-    approve(): void {
-        if (this.status !== DocumentStatus.PENDING) {
-            throw new Error('สามารถอนุมัติได้เฉพาะเอกสารที่รอการตรวจสอบ (PENDING) เท่านั้น');
-        }
-        this.status = DocumentStatus.APPROVED;
-        this.markAsUpdated();
-    }
-
-    // การปฏิเสธเอกสาร
-    reject(): void {
-        if (this.status !== DocumentStatus.PENDING) {
-            throw new Error('สามารถปฏิเสธได้เฉพาะเอกสารที่รอการตรวจสอบ (PENDING) เท่านั้น');
-        }
-        this.status = DocumentStatus.REJECTED;
-        this.markAsUpdated();
-    }
-
-    private markAsUpdated(): void {
-        this.updatedAt = new Date();
-    }
 }

@@ -15,6 +15,8 @@ import { TaskModule } from './core/tasks/task.module';
 import { UnitModule } from './modules/unit/unit.module';
 import { LockerModule } from './modules/locker/locker.module';
 import { ShelfModule } from './modules/shelf/shelf.module';
+import { WarehouseModule } from './modules/warehouse/warehouse.module';
+import { AddressModule } from './modules/address/address.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { ShelfModule } from './modules/shelf/shelf.module';
     UnitModule,
     LockerModule,
     ShelfModule,
+    WarehouseModule,
+    AddressModule,
 
     HrmModule,
   ],
