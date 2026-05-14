@@ -13,17 +13,16 @@ datasource db {
 
 model UserModel {
   id       String @id @default(uuid())
-  username String @unique
   password String
   role     String
 
-  empId        Int?     @unique
-  empCode      String?
+  empId        Int?
+  empCode      String?  @unique
   firstNameLa  String?
   lastNameLa   String?
   firstNameEng String?
   lastNameEng  String?
-  email        String?
+  email        String?  @unique
   phone        String?
   status       String?
   gender       String?

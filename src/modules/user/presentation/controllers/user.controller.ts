@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Query, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/core/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "src/core/auth/guards/roles.guard";
 import { ChangePasswordUseCase } from "../../application/use-cases/change-password.use-case";
@@ -10,6 +10,8 @@ import { GetProfileUseCase } from "../../application/use-cases/get-profile.use-c
 import { GetAllUsersUseCase } from "../../application/use-cases/get-all-users.use-case";
 import { UpdateUserRoleUseCase } from "../../application/use-cases/update-user-role.use-case";
 import { UpdateRoleDto } from "../../application/dtos/update-role.dto";
+import { ApproveUserUseCase } from "../../application/use-cases/approve-user.use-case";
+import { ApproveUserDto } from "../../application/dtos/approve-user.dto";
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -20,6 +22,7 @@ export class UserController {
         private readonly getProfileUseCase: GetProfileUseCase,
         private readonly getAllUsersUseCase: GetAllUsersUseCase,
         private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
+        private readonly approveUserUseCase: ApproveUserUseCase,
     ) { }
 
     @Put('change-password')
@@ -69,6 +72,15 @@ export class UserController {
     ) {
         await this.updateUserRoleUseCase.execute(targetUserId, dto.role);
         return { message: 'ປ່ຽນສິດຜູ້ໃຊ້ສຳເລັດ' };
+    }
+
+    @Patch(':id/approve')
+    @Roles(Role.SUPER_ADMIN)
+    async approveUser(
+        @Param('id') id: string,
+        @Body() dto: ApproveUserDto,
+    ) {
+        return await this.approveUserUseCase.execute(id, dto);
     }
 
 }

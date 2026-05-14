@@ -12,6 +12,8 @@ import { SyncUserFromHrmUseCase } from "./application/use-cases/sync-user-from-h
 import { GetProfileUseCase } from "./application/use-cases/get-profile.use-case";
 import { GetAllUsersUseCase } from "./application/use-cases/get-all-users.use-case";
 import { UpdateUserRoleUseCase } from "./application/use-cases/update-user-role.use-case";
+import { RegisterUseCase } from "./application/use-cases/register.use-case";
+import { ApproveUserUseCase } from "./application/use-cases/approve-user.use-case";
 
 @Module({
     imports: [
@@ -23,6 +25,8 @@ import { UpdateUserRoleUseCase } from "./application/use-cases/update-user-role.
     ],
     controllers: [AuthController, UserController],
     providers: [
+        RegisterUseCase,
+        ApproveUserUseCase,
         LoginUseCase,
         SyncUserFromHrmUseCase,
         ChangePasswordUseCase,

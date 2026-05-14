@@ -40,6 +40,7 @@ export class User {
             empCode: this.empCode,
             firstNameLa: this.firstNameLa,
             lastNameLa: this.lastNameLa,
+            email: this.email,
             role: this.role,
             gender: this.gender,
             status: this.status,

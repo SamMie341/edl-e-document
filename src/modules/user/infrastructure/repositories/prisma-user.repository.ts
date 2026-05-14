@@ -14,8 +14,19 @@ export class PrismaUserRepository implements IUserRepository {
         });
         return UserMapper.toDomain(model);
     }
-    update(id: string, data: any): Promise<User> {
-        throw new Error("Method not implemented.");
+    async update(id: string, data: any): Promise<User> {
+        const model = await this.prisma.userModel.update({
+            where: { id },
+            data,
+            include: {
+                branch: true,
+                department: true,
+                division: true,
+                office: true,
+                unit: true,
+            }
+        });
+        return UserMapper.toDomain(model);
     }
 
     async findAll(skip?: number, take?: number): Promise<{ data: User[], total: number }> {
@@ -55,9 +66,24 @@ export class PrismaUserRepository implements IUserRepository {
         return UserMapper.toDomain(model);
     }
 
-    async findByUsername(username: string): Promise<User | null> {
+    async findByEmpCode(empCode: string): Promise<User | null> {
         const model = await this.prisma.userModel.findUnique({
-            where: { username },
+            where: { empCode },
+            include: {
+                branch: true,
+                department: true,
+                division: true,
+                office: true,
+                unit: true,
+            }
+        });
+        if (!model) return null;
+        return UserMapper.toDomain(model);
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        const model = await this.prisma.userModel.findUnique({
+            where: { email },
             include: {
                 branch: true,
                 department: true,

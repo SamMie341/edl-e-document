@@ -67,7 +67,6 @@ export class SyncUserFromHrmUseCase {
                 lastNameLa: hrmData.last_name_la,
                 firstNameEng: hrmData.first_name_eng,
                 lastNameEng: hrmData.last_name_eng,
-                email: hrmData.email,
                 phone: hrmData.phone,
                 status: hrmData.status,
                 gender: hrmData.gender,

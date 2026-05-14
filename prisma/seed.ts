@@ -13,10 +13,9 @@ async function main() {
 
   // 🌟 ใช้คำสั่ง upsert เพื่อป้องกัน Error กรณีที่กด Seed ซ้ำ
   const superAdmin = await prisma.userModel.upsert({
-    where: { username: 'superadmin' }, // เช็คว่ามี username นี้หรือยัง
+    where: { email: 'superadmin' }, // เช็คว่ามี username นี้หรือยัง
     update: {}, // ถ้ามีแล้ว ไม่ต้องทำอะไร
     create: {
-      username: 'superadmin',
       password: hashedPassword,
       role: 'SUPER_ADMIN', // 👈 ต้องตรงกับ Enum หรือรูปแบบสิทธิ์ในระบบของคุณ
       empCode: 'ADMIN000',
@@ -31,7 +30,7 @@ async function main() {
   });
 
   console.log(`✅ ສ້າງ Super Admin ສຳເລັດແລ້ວ!`);
-  console.log(`👤 Username: ${superAdmin.username}`);
+  console.log(`👤 Username: ${superAdmin.email}`);
   console.log(`🔑 Password: ${defaultPassword}`);
 }
 

@@ -17,18 +17,20 @@ export class LoginUseCase {
         private readonly jwtService: JwtService,
         @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
         private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
-        private readonly syncUserFromHrmUseCase: SyncUserFromHrmUseCase,
     ) { }
 
     async execute(dto: LoginDto): Promise<{ accessToken: string, user: any }> {
 
-        let user = await this.userRepository.findByUsername(dto.username);
-        if (!user) {
-            user = await this.syncUserFromHrmUseCase.execute(dto.username);
+        let user = await this.userRepository.findByEmail(dto.email);
 
-            if (!user) {
-                throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ...');
-            }
+        if (!user) {
+            throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ HRMS...');
+        }
+
+        if (user.status === 'P') {
+            throw new UnauthorizedException('ບັນຊີຂອງທ່ານຍັງບໍ່ທັນອະນຸມັດ');
+        } else if (user.status !== 'A') {
+            throw new UnauthorizedException('ບັນຊີຂອງທ່ານຖືກລະງັບການນຳໃຊ້');
         }
 
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
@@ -38,7 +40,7 @@ export class LoginUseCase {
 
         const payload = {
             sub: user.id,
-            username: user.username,
+            email: user.email,
             role: user.role,
             branchId: user.branchId,
             departmentId: user.departmentId,

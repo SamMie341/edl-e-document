@@ -27,9 +27,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     private async seedSuperAdmin() {
         try {
+            const superAdminEmail = 'superadmin@edl.com.la';
             // 1. ກວດເບິ່ງວ່າມີ superadmin ໃນລະບົບແລ້ວຫຼືຍັງ?
             const adminExist = await this.userModel.findUnique({
-                where: { username: 'superadmin' },
+                where: { email: superAdminEmail },
             });
 
             // 2. ຖ້າຍັງບໍ່ມີ ໃຫ້ສ້າງໃໝ່
@@ -42,7 +43,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
                 await this.userModel.create({
                     data: {
-                        username: 'superadmin',
+                        email: superAdminEmail,
                         password: hashedPassword,
                         role: 'SUPER_ADMIN',
                         empCode: 'ADMIN000',
@@ -51,7 +52,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                         lastNameLa: 'ສູງສຸດ',
                         firstNameEng: 'Super',
                         lastNameEng: 'Admin',
-                        email: 'superadmin@edl.com.la',
                         status: 'A',
                     },
                 });

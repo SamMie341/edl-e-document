@@ -5,7 +5,8 @@ export const USER_REPOSITORY = Symbol('USER_REPOSITORY');
 
 export interface IUserRepository {
     findAll(skip?: number, take?: number): Promise<{ data: User[], total: number }>;
-    findByUsername(username: string): Promise<User | null>;
+    findByEmpCode(empCode: string): Promise<User | null>;
+    findByEmail(email: string): Promise<User | null>;
     findById(id: string): Promise<User | null>;
 
     create(userData: any): Promise<User>;
