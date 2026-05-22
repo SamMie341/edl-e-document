@@ -6,7 +6,6 @@ export class UserMapper {
     static toDomain(model: any): User {
         return new User(
             model.id,
-            model.username,
             model.password,
             model.role as Role,
 
@@ -41,7 +40,6 @@ export class UserMapper {
     static toPersistence(entity: User): any {
         return {
             id: entity.id,
-            username: entity.username,
             password: entity.password,
             role: entity.role,
 

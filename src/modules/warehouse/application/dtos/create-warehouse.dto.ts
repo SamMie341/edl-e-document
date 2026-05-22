@@ -20,12 +20,4 @@ export class CreateWarehouseDto {
     @IsOptional()
     @IsString()
     addressId: string;
-
-    // @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດຝ່າຍ' })
-    // @IsNumber()
-    // departmentId: number;
-
-    // @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດພະແນກ ຫຼື ສາຂາ' })
-    // @IsNumber()
-    // divisionId: number;
 }

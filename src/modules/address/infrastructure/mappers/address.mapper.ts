@@ -1,8 +1,8 @@
-import { AddressModel } from "@prisma/client";
+import { AddressModel, DivisionModel } from "@prisma/client";
 import { Address } from "../../domain/entities/address.entity";
 
 export class AddressMapper {
-    static toDomain(model: AddressModel): Address {
+    static toDomain(model: AddressModel & { division?: DivisionModel | null }): Address {
         return new Address(
             model.id,
             model.code,

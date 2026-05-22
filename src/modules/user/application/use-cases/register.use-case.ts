@@ -22,6 +22,11 @@ export class RegisterUseCase {
         const existingEmail = await this.userRepository.findByEmail(dto.email);
         if (existingEmail) throw new ConflictException('ອີເມວນີ້ຖືກນຳໃຊ້ໃນລະບົບແລ້ວ...');
 
+        const existingEmpCode = await this.userRepository.findByEmpCode(dto.empCode);
+        if (existingEmpCode) {
+            throw new ConflictException('ລະຫັດພະນັກງານນີ້ໄດ້ລົງທະບຽນໃນລະບົບແລ້ວ');
+        }
+
         let hrmData: any = null;
 
         try {

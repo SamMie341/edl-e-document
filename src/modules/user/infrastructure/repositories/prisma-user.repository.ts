@@ -29,9 +29,11 @@ export class PrismaUserRepository implements IUserRepository {
         return UserMapper.toDomain(model);
     }
 
-    async findAll(skip?: number, take?: number): Promise<{ data: User[], total: number }> {
+    async findAll(skip?: number, take?: number, status?: string): Promise<{ data: User[], total: number }> {
+        const whereCondition = status ? { status: status } : {};
         const [models, total] = await this.prisma.$transaction([
             this.prisma.userModel.findMany({
+                where: whereCondition,
                 skip: skip,
                 take: take,
                 include: {
@@ -43,7 +45,7 @@ export class PrismaUserRepository implements IUserRepository {
                 },
                 orderBy: { createdAt: 'desc' }
             }),
-            this.prisma.userModel.count()
+            this.prisma.userModel.count({ where: whereCondition })
         ]);
         return {
             data: models.map(model => UserMapper.toDomain(model)),

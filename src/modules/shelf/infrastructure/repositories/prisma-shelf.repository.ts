@@ -1,5 +1,5 @@
-import { ConflictException, Injectable } from "@nestjs/common";
-import { IShelfRepository } from "../../domain/repositories/shelf.repositories.interface";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { IShelfRepository, ShelfFilterParams } from "../../domain/repositories/shelf.repositories.interface";
 import { Shelf } from "../../domain/entitites/shelf.entity";
 import { PrismaService } from "src/core/database/prisma.service";
 import { ShelfMapper } from "../mappers/shelf.mapper";
@@ -9,24 +9,42 @@ export class PrismaShelfRepository implements IShelfRepository {
 
     constructor(private readonly prisma: PrismaService) { }
 
-    async findAll(skip?: number, take?: number): Promise<{ data: Shelf[]; total: number; }> {
-        const [models, total] = await this.prisma.$transaction([
+    async findAll(params: ShelfFilterParams): Promise<{ data: Shelf[]; total: number; }> {
+        const { page = 1, limit = 10, search, lockerId, warehouseId, branchId, status } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = {};
+        if (status) where.status = status;
+        if (lockerId) where.lockerId = lockerId;
+        if (warehouseId) where.locker = { warehouseId };
+        if (branchId) where.locker = { warehouse: { branchId } };
+        if (search) {
+            where.OR = [
+                { code: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        const [models, total] = await Promise.all([
             this.prisma.shelfModel.findMany({
-                skip, take,
-                orderBy: { code: 'asc' },
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
             }),
-            this.prisma.shelfModel.count(),
+            this.prisma.shelfModel.count({ where }),
         ]);
 
         return {
             data: models.map(ShelfMapper.toDomain),
             total,
-        }
+        };
     }
 
     async create(data: any): Promise<Shelf> {
-        const existing = await this.prisma.shelfModel.findFirst({
-            where: { code: data.code, lockerId: data.lockerId }
+        const existing = await this.prisma.shelfModel.findUnique({
+            where: { code: data.code }
         });
         if (existing) {
             throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
@@ -42,5 +60,33 @@ export class PrismaShelfRepository implements IShelfRepository {
             orderBy: { code: 'asc' }
         });
         return models.map(model => ShelfMapper.toDomain(model));
+    }
+
+    async update(id: string, data: any): Promise<Shelf> {
+        const existing = await this.prisma.shelfModel.findUnique({ where: { id } });
+        if (!existing) {
+            throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
+        }
+
+        // Check if new code conflicts with another shelf
+        if (data.code && data.code !== existing.code) {
+            const codeExists = await this.prisma.shelfModel.findUnique({
+                where: { code: data.code }
+            });
+            if (codeExists) {
+                throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
+            }
+        }
+
+        const model = await this.prisma.shelfModel.update({ where: { id }, data });
+        return ShelfMapper.toDomain(model);
+    }
+
+    async delete(id: string): Promise<void> {
+        const existing = await this.prisma.shelfModel.findUnique({ where: { id } });
+        if (!existing) {
+            throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
+        }
+        await this.prisma.shelfModel.delete({ where: { id } });
     }
 }

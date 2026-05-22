@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { IDocumentRepository } from '../../domain/repositories/document.repository.interface';
+import { DocumentFilterParams, IDocumentRepository } from '../../domain/repositories/document.repository.interface';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { DocumentEntity } from '../../domain/entities/document.entity';
 import { DocumentMapper } from '../mappers/document.mapper';
@@ -34,16 +34,40 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         return DocumentMapper.toDomain(model);
     }
 
-    async findAll(skip?: number, take?: number): Promise<{ data: DocumentEntity[]; total: number; }> {
+    async findAll(params: DocumentFilterParams): Promise<{ data: DocumentEntity[]; total: number; }> {
+        const { page = 1, limit = 10, status, documentTypeId, startDate, endDate, search, branchId } = params;
+        const skip = (page - 1) * limit;
+        const whereCondition: any = {};
+        if (branchId) {
+            whereCondition.branchId = branchId;
+        }
+
+        if (status) whereCondition.status = status;
+        if (documentTypeId) whereCondition.documentTypeId = Number(documentTypeId);
+        if (startDate || endDate) {
+            whereCondition.createdAt = {};
+            if (startDate) {
+                whereCondition.createdAt.gte = new Date(`${startDate}T00:00:00.000Z`);
+            }
+            if (endDate) {
+                whereCondition.createAt.lte = new Date(`${endDate}T23:59:59.999Z`);
+            }
+        }
+        if (search) {
+            whereCondition.OR = [
+                { docNo: { contains: search, mode: 'insensitive' } },
+                { title: { contains: search, mode: 'insensitive' } },
+            ];
+        }
         const [models, total] = await this.prisma.$transaction([
             this.prisma.documentModel.findMany({
-                skip, take,
+                skip, take: limit,
+                include: { documentType: true, folder: true },
                 orderBy: { createdAt: 'desc' },
-                include: { documentType: true, folder: true }
             }),
-            this.prisma.documentModel.count()
+            this.prisma.documentModel.count({ where: whereCondition })
         ]);
-        return { data: models.map(DocumentMapper.toDomain), total };
+        return { data: models.map(model => DocumentMapper.toDomain(model)), total };
     }
 
     async findById(id: string): Promise<DocumentEntity | null> {

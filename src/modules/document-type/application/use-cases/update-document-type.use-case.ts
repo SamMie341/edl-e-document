@@ -22,7 +22,7 @@ export class UpdateDocumentTypeUseCase {
             );
         }
 
-        // Check name uniqueness if name is being changed
+        // ກວດສອບຊື່ຊ້ຳ ຖ້າມີການປ່ຽນຊື່
         if (dto.name && dto.name !== documentType.name) {
             const existing = await this.documentTypeRepository.findByName(dto.name);
             if (existing) {
@@ -35,7 +35,6 @@ export class UpdateDocumentTypeUseCase {
             }
         }
 
-        await this.documentTypeRepository.create(documentType);
-        return documentType;
+        return await this.documentTypeRepository.update(id, dto);
     }
 }

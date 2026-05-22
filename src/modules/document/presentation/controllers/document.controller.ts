@@ -28,10 +28,35 @@ export class DocumentController {
 
     @Get()
     // @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.SUPER_ADMIN, Role.USER)
-    async findAll(@Query('page') page: string = '1', @Query('limit') limit: string = '10',) {
-        const pageNumber = parseInt(page, 10) || 1;
-        const limitNumber = parseInt(limit, 10) || 10;
-        const result = await this.getAllDocumentUseCase.execute(pageNumber, limitNumber);
+    async getAllDocument(
+        @Req() req: any,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
+        @Query('status') status?: string,
+        @Query('documentTypeId') documentTypeId?: string,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+        @Query('search') search?: string,
+        @Query('branchId') requestedBranchId?: string,
+    ) {
+        const user = req.user;
+        let finalBranchId: number | undefined = undefined;
+        if (user.role === Role.SUPER_ADMIN || user.role === Role.HQ_ADMIN) {
+            finalBranchId = requestedBranchId ? parseInt(requestedBranchId) : undefined;
+        } else {
+            finalBranchId = user.branchId;
+        }
+        const params = {
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            status,
+            documentTypeId: documentTypeId ? parseInt(documentTypeId) : undefined,
+            startDate,
+            endDate,
+            search,
+            branchId: finalBranchId,
+        };
+        const result = await this.getAllDocumentUseCase.execute(params);
         return {
             message: 'Success',
             ...result,

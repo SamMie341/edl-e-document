@@ -1,6 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
 import * as lockerRepositoryInterface from "../../domain/repositories/locker.repository.interface";
-import { PaginatedResult } from "src/core/interfaces/paginated-result.interface";
 
 @Injectable()
 export class GetAllLockersUseCase {
@@ -9,14 +8,16 @@ export class GetAllLockersUseCase {
         private readonly lockerRepository: lockerRepositoryInterface.ILockerRepository,
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
-        const skip = (page - 1) * limit;
-        const { data, total } = await this.lockerRepository.findAll(skip, limit);
-        const totalPages = Math.ceil(total / limit);
-
+    async execute(params: lockerRepositoryInterface.LockerFilterParams) {
+        const { data, total } = await this.lockerRepository.findAll(params);
         return {
             data,
-            meta: { total, page, limit, totalPages }
-        }
+            meta: {
+                total,
+                page: params.page || 1,
+                limit: params.limit || 10,
+                totalPages: Math.ceil(total / (params.limit || 10)),
+            },
+        };
     }
 }

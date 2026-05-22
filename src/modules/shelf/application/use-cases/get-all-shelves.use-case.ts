@@ -9,9 +9,10 @@ export class GetAllShelvesUseCase {
         private readonly shelfRepository: shelfRepositoriesInterface.IShelfRepository,
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
-        const skip = (page - 1) * limit;
-        const { data, total } = await this.shelfRepository.findAll(skip, limit);
+    async execute(params: shelfRepositoriesInterface.ShelfFilterParams): Promise<PaginatedResult<any>> {
+        const { data, total } = await this.shelfRepository.findAll(params);
+        const page = params.page || 1;
+        const limit = params.limit || 10;
         const totalPages = Math.ceil(total / limit);
 
         return {

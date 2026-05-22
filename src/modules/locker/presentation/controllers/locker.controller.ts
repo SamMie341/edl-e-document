@@ -1,12 +1,15 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "src/core/auth/guards/jwt-auth.guard";
+import { RolesGuard } from "src/core/auth/guards/roles.guard";
 import { CreateLockerUseCase } from "../../application/use-cases/create-locker.use-case";
 import { GetAllLockersUseCase } from "../../application/use-cases/get-all-lockers.use-case";
+import { GetLockersByWarehouseUseCase } from "../../application/use-cases/get-lockers-by-warehouse.use-case";
+import { UpdateLockerUseCase } from "../../application/use-cases/update-locker.use-case";
+import { DeleteLockerUseCase } from "../../application/use-cases/delete-locker.use-case";
 import { CreateLockerDto } from "../../application/dtos/create-locker.dto";
+import { UpdateLockerDto } from "../../application/dtos/update-locker.dto";
 import { Roles } from "src/core/auth/decorators/roles.decorator";
 import { Role } from "src/core/auth/constants/role.enum";
-import { RolesGuard } from "src/core/auth/guards/roles.guard";
-import { GetLockersByWarehouseUseCase } from "../../application/use-cases/get-lockers-by-warehouse.use-case";
 
 @Controller('lockers')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,31 +18,65 @@ export class LockerController {
         private readonly createLockerUseCase: CreateLockerUseCase,
         private readonly getAllLockerUseCase: GetAllLockersUseCase,
         private readonly getLockersByWarehouseUseCase: GetLockersByWarehouseUseCase,
+        private readonly updateLockerUseCase: UpdateLockerUseCase,
+        private readonly deleteLockerUseCase: DeleteLockerUseCase,
     ) { }
 
-    @Post()
+    // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
     @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-    async create(@Body() dto: CreateLockerDto) {
-        const locker = await this.createLockerUseCase.execute(dto);
-        return { message: 'ເພີ່ມຕູ້ Locker ສຳເລັດ', data: locker };
-    }
-
     @Get()
-    @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     async findAll(
+        @Req() req: any,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10',
+        @Query('search') search?: string,
+        @Query('warehouseId') warehouseId?: string,
+        @Query('status') status?: string,
     ) {
-        const pageNumber = parseInt(page, 10) || 1;
-        const limitNumber = parseInt(limit, 10) || 10;
+        const user = req.user;
+        // BRANCH_ADMIN: ຈຳກັດສະເພາະ branch ຕົນເອງ
+        const branchId = user.role === Role.HQ_ADMIN ? undefined : user.branchId;
 
-        const result = await this.getAllLockerUseCase.execute(pageNumber, limitNumber);
+        const result = await this.getAllLockerUseCase.execute({
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            search,
+            warehouseId,
+            branchId,
+            status,
+        });
         return { message: 'Success', ...result };
     }
 
+    // ─── GET by warehouse — HQ & BRANCH ────────────────────────────────────────
+    @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     @Get('warehouse/:warehouseId')
     async getByWarehouse(@Param('warehouseId') warehouseId: string) {
         const lockers = await this.getLockersByWarehouseUseCase.execute(warehouseId);
         return { message: 'Success', data: lockers };
     }
-}
+
+    // ─── CREATE — HQ & BRANCH ──────────────────────────────────────────────────
+    @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+    @Post()
+    async create(@Body() dto: CreateLockerDto, @Req() req: any) {
+        const locker = await this.createLockerUseCase.execute(dto, req.user);
+        return { message: 'ເພີ່ມຕູ້ Locker ສຳເລັດ', data: locker };
+    }
+
+    // ─── UPDATE — HQ & BRANCH ──────────────────────────────────────────────────
+    @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+    @Put(':id')
+    async update(@Param('id') id: string, @Body() dto: UpdateLockerDto, @Req() req: any) {
+        const locker = await this.updateLockerUseCase.execute(id, dto, req.user);
+        return { message: 'ອັບເດດຕູ້ Locker ສຳເລັດ', data: locker };
+    }
+
+    // ─── DELETE — HQ ເທົ່ານັ້ນ ─────────────────────────────────────────────────
+    @Roles(Role.HQ_ADMIN)
+    @Delete(':id')
+    async delete(@Param('id') id: string) {
+        await this.deleteLockerUseCase.execute(id);
+        return { message: 'ລົບຕູ້ Locker ສຳເລັດ' };
+    }
+}

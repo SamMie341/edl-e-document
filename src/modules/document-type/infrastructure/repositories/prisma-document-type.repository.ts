@@ -1,6 +1,6 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { IDocumentTypeRepository } from '../../domain/repositories/document-type.repository.interface';
+import { DocumentTypeFilterParams, IDocumentTypeRepository } from '../../domain/repositories/document-type.repository.interface';
 import { DocumentType } from '../../domain/entities/document-type.entity';
 import { DocumentTypeMapper } from '../mappers/document-type.mapper';
 
@@ -26,18 +26,31 @@ export class PrismaDocumentTypeRepository implements IDocumentTypeRepository {
         return DocumentTypeMapper.toDomain(model);
     }
 
-    async findAll(skip?: number, take?: number): Promise<{ data: DocumentType[], total: number }> {
-        const [models, total] = await this.prisma.$transaction([
+    async findAll(params: DocumentTypeFilterParams): Promise<{ data: DocumentType[]; total: number }> {
+        const { page = 1, limit = 100, search, status } = params;
+        const skip = (page - 1) * limit;
+
+        const where: any = {};
+        if (status) where.status = status;
+        if (search) {
+            where.OR = [
+                { code: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        const [models, total] = await Promise.all([
             this.prisma.documentTypeModel.findMany({
-                skip, take,
+                where,
+                skip,
+                take: limit,
                 orderBy: { code: 'asc' },
             }),
-            this.prisma.documentTypeModel.count()
+            this.prisma.documentTypeModel.count({ where }),
         ]);
-        return {
-            data: models.map(DocumentTypeMapper.toDomain),
-            total,
-        }
+
+        return { data: models.map(DocumentTypeMapper.toDomain), total };
     }
 
     async findById(id: string): Promise<DocumentType | null> {
@@ -51,7 +64,20 @@ export class PrismaDocumentTypeRepository implements IDocumentTypeRepository {
         return DocumentTypeMapper.toDomain(model);
     }
 
+    async update(id: string, data: any): Promise<DocumentType> {
+        const existing = await this.prisma.documentTypeModel.findUnique({ where: { id } });
+        if (!existing) {
+            throw new NotFoundException('ບໍ່ພົບປະເພດເອກະສານນີ້ໃນລະບົບ');
+        }
+        const model = await this.prisma.documentTypeModel.update({ where: { id }, data });
+        return DocumentTypeMapper.toDomain(model);
+    }
+
     async delete(id: string): Promise<void> {
+        const existing = await this.prisma.documentTypeModel.findUnique({ where: { id } });
+        if (!existing) {
+            throw new NotFoundException('ບໍ່ພົບປະເພດເອກະສານນີ້ໃນລະບົບ');
+        }
         await this.prisma.documentTypeModel.delete({ where: { id } });
     }
 }

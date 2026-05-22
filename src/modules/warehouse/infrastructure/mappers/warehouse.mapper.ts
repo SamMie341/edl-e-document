@@ -11,8 +11,6 @@ export class WarehouseMapper {
             model.status,
             model.branchId,
             model.addressId,
-            // model.departmentId,
-            // model.divisionId,
             model.createdAt,
             model.updatedAt,
         );

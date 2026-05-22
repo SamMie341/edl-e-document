@@ -5,6 +5,8 @@ import { GetWarehousesByBranchUseCase } from "./application/use-cases/get-wareho
 import { WAREHOUSE_REPOSITORY } from "./domain/repositories/warehouse.repository.interface";
 import { PrismaWarehouseRepository } from "./infrastructure/repositories/prisma-warehouse.repository";
 import { GetAllWarehouseUseCase } from "./application/use-cases/get-all-warehouse.use-case";
+import { UpdateWarehouseUseCase } from "./application/use-cases/update-warehouse.use-case";
+import { DeleteWarehouseUseCase } from "./application/use-cases/delete-warehouse.use-case";
 
 @Module({
     controllers: [WarehouseController],
@@ -12,6 +14,8 @@ import { GetAllWarehouseUseCase } from "./application/use-cases/get-all-warehous
         CreateWarehouseUseCase,
         GetAllWarehouseUseCase,
         GetWarehousesByBranchUseCase,
+        UpdateWarehouseUseCase,
+        DeleteWarehouseUseCase,
         {
             provide: WAREHOUSE_REPOSITORY,
             useClass: PrismaWarehouseRepository,

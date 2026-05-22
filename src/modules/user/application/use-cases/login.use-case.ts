@@ -7,7 +7,6 @@ import { AuditLog } from "src/modules/audit/domain/entities/audit-log.entity";
 import * as auditLogRepositoryInterface from "src/modules/audit/domain/repositories/audit-log.repository.interface";
 import { v4 as uuidv4 } from 'uuid';
 import { AuditAction } from "src/core/constants/audit-action.enum";
-import { SyncUserFromHrmUseCase } from "./sync-user-from-hrm.use-case";
 
 @Injectable()
 export class LoginUseCase {
@@ -35,7 +34,7 @@ export class LoginUseCase {
 
         const isPasswordValid = await bcrypt.compare(dto.password, user.password);
         if (!isPasswordValid) {
-            throw new UnauthorizedException('ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
+            throw new UnauthorizedException('ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
         }
 
         const payload = {
@@ -54,7 +53,7 @@ export class LoginUseCase {
             AuditAction.LOGIN,
             '',
             user.id,
-            `LOGIN: '${user.username}'`,
+            `LOGIN: '${user.firstNameLa}'`,
             user.role,
             new Date(),
 

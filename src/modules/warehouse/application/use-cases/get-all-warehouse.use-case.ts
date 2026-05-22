@@ -1,6 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
 import * as warehouseRepositoryInterface from "../../domain/repositories/warehouse.repository.interface";
-import { PaginatedResult } from "src/core/interfaces/paginated-result.interface";
 
 @Injectable()
 export class GetAllWarehouseUseCase {
@@ -9,14 +8,16 @@ export class GetAllWarehouseUseCase {
         private readonly warehouseRepository: warehouseRepositoryInterface.IWarehouseRepository,
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
-        const skip = (page - 1) * limit;
-        const { data, total } = await this.warehouseRepository.findAll(skip, limit);
-        const totalPages = Math.ceil(total / limit);
-
+    async execute(params: warehouseRepositoryInterface.WarehouseFilterParams) {
+        const { data, total } = await this.warehouseRepository.findAll(params);
         return {
             data,
-            meta: { total, page, limit, totalPages },
-        }
+            meta: {
+                total,
+                page: params.page || 1,
+                limit: params.limit || 10,
+                totalPages: Math.ceil(total / (params.limit || 10)),
+            },
+        };
     }
 }

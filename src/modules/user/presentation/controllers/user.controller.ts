@@ -56,11 +56,13 @@ export class UserController {
     @Roles(Role.SUPER_ADMIN)
     async getAllUsers(
         @Query('page') page: string = '1',
-        @Query('limit') limit: string = '10'
+        @Query('limit') limit: string = '10',
+        @Query('status') status: string = 'A'
     ) {
         const pageNumber = parseInt(page, 10) || 1;
         const limitNumber = parseInt(limit, 10) || 10;
-        const result = await this.getAllUsersUseCase.execute(pageNumber, limitNumber);
+        const finalStatus = status === 'ALL' ? undefined : status;
+        const result = await this.getAllUsersUseCase.execute(pageNumber, limitNumber, finalStatus);
         return { message: 'Success', ...result };
     }
 

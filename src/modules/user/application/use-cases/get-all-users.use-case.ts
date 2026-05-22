@@ -9,10 +9,10 @@ export class GetAllUsersUseCase {
         private readonly userRepository: userRepositoryInterface.IUserRepository,
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
+    async execute(page: number = 1, limit: number = 10, status?: string): Promise<PaginatedResult<any>> {
         if (page < 1 || limit < 1) throw new BadRequestException();
         const skip = (page - 1) * limit;
-        const { data, total } = await this.userRepository.findAll(skip, limit);
+        const { data, total } = await this.userRepository.findAll(skip, limit, status);
         const totalPages = Math.ceil(total / limit);
 
         return {

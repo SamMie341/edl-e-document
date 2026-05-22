@@ -57,7 +57,7 @@ export class SyncUserFromHrmUseCase {
             }
 
             const newUser = await this.userRepository.create({
-                username: hrmData.emp_code,
+                // email: hrmData.email,
                 password: hashedPassword,
                 role: Role.USER,
 

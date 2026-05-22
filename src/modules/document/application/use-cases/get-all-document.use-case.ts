@@ -9,11 +9,12 @@ export class GetAllDocumentUseCase {
         private readonly documentRepository: documentRepositoryInterface.IDocumentRepository
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
-        const skip = (page - 1) * limit;
-        const { data, total } = await this.documentRepository.findAll(skip, limit);
-        const totalPages = Math.ceil(total / limit);
+    async execute(params: documentRepositoryInterface.DocumentFilterParams) {
+        const { data, total } = await this.documentRepository.findAll(params);
 
-        return { data, meta: { total, page, limit, totalPages } };
+        return {
+            data: data,
+            meta: { total, page: params.page || 1, limit: params.limit || 10, totalPages: Math.ceil(total / (params.limit || 10)) }
+        };
     }
 }

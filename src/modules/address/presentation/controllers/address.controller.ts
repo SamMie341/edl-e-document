@@ -1,17 +1,48 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from "@nestjs/common";
+
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, Put } from "@nestjs/common";
 import { JwtAuthGuard } from "src/core/auth/guards/jwt-auth.guard";
 import { CreateAddressUseCase } from "../../application/use-cases/create-address.use-case";
-import { GetAddressUseCase } from "../../application/use-cases/get-address.use-case";
 import { CreateAddressDto } from "../../application/dtos/create-address.dto";
+import { GetAllAddressUseCase } from "../../application/use-cases/get-all-address.use-case";
+import { UpdateAddressUseCase } from "../../application/use-cases/update-address.use-case";
+import { DeleteAddressUseCase } from "../../application/use-cases/delete-address.use-case";
+import { UpdateAddressDto } from "../../application/dtos/update-address.dto";
+import { Roles } from 'src/core/auth/decorators/roles.decorator';
+import { Role } from 'src/core/auth/constants/role.enum';
+import { RolesGuard } from 'src/core/auth/guards/roles.guard';
 
 @Controller('addresses')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class AddressController {
     constructor(
         private readonly createAddressUseCase: CreateAddressUseCase,
-        private readonly getAddressUseCase: GetAddressUseCase,
+        private readonly getAllAddressUseCase: GetAllAddressUseCase,
+        private readonly updateAddressUseCase: UpdateAddressUseCase,
+        private readonly deleteAddressUseCase: DeleteAddressUseCase,
     ) { }
 
+    @Roles(Role.HQ_ADMIN)
+    @Get()
+    async getAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
+        @Query('search') search?: string,
+        @Query('branchId') branchId?: string,
+        @Query('divisionId') divisionId?: string,
+        @Query('status') status?: string,
+    ) {
+        const result = await this.getAllAddressUseCase.execute({
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 10,
+            search,
+            branchId: branchId ? parseInt(branchId) : undefined,
+            divisionId: divisionId ? parseInt(divisionId) : undefined,
+            status,
+        });
+        return { message: 'Success', ...result };
+    }
+
+    @Roles(Role.HQ_ADMIN)
     @Post()
     async create(@Body() dto: CreateAddressDto) {
         const address = await this.createAddressUseCase.execute(dto);
@@ -21,9 +52,20 @@ export class AddressController {
         };
     }
 
-    @Get('branch/:branchId')
-    async getByBranch(@Param('branchId', ParseIntPipe) branchId: number) {
-        const addresses = await this.getAddressUseCase.execute(branchId);
-        return { message: 'Success', data: addresses };
+    @Roles(Role.HQ_ADMIN)
+    @Put(':id')
+    async update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
+        const address = await this.updateAddressUseCase.execute(id, dto);
+        return {
+            message: 'ອັບເດດສະຖານທີ່ສຳເລັດ',
+            data: address,
+        };
+    }
+
+    @Roles(Role.HQ_ADMIN)
+    @Delete(':id')
+    async delete(@Param('id') id: string) {
+        await this.deleteAddressUseCase.execute(id);
+        return { message: 'ລົບສະຖານທີ່ສຳເລັດ' };
     }
 }

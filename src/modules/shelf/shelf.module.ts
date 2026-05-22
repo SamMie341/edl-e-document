@@ -5,6 +5,8 @@ import { GetShelvesByLockerUseCase } from "./application/use-cases/get-shelves-b
 import { SHELF_REPOSITORY } from "./domain/repositories/shelf.repositories.interface";
 import { PrismaShelfRepository } from "./infrastructure/repositories/prisma-shelf.repository";
 import { GetAllShelvesUseCase } from "./application/use-cases/get-all-shelves.use-case";
+import { UpdateShelfUseCase } from "./application/use-cases/update-shelf.use-case";
+import { DeleteShelfUseCase } from "./application/use-cases/delete-shelf.use-case";
 
 @Module({
     controllers: [ShelfController],
@@ -12,6 +14,8 @@ import { GetAllShelvesUseCase } from "./application/use-cases/get-all-shelves.us
         CreateShelfUseCase,
         GetAllShelvesUseCase,
         GetShelvesByLockerUseCase,
+        UpdateShelfUseCase,
+        DeleteShelfUseCase,
         {
             provide: SHELF_REPOSITORY,
             useClass: PrismaShelfRepository,
