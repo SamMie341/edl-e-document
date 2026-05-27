@@ -5,7 +5,6 @@ export class ShelfMapper {
     static toDomain(model: ShelfModel): Shelf {
         return new Shelf(
             model.id,
-            model.code,
             model.name || null,
             model.description,
             model.status,

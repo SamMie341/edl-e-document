@@ -116,11 +116,11 @@ model DivisionModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     UserModel[]
-  offices   OfficeModel[]
-  units     UnitModel[]
-  // warehouses WarehouseModel[]
-  addresses AddressModel[]
+  users      UserModel[]
+  offices    OfficeModel[]
+  units      UnitModel[]
+  warehouses WarehouseModel[]
+  addresses  AddressModel[]
 
   @@map("divisions")
 }
@@ -194,14 +194,14 @@ model WarehouseModel {
   description String?
   status      String  @default("A")
 
-  addressId String?
-  address   AddressModel? @relation(fields: [addressId], references: [id])
-  branchId  Int
-  branch    BranchModel   @relation(fields: [branchId], references: [id])
+  addressId  String?
+  address    AddressModel?  @relation(fields: [addressId], references: [id])
+  branchId   Int
+  branch     BranchModel    @relation(fields: [branchId], references: [id])
   // departmentId Int?
   // department   DepartmentModel? @relation(fields: [departmentId], references: [id])
-  // divisionId   Int?
-  // division     DivisionModel?   @relation(fields: [divisionId], references: [id])
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
 
   lockers LockerModel[]
 
@@ -231,7 +231,6 @@ model LockerModel {
 
 model ShelfModel {
   id          String  @id @default(uuid())
-  code        String  @unique
   name        String
   description String?
   status      String  @default("A")

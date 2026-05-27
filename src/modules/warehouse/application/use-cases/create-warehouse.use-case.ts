@@ -12,9 +12,9 @@ export class CreateWarehouseUseCase {
 
     async execute(dto: CreateWarehouseDto, user: any) {
         if (user.role === Role.BRANCH_ADMIN) {
-            if (dto.branchId !== user.branchId) {
-                throw new ForbiddenException('ທ່ານບໍ່ມີສິດສ້າງສາງໃຫ້ສາຂາອື່ນໄດ້');
-            }
+            // Force values from token, ignoring what frontend sends
+            dto.branchId = user.branchId;
+            dto.divisionId = user.divisionId;
         }
         return await this.warehouseRepository.create(dto);
     }

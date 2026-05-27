@@ -9,6 +9,7 @@ export interface ShelfFilterParams {
     lockerId?: string;
     warehouseId?: string;
     branchId?: number;
+    divisionId?: number;
     status?: string;
 }
 

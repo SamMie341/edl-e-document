@@ -5,15 +5,12 @@ import { JwtAuthGuard } from '../../../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../core/auth/guards/roles.guard';
 import { Roles } from '../../../../core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
-import { RejectDocumentDto } from '../../application/dtos/reject-document.dto';
 import { UploadAttachmentUseCase } from '../../application/use-cases/upload-attachment.use-case';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { GetAttachmentUseCase } from '../../application/use-cases/get-attachment.use-case';
 import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { GetAllDocumentUseCase } from '../../application/use-cases/get-all-document.use-case';
-// import { SearchDocumentsUseCase } from '../../application/use-cases/search-documents.use-case';
-import { SearchDocumentDto } from '../../application/dtos/search-document.dto';
 
 @Controller('documents')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,7 +24,7 @@ export class DocumentController {
 
 
     @Get()
-    // @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.SUPER_ADMIN, Role.USER)
+    @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
     async getAllDocument(
         @Req() req: any,
         @Query('page') page: string = '1',
@@ -41,7 +38,7 @@ export class DocumentController {
     ) {
         const user = req.user;
         let finalBranchId: number | undefined = undefined;
-        if (user.role === Role.SUPER_ADMIN || user.role === Role.HQ_ADMIN) {
+        if (user.role === Role.HQ_ADMIN) {
             finalBranchId = requestedBranchId ? parseInt(requestedBranchId) : undefined;
         } else {
             finalBranchId = user.branchId;

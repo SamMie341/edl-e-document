@@ -18,6 +18,10 @@ export class UpdateWarehouseDto {
     branchId?: number;
 
     @IsOptional()
+    @IsNumber()
+    divisionId?: number;
+
+    @IsOptional()
     @IsString()
     addressId?: string;
 

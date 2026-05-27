@@ -9,9 +9,12 @@ export class GetAllFolderUseCase {
         private readonly folderRepository: folderRepositoryInterface.IFolderRepository,
     ) { }
 
-    async execute(page: number = 1, limit: number = 10): Promise<PaginatedResult<any>> {
+    async execute(
+        params: folderRepositoryInterface.FolderFilterParams = {}
+    ): Promise<PaginatedResult<any>> {
+        const { page = 1, limit = 10, ...rest } = params;
         const skip = (page - 1) * limit;
-        const { data, total } = await this.folderRepository.findAll(skip, limit);
+        const { data, total } = await this.folderRepository.findAll({ skip, take: limit, ...rest });
         const totalPages = Math.ceil(total / limit);
 
         return { data, meta: { total, page, limit, totalPages } };

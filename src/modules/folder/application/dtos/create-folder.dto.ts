@@ -2,9 +2,9 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from "class-val
 
 export class CreateFolderDto {
 
-    @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດໂກໂນ' })
+    @IsOptional()
     @IsString()
-    code: string;
+    code?: string;
 
     @IsNotEmpty({ message: 'ກະລຸນາລະບຸຊື່ໂກໂນ' })
     @IsString()

@@ -1,7 +1,6 @@
 export class Shelf {
     constructor(
         public readonly id: string,
-        public code: string,
         public name: string | null,
         public description: string | null,
         public status: string,

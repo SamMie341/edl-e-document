@@ -41,7 +41,9 @@ export class ShelfController {
         @Query('status') status?: string,
     ) {
         const user = req.user;
-        const branchId = user.role === Role.HQ_ADMIN ? undefined : user.branchId;
+        const isHQ = user.role === Role.HQ_ADMIN;
+        const branchId = isHQ ? undefined : user.branchId;
+        const divisionId = isHQ ? undefined : user.divisionId;
 
         const result = await this.getAllShelvesUseCase.execute({
             page: parseInt(page, 10) || 1,
@@ -50,6 +52,7 @@ export class ShelfController {
             lockerId,
             warehouseId,
             branchId,
+            divisionId,
             status,
         });
         return { message: 'Success', ...result };

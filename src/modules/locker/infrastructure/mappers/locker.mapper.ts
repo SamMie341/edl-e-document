@@ -1,8 +1,8 @@
 import { LockerModel } from "@prisma/client";
-import { Locker } from "../../domain/entities/locker.entity";
+import { Locker, Warehouse } from "../../domain/entities/locker.entity";
 
 export class LockerMapper {
-    static toDomain(model: LockerModel): Locker {
+    static toDomain(model: LockerModel & { warehouse?: any; }): Locker {
         return new Locker(
             model.id,
             model.code,
@@ -12,6 +12,11 @@ export class LockerMapper {
             model.warehouseId,
             model.createdAt,
             model.updatedAt,
+            model.warehouse ? new Warehouse(
+                model.warehouse.id,
+                model.warehouse.code,
+                model.warehouse.name,
+            ) : null
         );
     }
 }

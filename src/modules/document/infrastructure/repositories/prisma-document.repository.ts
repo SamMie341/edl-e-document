@@ -50,7 +50,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 whereCondition.createdAt.gte = new Date(`${startDate}T00:00:00.000Z`);
             }
             if (endDate) {
-                whereCondition.createAt.lte = new Date(`${endDate}T23:59:59.999Z`);
+                whereCondition.createdAt.lte = new Date(`${endDate}T23:59:59.999Z`);
             }
         }
         if (search) {
@@ -61,6 +61,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         }
         const [models, total] = await this.prisma.$transaction([
             this.prisma.documentModel.findMany({
+                where: whereCondition,
                 skip, take: limit,
                 include: { documentType: true, folder: true },
                 orderBy: { createdAt: 'desc' },

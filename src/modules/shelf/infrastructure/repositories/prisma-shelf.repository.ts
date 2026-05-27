@@ -10,14 +10,26 @@ export class PrismaShelfRepository implements IShelfRepository {
     constructor(private readonly prisma: PrismaService) { }
 
     async findAll(params: ShelfFilterParams): Promise<{ data: Shelf[]; total: number; }> {
-        const { page = 1, limit = 10, search, lockerId, warehouseId, branchId, status } = params;
+        const { page = 1, limit = 10, search, lockerId, warehouseId, branchId, divisionId, status } = params;
         const skip = (page - 1) * limit;
 
         const where: any = {};
         if (status) where.status = status;
         if (lockerId) where.lockerId = lockerId;
-        if (warehouseId) where.locker = { warehouseId };
-        if (branchId) where.locker = { warehouse: { branchId } };
+
+        // Build locker → warehouse nested filter
+        // ໃຊ້ `locker: { is: { ... } }` ເພື່ອ:
+        //  1. ບັງຄັບວ່າ shelf ຕ້ອງມີ locker
+        //  2. locker → warehouse ຕ້ອງຢູ່ໃນ branch/division ຂອງ user
+        if (warehouseId || branchId || divisionId) {
+            const warehouseFilter: any = {};
+            if (warehouseId) warehouseFilter.id = warehouseId;
+            if (branchId) warehouseFilter.branchId = branchId;
+            if (divisionId) warehouseFilter.divisionId = divisionId;
+
+            where.locker = { is: { warehouse: { is: warehouseFilter } } };
+        }
+
         if (search) {
             where.OR = [
                 { code: { contains: search, mode: 'insensitive' } },
@@ -43,12 +55,12 @@ export class PrismaShelfRepository implements IShelfRepository {
     }
 
     async create(data: any): Promise<Shelf> {
-        const existing = await this.prisma.shelfModel.findUnique({
-            where: { code: data.code }
-        });
-        if (existing) {
-            throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
-        }
+        // const existing = await this.prisma.shelfModel.findUnique({
+        //     where: { code: data.code }
+        // });
+        // if (existing) {
+        //     throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
+        // }
 
         const model = await this.prisma.shelfModel.create({ data });
         return ShelfMapper.toDomain(model);
@@ -57,7 +69,7 @@ export class PrismaShelfRepository implements IShelfRepository {
     async findByLockerId(lockerId: string): Promise<Shelf[]> {
         const models = await this.prisma.shelfModel.findMany({
             where: { lockerId, status: 'A' },
-            orderBy: { code: 'asc' }
+            orderBy: { name: 'asc' }
         });
         return models.map(model => ShelfMapper.toDomain(model));
     }
@@ -69,14 +81,14 @@ export class PrismaShelfRepository implements IShelfRepository {
         }
 
         // Check if new code conflicts with another shelf
-        if (data.code && data.code !== existing.code) {
-            const codeExists = await this.prisma.shelfModel.findUnique({
-                where: { code: data.code }
-            });
-            if (codeExists) {
-                throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
-            }
-        }
+        // if (data.code && data.code !== existing.code) {
+        //     const codeExists = await this.prisma.shelfModel.findUnique({
+        //         where: { code: data.code }
+        //     });
+        //     if (codeExists) {
+        //         throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
+        //     }
+        // }
 
         const model = await this.prisma.shelfModel.update({ where: { id }, data });
         return ShelfMapper.toDomain(model);

@@ -16,6 +16,7 @@ export interface IAddressRepository {
     findByBranchId(branchId: number): Promise<Address[]>;
     findByDivisionId(divisionId: number): Promise<Address[]>;
     findAll(params: AddressFilterParams): Promise<{ data: Address[]; total: number }>;
+    getDropdown(divisionId?: number): Promise<{ id: string; name: string; divisionId: number | null }[]>;
     update(id: string, data: any): Promise<Address>;
     delete(id: string): Promise<void>;
 }

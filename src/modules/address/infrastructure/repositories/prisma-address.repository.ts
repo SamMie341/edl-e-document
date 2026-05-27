@@ -9,6 +9,24 @@ export class PrismaAddressRepository implements IAddressRepository {
 
     constructor(private readonly prisma: PrismaService) { }
 
+    async getDropdown(divisionId?: number): Promise<{ id: string; name: string; divisionId: number | null; }[]> {
+        const condition: any = { status: 'A' };
+
+        if (divisionId !== undefined) {
+            condition.divisionId = divisionId;
+        }
+
+        return this.prisma.addressModel.findMany({
+            where: condition,
+            select: {
+                id: true,
+                name: true,
+                divisionId: true,
+            },
+            orderBy: { name: 'asc' }
+        });
+    }
+
     async create(data: any): Promise<Address> {
         const existing = await this.prisma.addressModel.findUnique({
             where: { code: data.code }

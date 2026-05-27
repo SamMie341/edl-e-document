@@ -1,3 +1,11 @@
+export class Warehouse {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+    ) { }
+}
+
 export class Locker {
     constructor(
         public readonly id: string,
@@ -8,5 +16,6 @@ export class Locker {
         public warehouseId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
+        public warehouse?: Warehouse | null,
     ) { }
 }

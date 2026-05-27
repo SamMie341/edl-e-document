@@ -10,7 +10,7 @@ import { Roles } from "src/core/auth/decorators/roles.decorator";
 import { Role } from "src/core/auth/constants/role.enum";
 import { CreateWarehouseDto } from "../../application/dtos/create-warehouse.dto";
 import { UpdateWarehouseDto } from "../../application/dtos/update-warehouse.dto";
-import { PrismaService } from "src/core/database/prisma.service";
+import { GetWarehouseBranchDropdownUseCase } from "../../application/use-cases/get-warehouse-branch-dropdown.use-case";
 
 @Controller('warehouses')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,27 +21,16 @@ export class WarehouseController {
         private readonly getWarehouseByBranchUseCase: GetWarehousesByBranchUseCase,
         private readonly updateWarehouseUseCase: UpdateWarehouseUseCase,
         private readonly deleteWarehouseUseCase: DeleteWarehouseUseCase,
-        private readonly prisma: PrismaService,
+        private readonly getWarehouseBranchDropdownUseCase: GetWarehouseBranchDropdownUseCase,
     ) { }
 
-    // ─── Dropdown branches (HQ ເຫັນທັງໝົດ, Branch ເຫັນສາຂາຕົນ) ───────────────
     @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     @Get('branches/dropdown')
     async getBranchDropdown(@Req() req: any) {
-        const user = req.user;
-        let condition: any = {};
-        if (user.role !== Role.SUPER_ADMIN && user.role !== Role.HQ_ADMIN) {
-            condition = user.branchId ? { id: Number(user.branchId) } : { id: -1 };
-        }
-        const branches = await this.prisma.branchModel.findMany({
-            where: condition,
-            select: { id: true, name: true, divisions: true, addresses: true },
-            orderBy: { name: 'asc' },
-        });
+        const branches = await this.getWarehouseBranchDropdownUseCase.execute(req.user);
         return { message: 'Success', data: branches };
     }
 
-    // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
     @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     @Get()
     async findAll(
@@ -50,21 +39,33 @@ export class WarehouseController {
         @Query('limit') limit: string = '10',
         @Query('search') search?: string,
         @Query('branchId') branchId?: string,
+        @Query('divisionId') divisionId?: string,
         @Query('status') status?: string,
     ) {
         const user = req.user;
-        // BRANCH_ADMIN: ຈຳກັດສະເພາະ branch ຕົນເອງ
-        const finalBranchId = user.role === Role.HQ_ADMIN
-            ? (branchId ? parseInt(branchId) : undefined)
-            : user.branchId;
+
+        const isGlobalRole = user.role === Role.HQ_ADMIN;
+
+        const parsedBranchId = branchId !== undefined && branchId !== '' ? parseInt(branchId) : undefined;
+        const parsedDivisionId = divisionId !== undefined && divisionId !== '' ? parseInt(divisionId) : undefined;
+
+        const finalBranchId = isGlobalRole
+            ? (parsedBranchId !== undefined && !isNaN(parsedBranchId) ? parsedBranchId : undefined)
+            : (user.branchId ? parseInt(String(user.branchId)) : -1);
+
+        const finalDivisionId = isGlobalRole
+            ? (parsedDivisionId !== undefined && !isNaN(parsedDivisionId) ? parsedDivisionId : undefined)
+            : (user.divisionId ? parseInt(String(user.divisionId)) : undefined);
 
         const result = await this.getAllWarehouseUseCase.execute({
             page: parseInt(page) || 1,
             limit: parseInt(limit) || 10,
             search,
             branchId: finalBranchId,
+            divisionId: finalDivisionId,
             status,
         });
+
         return { message: 'Success', ...result };
     }
 

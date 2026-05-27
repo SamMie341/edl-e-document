@@ -34,8 +34,13 @@ export class LockerController {
         @Query('status') status?: string,
     ) {
         const user = req.user;
-        // BRANCH_ADMIN: ຈຳກັດສະເພາະ branch ຕົນເອງ
-        const branchId = user.role === Role.HQ_ADMIN ? undefined : user.branchId;
+        // HQ_ADMIN : ເຫັນທັງໝົດ
+        // BRANCH_ADMIN : ຈຳກັດສະເພາະ branch + division ຕົນເອງ
+        //   warehouseId ທີ່ client ສົ່ງມາ ຍັງໄດ້ຖືກ validate ຢູ່ໃນ repository
+        //   ວ່າ warehouse ນັ້ນຕ້ອງຢູ່ໃນ branch/division ຂອງ user ດ້ວຍ
+        const isHQ = user.role === Role.HQ_ADMIN;
+        const branchId = isHQ ? undefined : user.branchId;
+        const divisionId = isHQ ? undefined : user.divisionId;
 
         const result = await this.getAllLockerUseCase.execute({
             page: parseInt(page) || 1,
@@ -43,6 +48,7 @@ export class LockerController {
             search,
             warehouseId,
             branchId,
+            divisionId,
             status,
         });
         return { message: 'Success', ...result };
