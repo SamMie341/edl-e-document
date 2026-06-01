@@ -46,4 +46,4 @@ import { AddressModule } from './modules/address/address.module';
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,31 +1,31 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateWarehouseDto {
-    @IsOptional()
-    @IsString()
-    code?: string;
+  @IsOptional()
+  @IsString()
+  code?: string;
 
-    @IsOptional()
-    @IsString()
-    name?: string;
+  @IsOptional()
+  @IsString()
+  name?: string;
 
-    @IsOptional()
-    @IsString()
-    description?: string;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsOptional()
-    @IsNumber()
-    branchId?: number;
+  @IsOptional()
+  @IsNumber()
+  branchId?: number;
 
-    @IsOptional()
-    @IsNumber()
-    divisionId?: number;
+  @IsOptional()
+  @IsNumber()
+  divisionId?: number;
 
-    @IsOptional()
-    @IsString()
-    addressId?: string;
+  @IsOptional()
+  @IsString()
+  addressId?: string;
 
-    @IsOptional()
-    @IsString()
-    status?: string;
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

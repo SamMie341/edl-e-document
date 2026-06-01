@@ -16,9 +16,6 @@ import { GetDivisionsUseCase } from './application/use-cases/get-division.use-ca
       useClass: HrmDivisionRepository,
     },
   ],
-  exports: [
-    SyncDivisionUseCase,
-    DIVISION_REPOSITORY,
-  ]
+  exports: [SyncDivisionUseCase, DIVISION_REPOSITORY],
 })
-export class DivisionModule { }
+export class DivisionModule {}

@@ -1,27 +1,27 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateWarehouseDto {
-    @IsOptional()
-    @IsString()
-    code?: string;
+  @IsOptional()
+  @IsString()
+  code?: string;
 
-    @IsNotEmpty({ message: 'ກະລຸນາລະບຸຊື່ສາງ' })
-    @IsString()
-    name: string;
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸຊື່ສາງ' })
+  @IsString()
+  name: string;
 
-    @IsOptional()
-    @IsString()
-    description?: string;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດສາຂາ' })
-    @IsNumber()
-    branchId: number;
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດສາຂາ' })
+  @IsNumber()
+  branchId: number;
 
-    @IsOptional()
-    @IsNumber()
-    divisionId?: number;
+  @IsOptional()
+  @IsNumber()
+  divisionId?: number;
 
-    @IsOptional()
-    @IsString()
-    addressId: string;
+  @IsOptional()
+  @IsString()
+  addressId: string;
 }

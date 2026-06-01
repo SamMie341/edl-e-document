@@ -1,16 +1,26 @@
-
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards, Put, Req } from "@nestjs/common";
-import { JwtAuthGuard } from "src/core/auth/guards/jwt-auth.guard";
-import { CreateAddressUseCase } from "../../application/use-cases/create-address.use-case";
-import { CreateAddressDto } from "../../application/dtos/create-address.dto";
-import { GetAllAddressUseCase } from "../../application/use-cases/get-all-address.use-case";
-import { UpdateAddressUseCase } from "../../application/use-cases/update-address.use-case";
-import { DeleteAddressUseCase } from "../../application/use-cases/delete-address.use-case";
-import { UpdateAddressDto } from "../../application/dtos/update-address.dto";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Query,
+    UseGuards,
+    Put,
+    Req,
+} from '@nestjs/common';
+import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
+import { CreateAddressUseCase } from '../../application/use-cases/create-address.use-case';
+import { CreateAddressDto } from '../../application/dtos/create-address.dto';
+import { GetAllAddressUseCase } from '../../application/use-cases/get-all-address.use-case';
+import { UpdateAddressUseCase } from '../../application/use-cases/update-address.use-case';
+import { DeleteAddressUseCase } from '../../application/use-cases/delete-address.use-case';
+import { UpdateAddressDto } from '../../application/dtos/update-address.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { RolesGuard } from 'src/core/auth/guards/roles.guard';
-import { GetAddressDropdownUseCase } from "../../application/use-cases/get-address-dropdown.use-case";
+import { GetAddressDropdownUseCase } from '../../application/use-cases/get-address-dropdown.use-case';
 
 @Controller('addresses')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -47,7 +57,10 @@ export class AddressController {
     @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     @Get('dropdown')
     async getDropdown(@Req() req: any) {
-        const data = await this.getAddressDropdownUseCase.execute(req.user.role, req.user.divisionId);
+        const data = await this.getAddressDropdownUseCase.execute(
+            req.user.role,
+            req.user.divisionId,
+        );
         return { message: 'Success', data };
     }
 

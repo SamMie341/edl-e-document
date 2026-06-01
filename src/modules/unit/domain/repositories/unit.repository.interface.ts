@@ -1,7 +1,7 @@
-import { Unit } from "../entities/unit.entity";
+import { Unit } from '../entities/unit.entity';
 
 export const UNIT_REPOSITORY = Symbol('UNIT_REPOSITORY');
 
 export interface IUnitRepository {
-    findAll(): Promise<Unit[]>;
+  findAll(): Promise<Unit[]>;
 }

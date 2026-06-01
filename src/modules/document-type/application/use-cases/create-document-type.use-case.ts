@@ -5,12 +5,12 @@ import { CreateDocumentTypeDto } from '../dtos/create-document-type.dto';
 
 @Injectable()
 export class CreateDocumentTypeUseCase {
-    constructor(
-        @Inject(repoInterface.DOCUMENT_TYPE_REPOSITORY)
-        private readonly documentTypeRepository: repoInterface.IDocumentTypeRepository,
-    ) { }
+  constructor(
+    @Inject(repoInterface.DOCUMENT_TYPE_REPOSITORY)
+    private readonly documentTypeRepository: repoInterface.IDocumentTypeRepository,
+  ) {}
 
-    async execute(dto: CreateDocumentTypeDto): Promise<DocumentType> {
-        return await this.documentTypeRepository.create(dto);
-    }
+  async execute(dto: CreateDocumentTypeDto): Promise<DocumentType> {
+    return await this.documentTypeRepository.create(dto);
+  }
 }

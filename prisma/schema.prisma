@@ -280,16 +280,17 @@ model DocumentTypeModel {
 }
 
 model DocumentModel {
-  id          String    @id @default(uuid())
-  docNo       String    @unique
-  docDate     DateTime
-  subDocNo    String?
-  subDocDate  DateTime?
-  title       String
-  description String
-  status      String
-  docExpire   DateTime
-  qrCode      String
+  id              String    @id @default(uuid())
+  docNo           String
+  shortName       String?
+  docDate         DateTime
+  subDocNo        String?
+  subDocDate      DateTime?
+  title           String
+  description     String?
+  docExpire       DateTime
+  qrCode          String
+  isContractBound Boolean   @default(false)
 
   userId String
   user   UserModel @relation(fields: [userId], references: [id])

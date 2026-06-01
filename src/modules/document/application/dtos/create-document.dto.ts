@@ -1,55 +1,72 @@
-import { Transform, Type } from 'class-transformer';
-import { IsString, IsNotEmpty, MaxLength, IsOptional, IsDate } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDate,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
+
 
 export class CreateDocumentDto {
-    @IsNotEmpty()
-    @IsString()
-    docNo: string;
+  @IsNotEmpty()
+  @IsString()
+  docNo: string;
 
-    @IsNotEmpty()
-    @Transform(({ value }) => value ? new Date(value) : value)
-    @IsDate()
-    docDate: Date;
+  @IsNotEmpty()
+  @Transform(({ value }) => (value ? new Date(value) : value))
+  @IsDate()
+  docDate: Date;
 
-    @IsOptional()
-    @IsString()
-    subDocNo?: string;
+  @IsOptional()
+  @IsString()
+  shortName?: string;
 
-    @IsOptional()
-    @Transform(({ value }) => value ? new Date(value) : value)
-    @IsDate()
-    subDocDate?: Date;
+  @IsOptional()
+  @IsString()
+  subDocNo?: string;
 
-    @IsNotEmpty({ message: 'ຫົວຂໍ້ເອກະສານຫ້າມເປັນຄ່າວ່າງ' })
-    @IsString()
-    title: string;
+  @IsOptional()
+  @Transform(({ value }) => (value ? new Date(value) : value))
+  @IsDate()
+  subDocDate?: Date;
 
-    @IsOptional()
-    @IsString()
-    description: string;
+  @IsNotEmpty({ message: 'ຫົວຂໍ້ເອກະສານຫ້າມເປັນຄ່າວ່າງ' })
+  @IsString()
+  title: string;
 
-    @IsNotEmpty()
-    @IsString()
-    status: string;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-    @IsNotEmpty()
-    @Transform(({ value }) => value ? new Date(value) : value)
-    @IsDate()
-    docExpire: Date;
+  @IsNotEmpty()
+  @Transform(({ value }) => (value ? new Date(value) : value))
+  @IsDate()
+  docExpire: Date;
 
-    @IsOptional()
-    @IsString()
-    qrCode?: string;
+  @IsOptional()
+  @IsString()
+  qrCode?: string;
 
-    @IsOptional()
-    @IsString()
-    userId: string;
+  @IsOptional()
+  @IsString()
+  userId: string;
 
-    @IsOptional()
-    @IsString()
-    folderId?: string;
+  @IsOptional()
+  @IsString()
+  folderId?: string;
 
-    @IsOptional()
-    @IsString()
-    documentTypeId?: string;
+  @IsOptional()
+  @IsString()
+  documentTypeId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
+  @IsBoolean()
+  isContractBound?: boolean;
 }

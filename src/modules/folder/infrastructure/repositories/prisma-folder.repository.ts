@@ -1,14 +1,25 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { IFolderRepository } from "../../domain/repositories/folder.repository.interface";
-import { Folder } from "../../domain/entities/folder.entity";
-import { PrismaService } from "src/core/database/prisma.service";
-import { FolderMapper } from "../mappers/folder.mapper";
+import {
+    ConflictException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
+import { IFolderRepository } from '../../domain/repositories/folder.repository.interface';
+import { Folder } from '../../domain/entities/folder.entity';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { FolderMapper } from '../mappers/folder.mapper';
 
 @Injectable()
 export class PrismaFolderRepository implements IFolderRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findAll(params?: { skip?: number; take?: number; shelfId?: string; branchId?: number; divisionId?: number; search?: string }): Promise<{ data: Folder[]; total: number; }> {
+    async findAll(params?: {
+        skip?: number;
+        take?: number;
+        shelfId?: string;
+        branchId?: number;
+        divisionId?: number;
+        search?: string;
+    }): Promise<{ data: Folder[]; total: number }> {
         const { skip, take, shelfId, branchId, divisionId, search } = params || {};
 
         const where: any = {};
@@ -27,16 +38,19 @@ export class PrismaFolderRepository implements IFolderRepository {
             const warehouseFilter: any = {};
             if (branchId) warehouseFilter.branchId = branchId;
             if (divisionId) warehouseFilter.divisionId = divisionId;
-            where.shelf = { is: { locker: { is: { warehouse: { is: warehouseFilter } } } } };
+            where.shelf = {
+                is: { locker: { is: { warehouse: { is: warehouseFilter } } } },
+            };
         }
 
         const [models, total] = await this.prisma.$transaction([
             this.prisma.folderModel.findMany({
                 where,
-                skip, take,
-                orderBy: { code: 'asc' }
+                skip,
+                take,
+                orderBy: { code: 'asc' },
             }),
-            this.prisma.folderModel.count({ where })
+            this.prisma.folderModel.count({ where }),
         ]);
         return { data: models.map(FolderMapper.toDomain), total };
     }
@@ -64,7 +78,9 @@ export class PrismaFolderRepository implements IFolderRepository {
         }
 
         // ─── ตรวจ duplicate ───────────────────────────────────────────────────
-        const existing = await this.prisma.folderModel.findUnique({ where: { code } });
+        const existing = await this.prisma.folderModel.findUnique({
+            where: { code },
+        });
         if (existing) {
             throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວ`);
         }
@@ -74,9 +90,9 @@ export class PrismaFolderRepository implements IFolderRepository {
             where: { id: data.shelfId },
             include: {
                 locker: {
-                    include: { warehouse: { include: { address: true } } }
-                }
-            }
+                    include: { warehouse: { include: { address: true } } },
+                },
+            },
         });
 
         if (!shelf) throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
@@ -90,7 +106,7 @@ export class PrismaFolderRepository implements IFolderRepository {
                 code,
                 locationRef,
                 qrCode,
-            }
+            },
         });
         return FolderMapper.toDomain(model);
     }
@@ -98,20 +114,24 @@ export class PrismaFolderRepository implements IFolderRepository {
     async findByShelfId(shelfId: string): Promise<Folder[]> {
         const models = await this.prisma.folderModel.findMany({
             where: { shelfId, status: 'A' },
-            orderBy: { code: 'asc' }
+            orderBy: { code: 'asc' },
         });
-        return models.map(model => FolderMapper.toDomain(model));
+        return models.map((model) => FolderMapper.toDomain(model));
     }
 
     async update(id: string, data: any): Promise<Folder> {
-        const existing = await this.prisma.folderModel.findUnique({ where: { id } });
+        const existing = await this.prisma.folderModel.findUnique({
+            where: { id },
+        });
         if (!existing) {
             throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         }
 
         // ตรวจ code ซ้ำ (ถ้าเปลี่ยน code)
         if (data.code && data.code !== existing.code) {
-            const codeExists = await this.prisma.folderModel.findUnique({ where: { code: data.code } });
+            const codeExists = await this.prisma.folderModel.findUnique({
+                where: { code: data.code },
+            });
             if (codeExists) {
                 throw new ConflictException(`ລະຫັດໂກໂນ '${data.code}' ຖືກໃຊ້ງານແລ້ວ`);
             }
@@ -122,7 +142,9 @@ export class PrismaFolderRepository implements IFolderRepository {
     }
 
     async delete(id: string): Promise<void> {
-        const existing = await this.prisma.folderModel.findUnique({ where: { id } });
+        const existing = await this.prisma.folderModel.findUnique({
+            where: { id },
+        });
         if (!existing) {
             throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         }
