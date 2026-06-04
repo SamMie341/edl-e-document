@@ -13,7 +13,7 @@ import { AddressMapper } from '../mappers/address.mapper';
 
 @Injectable()
 export class PrismaAddressRepository implements IAddressRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getDropdown(
     divisionId?: number,
@@ -106,6 +106,7 @@ export class PrismaAddressRepository implements IAddressRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+
       }),
       this.prisma.addressModel.count({ where }),
     ]);

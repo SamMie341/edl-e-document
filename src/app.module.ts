@@ -17,6 +17,7 @@ import { LockerModule } from './modules/locker/locker.module';
 import { ShelfModule } from './modules/shelf/shelf.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { AddressModule } from './modules/address/address.module';
+import { DocumentBorrowModule } from './modules/document-borrow/document-borrow.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AddressModule } from './modules/address/address.module';
     ShelfModule,
     WarehouseModule,
     AddressModule,
+    DocumentBorrowModule,
 
     HrmModule,
   ],

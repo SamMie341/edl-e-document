@@ -14,7 +14,7 @@ export class HrmSyncTask {
     private readonly syncDivisionsUseCase: SyncDivisionUseCase,
     private readonly syncOfficesUseCase: SyncOfficesUseCase,
     private readonly syncUnitsUseCase: SyncUnitUseCase,
-  ) {}
+  ) { }
 
   @Cron(CronExpression.EVERY_2ND_MONTH)
   async handleCron() {
@@ -41,7 +41,7 @@ export class HrmSyncTask {
   }
 
   // async onModuleInit() {
-  //     this.logger.log('🚀 ກຳລັງກວດສອບສະຖານະຂໍ້ມູນ...');
-  //     await this.handleCron();
+  //   this.logger.log('🚀 ກຳລັງກວດສອບສະຖານະຂໍ້ມູນ...');
+  //   await this.handleCron();
   // }
 }

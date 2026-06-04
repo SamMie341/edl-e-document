@@ -142,7 +142,7 @@ export class DocumentController {
 
   // ─── UPLOAD ATTACHMENT ────────────────────────────────────────────────────────
   @Post(':id/attachments')
-  @Roles(Role.USER, Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async uploadAttachment(
     @Param('id') documentId: string,

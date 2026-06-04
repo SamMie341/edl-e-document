@@ -16,7 +16,6 @@ export interface IWarehouseRepository {
   findAll(
     params: WarehouseFilterParams,
   ): Promise<{ data: Warehouse[]; total: number }>;
-  findByBranchId(branchId: number): Promise<Warehouse[]>;
   update(id: string, data: any): Promise<Warehouse>;
   delete(id: string): Promise<void>;
 }

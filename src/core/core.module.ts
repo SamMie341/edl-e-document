@@ -16,4 +16,4 @@ import { LocalFileStorageService } from './infrastructure/local-file-storage.ser
   ],
   exports: [PrismaService, FILE_STORAGE_SERVICE],
 })
-export class CoreModule {}
+export class CoreModule { }

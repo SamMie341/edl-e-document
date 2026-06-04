@@ -12,7 +12,7 @@ export class CreateDocumentUseCase {
     private readonly documentRepository: documentRepositoryInterface.IDocumentRepository,
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorageService: fileStorageInterface.IFileStorageService,
-  ) {}
+  ) { }
 
   async execute(
     dto: CreateDocumentDto,

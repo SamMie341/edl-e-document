@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LocalFileStorageService implements IFileStorageService {
-  private readonly uploadDir = './uploads';
+  private readonly uploadDir = './uploads/documents';
   constructor() {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });

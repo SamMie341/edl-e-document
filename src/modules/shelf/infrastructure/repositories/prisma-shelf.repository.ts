@@ -13,7 +13,7 @@ import { ShelfMapper } from '../mappers/shelf.mapper';
 
 @Injectable()
 export class PrismaShelfRepository implements IShelfRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll(
     params: ShelfFilterParams,
@@ -49,9 +49,7 @@ export class PrismaShelfRepository implements IShelfRepository {
 
     if (search) {
       where.OR = [
-        { code: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -61,6 +59,7 @@ export class PrismaShelfRepository implements IShelfRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { folders: true } } },
       }),
       this.prisma.shelfModel.count({ where }),
     ]);
@@ -72,14 +71,10 @@ export class PrismaShelfRepository implements IShelfRepository {
   }
 
   async create(data: any): Promise<Shelf> {
-    // const existing = await this.prisma.shelfModel.findUnique({
-    //     where: { code: data.code }
-    // });
-    // if (existing) {
-    //     throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
-    // }
-
-    const model = await this.prisma.shelfModel.create({ data });
+    const model = await this.prisma.shelfModel.create({
+      data,
+      include: { _count: { select: { folders: true } } },
+    });
     return ShelfMapper.toDomain(model);
   }
 
@@ -87,6 +82,7 @@ export class PrismaShelfRepository implements IShelfRepository {
     const models = await this.prisma.shelfModel.findMany({
       where: { lockerId, status: 'A' },
       orderBy: { name: 'asc' },
+      include: { _count: { select: { folders: true } } },
     });
     return models.map((model) => ShelfMapper.toDomain(model));
   }
@@ -96,18 +92,11 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
     }
-
-    // Check if new code conflicts with another shelf
-    // if (data.code && data.code !== existing.code) {
-    //     const codeExists = await this.prisma.shelfModel.findUnique({
-    //         where: { code: data.code }
-    //     });
-    //     if (codeExists) {
-    //         throw new ConflictException(`ລະຫັດຊັ້ນວາງ '${data.code}' ມີຢູ່ແລ້ວ`);
-    //     }
-    // }
-
-    const model = await this.prisma.shelfModel.update({ where: { id }, data });
+    const model = await this.prisma.shelfModel.update({
+      where: { id },
+      data,
+      include: { _count: { select: { folders: true } } },
+    });
     return ShelfMapper.toDomain(model);
   }
 

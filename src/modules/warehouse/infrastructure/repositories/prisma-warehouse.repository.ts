@@ -13,7 +13,7 @@ import { WarehouseMapper } from '../mappers/warehouse.mapper';
 
 @Injectable()
 export class PrismaWarehouseRepository implements IWarehouseRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll(
     params: WarehouseFilterParams,
@@ -102,19 +102,6 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
     }
     const model = await this.prisma.warehouseModel.create({ data });
     return WarehouseMapper.toDomain(model);
-  }
-
-  async findByBranchId(branchId: number): Promise<Warehouse[]> {
-    const models = await this.prisma.warehouseModel.findMany({
-      where: { branchId: Number(branchId), status: 'A' },
-      orderBy: { code: 'asc' },
-      include: {
-        branch: {
-          include: { divisions: true, addresses: true },
-        },
-      },
-    });
-    return models.map((model) => WarehouseMapper.toDomain(model));
   }
 
   async update(id: string, data: any): Promise<Warehouse> {

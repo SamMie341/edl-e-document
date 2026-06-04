@@ -49,6 +49,10 @@ export class PrismaFolderRepository implements IFolderRepository {
                 skip,
                 take,
                 orderBy: { code: 'asc' },
+                include: {
+                    shelf: true,
+                    _count: { select: { documents: true } }
+                },
             }),
             this.prisma.folderModel.count({ where }),
         ]);
@@ -56,30 +60,12 @@ export class PrismaFolderRepository implements IFolderRepository {
     }
 
     async create(data: any): Promise<Folder> {
-        // ─── Auto-generate code ถ้าไม่ได้ส่งมา ────────────────────────────────
-        let code: string = data.code;
-        if (!code || code.trim() === '') {
-            // ดึง code ล่าสุดที่เป็นตัวเลขล้วน เรียงจากมากไปน้อย
-            const lastFolder = await this.prisma.folderModel.findFirst({
-                where: { code: { not: undefined } },
-                orderBy: { code: 'desc' },
-                select: { code: true },
-            });
-
-            let nextNumber = 1;
-            if (lastFolder) {
-                const parsed = parseInt(lastFolder.code, 10);
-                if (!isNaN(parsed)) {
-                    nextNumber = parsed + 1;
-                }
-            }
-            // zero-pad 3 หลัก: 001, 002, ... 999
-            code = String(nextNumber).padStart(5, '0');
-        }
+        const code: string = data.code;
 
         // ─── ตรวจ duplicate ───────────────────────────────────────────────────
         const existing = await this.prisma.folderModel.findUnique({
             where: { code },
+            include: { _count: { select: { documents: true } } },
         });
         if (existing) {
             throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວ`);
@@ -90,7 +76,7 @@ export class PrismaFolderRepository implements IFolderRepository {
             where: { id: data.shelfId },
             include: {
                 locker: {
-                    include: { warehouse: { include: { address: true } } },
+                    include: { warehouse: { include: { address: true } } }
                 },
             },
         });
@@ -115,6 +101,7 @@ export class PrismaFolderRepository implements IFolderRepository {
         const models = await this.prisma.folderModel.findMany({
             where: { shelfId, status: 'A' },
             orderBy: { code: 'asc' },
+            include: { _count: { select: { documents: true } } },
         });
         return models.map((model) => FolderMapper.toDomain(model));
     }

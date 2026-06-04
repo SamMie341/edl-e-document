@@ -8,5 +8,6 @@ export class Shelf {
     public lockerId: string,
     public readonly createdAt: Date,
     public updatedAt: Date,
-  ) {}
+    public remainingQty?: number, // maxQty - ຈຳນວນ folder ທີ່ມີຢູ່ແລ້ວ
+  ) { }
 }

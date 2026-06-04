@@ -1,8 +1,8 @@
-import { FolderModel } from '@prisma/client';
+import { FolderModel, LockerModel, ShelfModel } from '@prisma/client';
 import { Folder } from '../../domain/entities/folder.entity';
 
 export class FolderMapper {
-  static toDomain(model: FolderModel): Folder {
+  static toDomain(model: FolderModel & { shelf?: ShelfModel | null; _count?: { documents: number } }): Folder {
     return new Folder(
       model.id,
       model.code,
@@ -13,6 +13,15 @@ export class FolderMapper {
       model.shelfId,
       model.createdAt,
       model.updatedAt,
+      model.shelf ? {
+        id: model.shelf.id,
+        name: model.shelf.name,
+        description: model.shelf.description,
+        status: model.shelf.status,
+        maxQty: model.shelf.maxQty,
+        lockerId: model.shelf.lockerId,
+      } : undefined,
+      model._count?.documents,
     );
   }
 

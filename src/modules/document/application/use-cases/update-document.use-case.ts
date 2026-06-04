@@ -25,7 +25,7 @@ export class UpdateDocumentUseCase {
     private readonly prisma: PrismaService,
     @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
     private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
-  ) {}
+  ) { }
 
   async execute(
     id: string,
@@ -51,10 +51,6 @@ export class UpdateDocumentUseCase {
     } else if (user.role === Role.BRANCH_ADMIN) {
       if (doc.user.branchId !== user.branchId) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂເອກະສານຂອງສາຂາອື່ນ');
-      }
-    } else if (user.role === Role.DEPARTMENT_ADMIN) {
-      if (doc.user.departmentId !== user.departmentId) {
-        throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂເອກະສານຂອງພະແນກອື່ນ');
       }
     }
 

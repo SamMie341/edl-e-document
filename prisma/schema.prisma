@@ -45,7 +45,9 @@ model UserModel {
   unitId Int?
   unit   UnitModel? @relation(fields: [unitId], references: [id])
 
-  documents DocumentModel[]
+  documents         DocumentModel[]
+  borrowedDocuments DocumentBorrowModel[] @relation("BorrowedBy")
+  recordedBorrows   DocumentBorrowModel[] @relation("RecordedBy")
 
   @@map("users")
 }
@@ -73,10 +75,11 @@ model BranchModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  divisions DivisionModel[]
-  users     UserModel[]
-  warehouse WarehouseModel[]
-  addresses AddressModel[]
+  divisions       DivisionModel[]
+  users           UserModel[]
+  warehouse       WarehouseModel[]
+  addresses       AddressModel[]
+  documentBorrows DocumentBorrowModel[]
 
   @@map("branches")
 }
@@ -116,11 +119,12 @@ model DivisionModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users      UserModel[]
-  offices    OfficeModel[]
-  units      UnitModel[]
-  warehouses WarehouseModel[]
-  addresses  AddressModel[]
+  users           UserModel[]
+  offices         OfficeModel[]
+  units           UnitModel[]
+  warehouses      WarehouseModel[]
+  addresses       AddressModel[]
+  documentBorrows DocumentBorrowModel[]
 
   @@map("divisions")
 }
@@ -258,7 +262,8 @@ model FolderModel {
   shelfId String
   shelf   ShelfModel @relation(fields: [shelfId], references: [id])
 
-  documents DocumentModel[]
+  documents      DocumentModel[]
+  documentBorrows DocumentBorrowModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -302,6 +307,7 @@ model DocumentModel {
   documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
 
   attachments AttachmentModel[]
+  borrows     DocumentBorrowModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -319,4 +325,40 @@ model AuditLogModel {
   createdAt  DateTime @default(now())
 
   @@map("audit_logs")
+}
+
+model DocumentBorrowModel {
+  id String @id @default(uuid())
+
+  documentId String?
+  document   DocumentModel? @relation(fields: [documentId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  // ຄົນທີ່ຢືມ
+  borrowerId String
+  borrower   UserModel @relation("BorrowedBy", fields: [borrowerId], references: [id])
+
+  borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
+  returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
+
+  purpose String? // ຈຸດປະສົງ
+
+  // ພາກສ່ວນໃດ
+  toBranchId   Int?
+  toBranch     BranchModel?   @relation(fields: [toBranchId], references: [id])
+  toDivisionId Int?
+  toDivision   DivisionModel? @relation(fields: [toDivisionId], references: [id])
+  toLocation   String? // free text ເສີມ (ຫ້ອງ, ຊັ້ນ, ...)
+  // ຄົນທີ່ບັນທຶກ
+  createdById  String
+  createdBy    UserModel      @relation("RecordedBy", fields: [createdById], references: [id])
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_borrows")
 }
