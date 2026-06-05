@@ -1,0 +1,364 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserModel {
+  id       String @id @default(uuid())
+  password String
+  role     String
+
+  empId        Int?
+  empCode      String?  @unique
+  firstNameLa  String?
+  lastNameLa   String?
+  firstNameEng String?
+  lastNameEng  String?
+  email        String?  @unique
+  phone        String?
+  status       String?
+  gender       String?
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  branchId Int?
+  branch   BranchModel? @relation(fields: [branchId], references: [id])
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+
+  officeId Int?
+  office   OfficeModel? @relation(fields: [officeId], references: [id])
+
+  unitId Int?
+  unit   UnitModel? @relation(fields: [unitId], references: [id])
+
+  documents         DocumentModel[]
+  borrowedDocuments DocumentBorrowModel[] @relation("BorrowedBy")
+  recordedBorrows   DocumentBorrowModel[] @relation("RecordedBy")
+
+  @@map("users")
+}
+
+model AttachmentModel {
+  id         String   @id @default(uuid())
+  fileName   String
+  filePath   String
+  mimeType   String
+  size       Int
+  documentId String
+  createdAt  DateTime @default(now())
+
+  document DocumentModel @relation(fields: [documentId], references: [id])
+
+  @@map("attachments")
+}
+
+model BranchModel {
+  id     Int     @id
+  code   String?
+  name   String
+  status String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  divisions       DivisionModel[]
+  users           UserModel[]
+  warehouse       WarehouseModel[]
+  addresses       AddressModel[]
+  documentBorrows DocumentBorrowModel[]
+
+  @@map("branches")
+}
+
+model DepartmentModel {
+  id        Int      @id
+  code      String
+  name      String
+  phone     String?
+  email     String?
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     UserModel[]
+  divisions DivisionModel[]
+  offices   OfficeModel[]
+  units     UnitModel[]
+  // warehouses WarehouseModel[]
+
+  @@map("departments")
+}
+
+model DivisionModel {
+  id        Int    @id
+  code      String
+  name      String
+  shortName String
+  status    String
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+
+  branchId Int?
+  branch   BranchModel? @relation(fields: [branchId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           UserModel[]
+  offices         OfficeModel[]
+  units           UnitModel[]
+  warehouses      WarehouseModel[]
+  addresses       AddressModel[]
+  documentBorrows DocumentBorrowModel[]
+
+  @@map("divisions")
+}
+
+model OfficeModel {
+  id     Int    @id
+  code   String
+  name   String
+  status String
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
+
+  users UserModel[]
+  units UnitModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("offices")
+}
+
+model UnitModel {
+  id     Int    @id
+  code   String
+  name   String
+  type   String
+  status String
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  officeId     Int?
+  office       OfficeModel?     @relation(fields: [officeId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
+
+  users UserModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("units")
+}
+
+model AddressModel {
+  id      String @id @default(uuid())
+  code    String @unique
+  name    String
+  details String
+  status  String @default("A")
+
+  branchId   Int?
+  branch     BranchModel?   @relation(fields: [branchId], references: [id])
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+
+  warehouses WarehouseModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+model WarehouseModel {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  description String?
+  status      String  @default("A")
+
+  addressId  String?
+  address    AddressModel?  @relation(fields: [addressId], references: [id])
+  branchId   Int
+  branch     BranchModel    @relation(fields: [branchId], references: [id])
+  // departmentId Int?
+  // department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+
+  lockers LockerModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("warehouses")
+}
+
+model LockerModel {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String?
+  description String?
+  status      String  @default("A")
+
+  warehouseId String?
+  warehouse   WarehouseModel? @relation(fields: [warehouseId], references: [id])
+
+  shelves ShelfModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("lockers")
+}
+
+model ShelfModel {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  status      String  @default("A")
+  maxQty      Int
+
+  lockerId String
+  locker   LockerModel @relation(fields: [lockerId], references: [id])
+
+  folders FolderModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("shelves")
+}
+
+model FolderModel {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  name        String
+  status      String  @default("A")
+  qrCode      String
+  locationRef String?
+
+  shelfId String
+  shelf   ShelfModel @relation(fields: [shelfId], references: [id])
+
+  documents      DocumentModel[]
+  documentBorrows DocumentBorrowModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("folders")
+}
+
+model DocumentTypeModel {
+  id          String   @id @default(uuid())
+  code        String?
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents DocumentModel[]
+
+  @@map("document_types")
+}
+
+model DocumentModel {
+  id              String    @id @default(uuid())
+  docNo           String
+  shortName       String?
+  docDate         DateTime
+  subDocNo        String?
+  subDocDate      DateTime?
+  title           String
+  description     String?
+  docExpire       DateTime
+  qrCode          String
+  isContractBound Boolean   @default(false)
+
+  userId String
+  user   UserModel @relation(fields: [userId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  documentTypeId String?
+  documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
+
+  attachments AttachmentModel[]
+  borrows     DocumentBorrowModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("documents")
+}
+
+model AuditLogModel {
+  id         String   @id @default(uuid())
+  action     String
+  details    String?
+  entityId   String
+  entityType String
+  actorId    String
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model DocumentBorrowModel {
+  id String @id @default(uuid())
+
+  documentId String?
+  document   DocumentModel? @relation(fields: [documentId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  // ຄົນທີ່ຢືມ
+  borrowerId String
+  borrower   UserModel @relation("BorrowedBy", fields: [borrowerId], references: [id])
+
+  borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
+  returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
+
+  purpose String? // ຈຸດປະສົງ
+
+  // ພາກສ່ວນໃດ
+  toBranchId   Int?
+  toBranch     BranchModel?   @relation(fields: [toBranchId], references: [id])
+  toDivisionId Int?
+  toDivision   DivisionModel? @relation(fields: [toDivisionId], references: [id])
+  toLocation   String? // free text ເສີມ (ຫ້ອງ, ຊັ້ນ, ...)
+  // ຄົນທີ່ບັນທຶກ
+  createdById  String
+  createdBy    UserModel      @relation("RecordedBy", fields: [createdById], references: [id])
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_borrows")
+}
