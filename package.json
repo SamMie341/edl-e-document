@@ -95,5 +95,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "optionalDependencies": {
+    "@img/sharp-linuxmusl-x64": "^0.34.5"
   }
 }
