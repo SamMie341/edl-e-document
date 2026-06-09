@@ -11,8 +11,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LocalFileStorageService implements IFileStorageService {
-  private readonly uploadDir = './uploads/documents';
+  private readonly uploadDir: string;
+
   constructor() {
+    // อ่าน path จาก env — ถ้าไม่กำหนดจะใช้ default
+    // Production: กำหนด UPLOAD_DESTINATION เป็น absolute path เช่น /var/www/edl-edoc/uploads/documents
+    this.uploadDir = process.env.UPLOAD_DESTINATION ?? './uploads/documents';
+
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }

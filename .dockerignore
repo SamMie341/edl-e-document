@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build output (จะ build ใหม่ใน Docker)
+dist/
+build/
+
+# Git
+.git/
+.gitignore
+
+# Environment files (ส่ง env ผ่าน docker-compose แทน)
+.env
+.env.*
+
+# Uploads (ใช้ volume แทน)
+uploads/
+
+# Logs
+logs/
+*.log
+
+# Test files
+test/
+coverage/
+*.spec.ts
+
+# IDE
+.vscode/
+.idea/
+
+# Docker files เอง
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma Studio
+.prisma/
+
+# Docs
+docs/
+README.md
+*.postman_collection.json

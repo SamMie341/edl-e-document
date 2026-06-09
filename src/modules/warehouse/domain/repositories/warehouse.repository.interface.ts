@@ -6,8 +6,6 @@ export interface WarehouseFilterParams {
   page?: number;
   limit?: number;
   search?: string;
-  branchId?: number;
-  divisionId?: number;
   status?: string;
 }
 

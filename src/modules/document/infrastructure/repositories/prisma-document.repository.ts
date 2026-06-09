@@ -84,17 +84,14 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             startDate,
             endDate,
             search,
-            branchId,
-            divisionId,
+            folderId,
+            userId,
         } = params;
         const skip = (page - 1) * limit;
         const whereCondition: any = {};
-        if (branchId || divisionId) {
-            whereCondition.user = {};
-            if (branchId) whereCondition.user.branchId = branchId;
-            if (divisionId) whereCondition.user.divisionId = divisionId;
-        }
 
+        if (folderId) whereCondition.folderId = folderId;
+        if (userId) whereCondition.userId = userId;
 
         if (documentTypeId) whereCondition.documentTypeId = Number(documentTypeId);
         if (startDate || endDate) {
@@ -117,7 +114,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 where: whereCondition,
                 skip,
                 take: limit,
-                include: { documentType: true, folder: true },
+                include: { documentType: true, folder: true, attachments: true },
                 orderBy: { createdAt: 'desc' },
             }),
             this.prisma.documentModel.count({ where: whereCondition }),

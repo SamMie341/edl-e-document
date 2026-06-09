@@ -17,7 +17,15 @@ export class DocumentEntity {
         public documentTypeId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
-        public attachments?: any[],
+        public attachments: {
+            id: string;
+            fileName: string;
+            filePath: string;
+            mimeType: string;
+            size: number;
+            documentId: string;
+            createdAt: Date;
+        }[],
         public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
     ) { }
 

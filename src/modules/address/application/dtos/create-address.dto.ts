@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateAddressDto {
   @IsNotEmpty()
@@ -12,12 +12,4 @@ export class CreateAddressDto {
   @IsOptional()
   @IsString()
   details?: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  branchId: number;
-
-  @IsOptional()
-  @IsNumber()
-  divisionId?: number;
 }

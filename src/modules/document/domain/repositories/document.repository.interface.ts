@@ -19,6 +19,6 @@ export interface DocumentFilterParams {
   startDate?: string;
   endDate?: string;
   search?: string;
-  branchId?: number;
-  divisionId?: number;
+  folderId?: string;
+  userId?: string;
 }

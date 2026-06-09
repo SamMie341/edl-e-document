@@ -4,7 +4,7 @@ import { Role } from 'src/core/auth/constants/role.enum';
 
 @Injectable()
 export class GetWarehouseBranchDropdownUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async execute(
     user: any,
@@ -40,7 +40,6 @@ export class GetWarehouseBranchDropdownUseCase {
         id: true,
         name: true,
         divisions: divisionQuery,
-        addresses: addressQuery,
       },
       orderBy: { name: 'asc' },
     });

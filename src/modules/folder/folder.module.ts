@@ -8,6 +8,7 @@ import { PrismaFolderRepository } from './infrastructure/repositories/prisma-fol
 import { AuditModule } from '../audit/audit.module';
 import { GetFoldersByShelfUseCase } from './application/use-cases/get-folders-by-shelf.use-case';
 import { GetAllFolderUseCase } from './application/use-cases/get-all-folders.use-case';
+import { GetFolderByIdUseCase } from './application/use-cases/get-folder-by-id.use-case';
 
 @Module({
   imports: [AuditModule],
@@ -17,6 +18,7 @@ import { GetAllFolderUseCase } from './application/use-cases/get-all-folders.use
     UpdateFolderUseCase,
     DeleteFolderUseCase,
     GetAllFolderUseCase,
+    GetFolderByIdUseCase,
     GetFoldersByShelfUseCase,
     {
       provide: FOLDER_REPOSITORY,

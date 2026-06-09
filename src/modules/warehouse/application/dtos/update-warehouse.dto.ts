@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateWarehouseDto {
   @IsOptional()
@@ -12,14 +12,6 @@ export class UpdateWarehouseDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsOptional()
-  @IsNumber()
-  branchId?: number;
-
-  @IsOptional()
-  @IsNumber()
-  divisionId?: number;
 
   @IsOptional()
   @IsString()

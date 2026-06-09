@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as addressRepositoriesInterface from '../../domain/repositories/address.repositories.interface';
 import { CreateAddressDto } from '../dtos/create-address.dto';
 
@@ -10,9 +10,6 @@ export class CreateAddressUseCase {
   ) {}
 
   async execute(dto: CreateAddressDto) {
-    if (dto.branchId === 2 && !dto.divisionId) {
-      throw new BadRequestException('ກະລຸນາລະບຸສາຂາແຂວງ');
-    }
     return await this.addressRepository.create(dto);
   }
 }

@@ -27,12 +27,7 @@ export class UpdateShelfUseCase {
       throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
     }
 
-    // Branch admin authorization check for existing shelf
-    if (user.role === Role.BRANCH_ADMIN) {
-      if (existingShelf.locker?.warehouse?.branchId !== user.branchId) {
-        throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂຊັ້ນວາງຂອງສາຂາອື່ນ');
-      }
-    }
+
 
     // If lockerId is being updated, verify target locker existence and permissions
     if (dto.lockerId && dto.lockerId !== existingShelf.lockerId) {
@@ -42,13 +37,6 @@ export class UpdateShelfUseCase {
       });
       if (!targetLocker) {
         throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃໝ່ໃນລະບົບ');
-      }
-      if (user.role === Role.BRANCH_ADMIN) {
-        if (targetLocker.warehouse?.branchId !== user.branchId) {
-          throw new ForbiddenException(
-            'ທ່ານບໍ່ມີສິດຍ້າຍຊັ້ນວາງໄປຕູ້ Locker ຂອງສາຂາອື່ນ',
-          );
-        }
       }
     }
     return await this.shelfRepository.update(id, dto);

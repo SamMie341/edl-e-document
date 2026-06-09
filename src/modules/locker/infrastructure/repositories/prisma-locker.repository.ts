@@ -13,7 +13,7 @@ import { LockerMapper } from '../mappers/locker.mapper';
 
 @Injectable()
 export class PrismaLockerRepository implements ILockerRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findAll(
     params: LockerFilterParams,
@@ -23,8 +23,7 @@ export class PrismaLockerRepository implements ILockerRepository {
       limit = 10,
       search,
       warehouseId,
-      branchId,
-      divisionId,
+      addressId,
       status,
     } = params;
     const skip = (page - 1) * limit;
@@ -32,18 +31,10 @@ export class PrismaLockerRepository implements ILockerRepository {
     const where: any = {};
     if (status) where.status = status;
 
-    // Build warehouse relation filter
-    // ใช้ `warehouse: { is: { ... } }` เพื่อ:
-    //  1. บังคับว่าต้องมี warehouse (ไม่ใช่ null)
-    //  2. warehouse ต้องตรงกับ branchId/divisionId ของ user
-    if (branchId || divisionId || warehouseId) {
+    if (warehouseId || addressId) {
       const warehouseFilter: any = {};
-
       if (warehouseId) warehouseFilter.id = warehouseId;
-      if (branchId) warehouseFilter.branchId = branchId;
-      if (divisionId) warehouseFilter.divisionId = divisionId;
-
-      // `is` → locker ต้องมี warehouse และ warehouse ต้องตรงทุก condition
+      if (addressId) warehouseFilter.addressId = addressId;
       where.warehouse = { is: warehouseFilter };
     }
 
@@ -66,7 +57,10 @@ export class PrismaLockerRepository implements ILockerRepository {
       this.prisma.lockerModel.count({ where }),
     ]);
 
-    return { data: models.map(LockerMapper.toDomain), total };
+    return {
+      data: models.map(LockerMapper.toDomain),
+      total
+    };
   }
 
   async findByWarehouseId(warehouseId: string): Promise<Locker[]> {

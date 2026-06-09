@@ -34,10 +34,10 @@ export class UpdateFolderUseCase {
       throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
     }
 
-    // BRANCH_ADMIN: ตรวจสอบว่า folder นี้อยู่ใน branch ตัวเอง
+    // BRANCH_ADMIN: ตรวจสอบว่า folder นี้อยู่ใน address ตัวเอง
     if (user.role === Role.BRANCH_ADMIN) {
-      const warehouseBranch = existing.shelf?.locker?.warehouse?.branchId;
-      if (warehouseBranch !== user.branchId) {
+      const warehouseAddress = existing.shelf?.locker?.warehouse?.addressId;
+      if (warehouseAddress !== user.addressId) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂໂກໂນຂອງສາຂາອື່ນ');
       }
     }
@@ -56,7 +56,7 @@ export class UpdateFolderUseCase {
 
       // BRANCH_ADMIN: shelf ใหม่ต้องอยู่ใน branch เดียวกัน
       if (user.role === Role.BRANCH_ADMIN) {
-        if (newShelf.locker?.warehouse?.branchId !== user.branchId) {
+        if (newShelf.locker?.warehouse?.addressId !== user.addressId) {
           throw new ForbiddenException(
             'ທ່ານບໍ່ມີສິດຍ້າຍໂກໂນໄປຊັ້ນວາງຂອງສາຂາອື່ນ',
           );

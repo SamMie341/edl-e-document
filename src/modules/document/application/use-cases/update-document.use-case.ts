@@ -44,13 +44,9 @@ export class UpdateDocumentUseCase {
     }
 
     // 2. Perform Role-Based Access Control checks
-    if (user.role === Role.USER) {
+    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
       if (doc.userId !== user.userId) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂເອກະສານນີ້');
-      }
-    } else if (user.role === Role.BRANCH_ADMIN) {
-      if (doc.user.branchId !== user.branchId) {
-        throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂເອກະສານຂອງສາຂາອື່ນ');
       }
     }
 

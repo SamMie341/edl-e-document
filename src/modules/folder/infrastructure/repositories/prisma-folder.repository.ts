@@ -16,16 +16,14 @@ export class PrismaFolderRepository implements IFolderRepository {
         skip?: number;
         take?: number;
         shelfId?: string;
-        branchId?: number;
-        divisionId?: number;
+        addressId?: string;
         search?: string;
     }): Promise<{ data: Folder[]; total: number }> {
-        const { skip, take, shelfId, branchId, divisionId, search } = params || {};
+    const { skip, take, shelfId, addressId, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
 
-        // search ตาม code หรือ name
         if (search) {
             where.OR = [
                 { code: { contains: search, mode: 'insensitive' } },
@@ -33,13 +31,9 @@ export class PrismaFolderRepository implements IFolderRepository {
             ];
         }
 
-        // scope ตาม branch/division ผ่าน chain: folder→shelf→locker→warehouse
-        if (branchId || divisionId) {
-            const warehouseFilter: any = {};
-            if (branchId) warehouseFilter.branchId = branchId;
-            if (divisionId) warehouseFilter.divisionId = divisionId;
+        if (addressId) {
             where.shelf = {
-                is: { locker: { is: { warehouse: { is: warehouseFilter } } } },
+                is: { locker: { is: { warehouse: { is: { addressId } } } } },
             };
         }
 
@@ -51,6 +45,7 @@ export class PrismaFolderRepository implements IFolderRepository {
                 orderBy: { code: 'asc' },
                 include: {
                     shelf: true,
+                    documents: true,
                     _count: { select: { documents: true } }
                 },
             }),
@@ -94,6 +89,19 @@ export class PrismaFolderRepository implements IFolderRepository {
                 qrCode,
             },
         });
+        return FolderMapper.toDomain(model);
+    }
+
+    async findById(id: string): Promise<Folder> {
+        const model = await this.prisma.folderModel.findUnique({
+            where: { id },
+            include: {
+                shelf: true,
+                documents: true,
+                _count: { select: { documents: true } },
+            },
+        });
+        if (!model) throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         return FolderMapper.toDomain(model);
     }
 

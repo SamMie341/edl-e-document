@@ -21,6 +21,7 @@ import { CreateFolderDto } from '../../application/dtos/create-folder.dto';
 import { UpdateFolderDto } from '../../application/dtos/update-folder.dto';
 import { GetFoldersByShelfUseCase } from '../../application/use-cases/get-folders-by-shelf.use-case';
 import { GetAllFolderUseCase } from '../../application/use-cases/get-all-folders.use-case';
+import { GetFolderByIdUseCase } from '../../application/use-cases/get-folder-by-id.use-case';
 
 @Controller('folders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,13 +29,14 @@ export class FolderController {
   constructor(
     private readonly createFolderUseCase: CreateFolderUseCase,
     private readonly getAllFolderUseCase: GetAllFolderUseCase,
+    private readonly getFolderByIdUseCase: GetFolderByIdUseCase,
     private readonly getFoldersByShelfUseCase: GetFoldersByShelfUseCase,
     private readonly updateFolderUseCase: UpdateFolderUseCase,
     private readonly deleteFolderUseCase: DeleteFolderUseCase,
   ) { }
 
   @Post()
-  @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
   async create(@Body() dto: CreateFolderDto) {
     const folder = await this.createFolderUseCase.execute(dto);
     return {
@@ -44,7 +46,7 @@ export class FolderController {
   }
 
   @Get()
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async findAll(
     @Req() req: any,
     @Query('page') page: string = '1',
@@ -53,17 +55,15 @@ export class FolderController {
     @Query('search') search?: string,
   ) {
     const user = req.user;
-    const isHQ = user.role === Role.HQ_ADMIN;
-    const branchId = isHQ ? undefined : user.branchId;
-    const divisionId = isHQ ? undefined : user.divisionId;
+    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
+    const addressId = isHQ ? undefined : user.addressId;
 
     const result = await this.getAllFolderUseCase.execute({
       page: parseInt(page, 10) || 1,
       limit: parseInt(limit, 10) || 10,
       shelfId,
       search,
-      branchId,
-      divisionId,
+      addressId,
     });
     return {
       message: 'Success',
@@ -72,7 +72,7 @@ export class FolderController {
   }
 
   @Get('shelf/:shelfId')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getByShelf(@Param('shelfId') shelfId: string) {
     const folders = await this.getFoldersByShelfUseCase.execute(shelfId);
     return {
@@ -81,9 +81,17 @@ export class FolderController {
     };
   }
 
+  // ─── GET BY ID ────────────────────────────────────────────────────────────
+  @Get(':id')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async findById(@Param('id') id: string) {
+    const folder = await this.getFolderByIdUseCase.execute(id);
+    return { message: 'Success', data: folder };
+  }
+
   // ─── UPDATE — HQ & BRANCH ────────────────────────────────────────────────────
   @Put(':id')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateFolderDto,
@@ -95,7 +103,7 @@ export class FolderController {
 
   // ─── DELETE — HQ ເທົ່ານັ້ນ ─────────────────────────────────────────────────
   @Delete(':id')
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async delete(@Param('id') id: string, @Req() req: any) {
     await this.deleteFolderUseCase.execute(id, req.user);
     return { message: 'ລຶບໂກໂນສຳເລັດ' };
