@@ -34,8 +34,8 @@ export class DeleteFolderUseCase {
 
     // BRANCH_ADMIN: ลบได้เฉพาะ folder ใน branch ตัวเอง
     if (user.role === Role.BRANCH_ADMIN) {
-      const warehouseBranch = existing.shelf?.locker?.warehouse?.branchId;
-      if (warehouseBranch !== user.branchId) {
+      const warehouseBranch = existing.shelf?.locker?.warehouse?.addressId;
+      if (warehouseBranch !== user.addressId) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດລຶບໂກໂນຂອງສາຂາອື່ນ');
       }
     }

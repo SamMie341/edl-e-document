@@ -17,6 +17,19 @@ export class Folder {
       maxQty: number;
       lockerId: string;
     },
+    public documents?: {
+      id: string,
+      docNo: string,
+      shortName: string | null,
+      docDate: Date,
+      subDocNo: string | null,
+      subDocDate: Date | null,
+      title: string,
+      description: string | null,
+      docExpire: Date,
+      qrCode: string,
+      isContractBound: boolean,
+    }[],
     public documentCount?: number,
   ) { }
 }

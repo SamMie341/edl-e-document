@@ -1,8 +1,9 @@
+import { AttachmentModel } from '@prisma/client';
 import { DocumentEntity } from '../../domain/entities/document.entity';
 
 
 export class DocumentMapper {
-  static toDomain(model: any): DocumentEntity {
+  static toDomain(model: any & { attachments?: AttachmentModel[] }): DocumentEntity {
     return new DocumentEntity(
       model.id,
       model.docNo,
@@ -19,7 +20,15 @@ export class DocumentMapper {
       model.documentTypeId,
       model.createdAt,
       model.updatedAt,
-      model.attachments || [],
+      (model.attachments ?? []).map((att: AttachmentModel) => ({
+        id: att.id,
+        fileName: att.fileName,
+        filePath: att.filePath,
+        mimeType: att.mimeType,
+        size: att.size,
+        documentId: att.documentId,
+        createdAt: att.createdAt,
+      })),
       model.isContractBound ?? false,
     );
   }

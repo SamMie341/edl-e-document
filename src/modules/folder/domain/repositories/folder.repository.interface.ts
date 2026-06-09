@@ -6,8 +6,7 @@ export interface FolderFilterParams {
   page?: number;
   limit?: number;
   shelfId?: string;
-  branchId?: number;
-  divisionId?: number;
+  addressId?: string;
   search?: string;
 }
 
@@ -16,6 +15,7 @@ export interface IFolderRepository {
   findAll(
     params?: FolderFilterParams & { skip?: number; take?: number },
   ): Promise<{ data: Folder[]; total: number }>;
+  findById(id: string): Promise<Folder>;
   findByShelfId(shelfId: string): Promise<Folder[]>;
   update(id: string, data: any): Promise<Folder>;
   delete(id: string): Promise<void>;

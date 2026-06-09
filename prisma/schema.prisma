@@ -77,8 +77,6 @@ model BranchModel {
 
   divisions       DivisionModel[]
   users           UserModel[]
-  warehouse       WarehouseModel[]
-  addresses       AddressModel[]
   documentBorrows DocumentBorrowModel[]
 
   @@map("branches")
@@ -122,8 +120,6 @@ model DivisionModel {
   users           UserModel[]
   offices         OfficeModel[]
   units           UnitModel[]
-  warehouses      WarehouseModel[]
-  addresses       AddressModel[]
   documentBorrows DocumentBorrowModel[]
 
   @@map("divisions")
@@ -178,11 +174,6 @@ model AddressModel {
   details String
   status  String @default("A")
 
-  branchId   Int?
-  branch     BranchModel?   @relation(fields: [branchId], references: [id])
-  divisionId Int?
-  division   DivisionModel? @relation(fields: [divisionId], references: [id])
-
   warehouses WarehouseModel[]
 
   createdAt DateTime @default(now())
@@ -198,14 +189,8 @@ model WarehouseModel {
   description String?
   status      String  @default("A")
 
-  addressId  String?
-  address    AddressModel?  @relation(fields: [addressId], references: [id])
-  branchId   Int
-  branch     BranchModel    @relation(fields: [branchId], references: [id])
-  // departmentId Int?
-  // department   DepartmentModel? @relation(fields: [departmentId], references: [id])
-  divisionId Int?
-  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+  addressId String?
+  address   AddressModel? @relation(fields: [addressId], references: [id])
 
   lockers LockerModel[]
 
@@ -262,7 +247,7 @@ model FolderModel {
   shelfId String
   shelf   ShelfModel @relation(fields: [shelfId], references: [id])
 
-  documents      DocumentModel[]
+  documents       DocumentModel[]
   documentBorrows DocumentBorrowModel[]
 
   createdAt DateTime @default(now())

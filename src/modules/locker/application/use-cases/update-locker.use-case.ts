@@ -15,7 +15,7 @@ export class UpdateLockerUseCase {
     @Inject(lockerRepositoryInterface.LOCKER_REPOSITORY)
     private readonly lockerRepository: lockerRepositoryInterface.ILockerRepository,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async execute(id: string, dto: UpdateLockerDto, user: any) {
     // 1. Verify existence of locker
@@ -29,7 +29,7 @@ export class UpdateLockerUseCase {
 
     // 2. Branch admin check for existing locker
     if (user.role === Role.BRANCH_ADMIN) {
-      if (existingLocker.warehouse?.branchId !== user.branchId) {
+      if (existingLocker.warehouse?.addressId !== user.addressId) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂຕູ້ Locker ຂອງສາຂາອື່ນ');
       }
     }
@@ -43,7 +43,7 @@ export class UpdateLockerUseCase {
         throw new NotFoundException('ບໍ່ພົບສາງເອກະສານໃໝ່ນີ້ໃນລະບົບ');
       }
       if (user.role === Role.BRANCH_ADMIN) {
-        if (targetWarehouse.branchId !== user.branchId) {
+        if (targetWarehouse.addressId !== user.addressId) {
           throw new ForbiddenException(
             'ທ່ານບໍ່ມີສິດຍ້າຍຕູ້ Locker ໄປສາງຂອງສາຂາອື່ນ',
           );

@@ -15,7 +15,7 @@ export class CreateShelfUseCase {
     @Inject(shelfRepositoriesInterface.SHELF_REPOSITORY)
     private readonly shelfRepository: shelfRepositoriesInterface.IShelfRepository,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async execute(dto: CreateShelfDto, user: any) {
     const locker = await this.prisma.lockerModel.findUnique({
@@ -27,7 +27,7 @@ export class CreateShelfUseCase {
     }
 
     if (user.role === Role.BRANCH_ADMIN) {
-      if (locker.warehouse?.branchId !== user.branchId) {
+      if (locker.warehouse?.addressId !== user.addressId) {
         throw new ForbiddenException(
           'ທ່ານບໍ່ມີສິດສ້າງຊັ້ນວາງໃນຕູ້ Locker ຂອງສາຂາອື່ນ',
         );

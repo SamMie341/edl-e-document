@@ -31,17 +31,17 @@ export class ShelfController {
     private readonly getShelvesByLockerUseCase: GetShelvesByLockerUseCase,
     private readonly updateShelfUseCase: UpdateShelfUseCase,
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
-  ) {}
+  ) { }
 
   @Post()
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async create(@Body() dto: CreateShelfDto, @Req() req: any) {
     const shelf = await this.createShelfUseCase.execute(dto, req.user);
     return { message: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', data: shelf };
   }
 
   @Get()
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async findAll(
     @Req() req: any,
     @Query('page') page: string = '1',
@@ -52,9 +52,8 @@ export class ShelfController {
     @Query('status') status?: string,
   ) {
     const user = req.user;
-    const isHQ = user.role === Role.HQ_ADMIN;
-    const branchId = isHQ ? undefined : user.branchId;
-    const divisionId = isHQ ? undefined : user.divisionId;
+    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
+    const addressId = isHQ ? undefined : user.addressId;
 
     const result = await this.getAllShelvesUseCase.execute({
       page: parseInt(page, 10) || 1,
@@ -62,22 +61,21 @@ export class ShelfController {
       search,
       lockerId,
       warehouseId,
-      branchId,
-      divisionId,
+      addressId,
       status,
     });
     return { message: 'Success', ...result };
   }
 
   @Get('locker/:lockerId')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async getByLocker(@Param('lockerId') lockerId: string) {
     const shelves = await this.getShelvesByLockerUseCase.execute(lockerId);
     return { message: 'Success', data: shelves };
   }
 
   @Put(':id')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateShelfDto,
@@ -88,7 +86,7 @@ export class ShelfController {
   }
 
   @Delete(':id')
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async delete(@Param('id') id: string) {
     await this.deleteShelfUseCase.execute(id);
     return { message: 'ລົບຊັ້ນວາງສຳເລັດ' };

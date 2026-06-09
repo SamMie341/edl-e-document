@@ -24,8 +24,7 @@ export class PrismaShelfRepository implements IShelfRepository {
       search,
       lockerId,
       warehouseId,
-      branchId,
-      divisionId,
+      addressId,
       status,
     } = params;
     const skip = (page - 1) * limit;
@@ -34,16 +33,10 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (status) where.status = status;
     if (lockerId) where.lockerId = lockerId;
 
-    // Build locker → warehouse nested filter
-    // ໃຊ້ `locker: { is: { ... } }` ເພື່ອ:
-    //  1. ບັງຄັບວ່າ shelf ຕ້ອງມີ locker
-    //  2. locker → warehouse ຕ້ອງຢູ່ໃນ branch/division ຂອງ user
-    if (warehouseId || branchId || divisionId) {
+    if (warehouseId || addressId) {
       const warehouseFilter: any = {};
       if (warehouseId) warehouseFilter.id = warehouseId;
-      if (branchId) warehouseFilter.branchId = branchId;
-      if (divisionId) warehouseFilter.divisionId = divisionId;
-
+      if (addressId) warehouseFilter.addressId = addressId;
       where.locker = { is: { warehouse: { is: warehouseFilter } } };
     }
 

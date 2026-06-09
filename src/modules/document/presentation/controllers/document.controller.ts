@@ -30,6 +30,7 @@ import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { GetAllDocumentUseCase } from '../../application/use-cases/get-all-document.use-case';
 import { GetDocumentByIdUseCase } from '../../application/use-cases/get-document-by-id.use-case';
+import { MulterConfigService } from '../../../../core/config/multer-config.service';
 
 
 @Controller('documents')
@@ -42,11 +43,11 @@ export class DocumentController {
     private readonly getAllDocumentUseCase: GetAllDocumentUseCase,
     private readonly getDocumentByIdUseCase: GetDocumentByIdUseCase,
     private readonly updateDocumentUseCase: UpdateDocumentUseCase,
+    private readonly multerConfigService: MulterConfigService,
   ) { }
 
-  // ─── GET ALL ─────────────────────────────────────────────────────────────────
   @Get()
-  @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getAllDocument(
     @Req() req: any,
     @Query('page') page: string = '1',
@@ -55,27 +56,12 @@ export class DocumentController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('search') search?: string,
-    @Query('branchId') requestedBranchId?: string,
-    @Query('divisionId') requestedDivisionId?: string,
+    @Query('folderId') folderId?: string,
   ) {
     const user = req.user;
-    let finalBranchId: number | undefined = undefined;
-    let finalDivisionId: number | undefined = undefined;
-
-    if (user.role === Role.HQ_ADMIN) {
-      finalBranchId = requestedBranchId ? parseInt(requestedBranchId) : undefined;
-      finalDivisionId = requestedDivisionId ? parseInt(requestedDivisionId) : undefined;
-    } else if (user.role === Role.BRANCH_ADMIN) {
-      finalBranchId = user.branchId;
-      if (user.branchId === 2) {
-        finalDivisionId = user.divisionId;
-      } else {
-        finalDivisionId = requestedDivisionId ? parseInt(requestedDivisionId) : undefined;
-      }
-    } else {
-      finalBranchId = user.branchId;
-      finalDivisionId = user.divisionId;
-    }
+    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
+    // USER / BRANCH_ADMIN: ເຫັນສະເພາະເອກະສານຕົນເອງ
+    const userId = isHQ ? undefined : user.userId;
 
     const params = {
       page: parseInt(page) || 1,
@@ -84,8 +70,8 @@ export class DocumentController {
       startDate,
       endDate,
       search,
-      branchId: finalBranchId,
-      divisionId: finalDivisionId,
+      folderId,
+      userId,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {
@@ -96,7 +82,7 @@ export class DocumentController {
 
   // ─── GET BY ID ────────────────────────────────────────────────────────────────
   @Get(':id')
-  @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getDocumentById(@Param('id') id: string) {
     const document = await this.getDocumentByIdUseCase.execute(id);
     return {
@@ -107,8 +93,16 @@ export class DocumentController {
 
   // ─── CREATE ───────────────────────────────────────────────────────────────────
   @Post()
-  @UseInterceptors(FilesInterceptor('files', 10))
-  @Roles(Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @UseInterceptors(FilesInterceptor('files', 10, {
+    storage: require('multer').memoryStorage(),
+    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: Number(process.env.UPLOAD_MAX_FILES ?? 10) },
+    fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
+      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
+      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      cb(null, true);
+    },
+  }))
+  @Roles(Role.SUPER_ADMIN, Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async create(
     @Req() req: any,
     @Body() dto: CreateDocumentDto,
@@ -124,8 +118,16 @@ export class DocumentController {
 
   // ─── UPDATE ───────────────────────────────────────────────────────────────────
   @Put(':id')
-  @UseInterceptors(FilesInterceptor('files', 10))
-  @Roles(Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @UseInterceptors(FilesInterceptor('files', 10, {
+    storage: require('multer').memoryStorage(),
+    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: Number(process.env.UPLOAD_MAX_FILES ?? 10) },
+    fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
+      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
+      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      cb(null, true);
+    },
+  }))
+  @Roles(Role.SUPER_ADMIN, Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateDocumentDto,
@@ -142,8 +144,16 @@ export class DocumentController {
 
   // ─── UPLOAD ATTACHMENT ────────────────────────────────────────────────────────
   @Post(':id/attachments')
-  @Roles(Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  @UseInterceptors(FileInterceptor('file'))
+  @Roles(Role.SUPER_ADMIN, Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @UseInterceptors(FileInterceptor('file', {
+    storage: require('multer').memoryStorage(),
+    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: 1 },
+    fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
+      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
+      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      cb(null, true);
+    },
+  }))
   async uploadAttachment(
     @Param('id') documentId: string,
     @UploadedFile() file: any,
@@ -165,7 +175,7 @@ export class DocumentController {
 
   // ─── GET ATTACHMENT (stream file) ─────────────────────────────────────────────
   @Get('attachments/:attachmentId')
-  @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getAttachment(
     @Param('attachmentId') attachmentId: string,
     @Req() req: any,

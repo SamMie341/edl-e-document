@@ -7,8 +7,7 @@ export interface LockerFilterParams {
   limit?: number;
   search?: string;
   warehouseId?: string;
-  branchId?: number;
-  divisionId?: number;
+  addressId?: string;
   status?: string;
 }
 

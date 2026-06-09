@@ -15,7 +15,7 @@ export class CreateLockerUseCase {
     @Inject(lockerRepositoryInterface.LOCKER_REPOSITORY)
     private readonly lockerRepository: lockerRepositoryInterface.ILockerRepository,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async execute(dto: CreateLockerDto, user: any) {
     if (dto.warehouseId) {
@@ -29,7 +29,7 @@ export class CreateLockerUseCase {
 
       // 2. If user is BRANCH_ADMIN, verify warehouse belongs to their branch
       if (user.role === Role.BRANCH_ADMIN) {
-        if (warehouse.branchId !== user.branchId) {
+        if (warehouse.addressId !== user.addressId) {
           throw new ForbiddenException(
             'ທ່ານບໍ່ມີສິດສ້າງຕູ້ Locker ໃນສາງຂອງສາຂາອື່ນ',
           );

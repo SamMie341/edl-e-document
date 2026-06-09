@@ -8,8 +8,7 @@ export interface ShelfFilterParams {
   search?: string;
   lockerId?: string;
   warehouseId?: string;
-  branchId?: number;
-  divisionId?: number;
+  addressId?: string;
   status?: string;
 }
 

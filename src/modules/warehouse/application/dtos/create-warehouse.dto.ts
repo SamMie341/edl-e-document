@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateWarehouseDto {
   @IsOptional()
@@ -13,15 +13,7 @@ export class CreateWarehouseDto {
   @IsString()
   description?: string;
 
-  @IsNotEmpty({ message: 'ກະລຸນາລະບຸລະຫັດສາຂາ' })
-  @IsNumber()
-  branchId: number;
-
-  @IsOptional()
-  @IsNumber()
-  divisionId?: number;
-
   @IsOptional()
   @IsString()
-  addressId: string;
+  addressId?: string;
 }

@@ -12,10 +12,10 @@ The EDL E-Document system is designed to manage both **Digital Attachments** and
 1. **HRM Sync:** The system integrates with an external HRM database using employee codes (`empCode`) to synchronize personal profiles and organizational hierarchies, including Branches, Departments, Divisions, Offices, and Units.
 2. **Authentication:** Standard authentication using passwords hashed with bcrypt and JWT Strategy for token verification.
 3. **Role-Based Access Control (RBAC):** The system defines 4 main roles:
-   * **`SUPER_ADMIN`**: Manages the entire system, approves new user accounts, updates user roles, and executes HRM synchronization endpoints.
-   * **`HQ_ADMIN`**: Headquarters Administrator. Can manage and view physical addresses, warehouses, lockers, shelves, folders, and document types nationwide. Also has full read/manage access to documents across all branches.
-   * **`BRANCH_ADMIN`**: Branch Administrator. Can manage physical addresses, warehouses, lockers, shelves, folders, and documents specifically within their own branch or division.
-   * **`USER`**: General employee. Can create documents, upload attachments, search documents, and view physical storage locations (can only view/download attachments of documents they created themselves).
+   * **`SUPER_ADMIN`**: Has full access to all operations across the entire system — manages users, roles, HRM sync, and all physical storage and document operations.
+   * **`HQ_ADMIN`**: Headquarters Administrator. Can manage and view physical addresses, warehouses, lockers, shelves, folders, and document types nationwide. Also has full read/manage access to documents across all addresses.
+   * **`BRANCH_ADMIN`**: Branch Administrator. Can manage physical warehouses, lockers, shelves, folders, and documents specifically within their own address (`addressId` from JWT).
+   * **`USER`**: General employee. Can create documents, upload attachments, search their own documents, and view physical storage locations (can only view/download attachments of documents they created themselves).
 
 ---
 
@@ -23,17 +23,18 @@ The EDL E-Document system is designed to manage both **Digital Attachments** and
 To facilitate easy tracking of physical documents, the system organizes storage locations in the following hierarchy:
 
 ```
-[Branch] (Branch) / [Division] (Division)
-   └── [Address] (Storage Location/Address)
-          └── [Warehouse] (Document Warehouse)
-                 └── [Locker] (Document Locker)
-                        └── [Shelf] (Document Shelf)
-                               └── [Folder / Kono] (Folder with QR Code)
-                                      └── [Document] (Physical Document)
+[Address] (Storage Location / Building)
+   └── [Warehouse] (Document Warehouse)
+          └── [Locker] (Document Locker)
+                 └── [Shelf] (Document Shelf)
+                        └── [Folder / Kono] (Folder with QR Code)
+                               └── [Document] (Physical Document)
 ```
 
-* **Address:** Identifies physical locations or buildings belonging to branches/divisions, where warehouses are situated.
-* **Folder (Folder / Kono):** Storage folders have unique QR Codes for location scanning.
+> **Key Design Decision:** `Address` is the single source of truth for physical location. Only `Warehouse` stores `addressId` directly. All downstream entities (Locker → Shelf → Folder → Document) inherit location by traversing the chain upward. There is **no** `branchId` or `divisionId` on any physical storage model.
+
+* **Address:** Identifies physical locations or buildings where warehouses are situated. All physical location scoping is done through `Address`.
+* **Folder (Folder / Kono):** Storage folders have unique QR Codes for location scanning. The `locationRef` is auto-generated as `address.code / warehouse.code / locker.code`.
 * **Shelf:** Has a defined maximum capacity (`maxQty`) to prevent overloading documents.
 
 ---
@@ -53,16 +54,16 @@ To facilitate easy tracking of physical documents, the system organizes storage 
 ### 1. Document Module
 Manages digital attachments and physical document metadata.
 * **Create:**
-  * Authorized roles: `USER`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * Authorized roles: `SUPER_ADMIN`, `USER`, `HQ_ADMIN`, `BRANCH_ADMIN`.
   * Allows uploading up to 10 files simultaneously (compressed automatically).
 * **Read:**
-  * Retrieve a paginated list of documents with filters (document type, date range, title search, branch, division).
+  * Retrieve a paginated list of documents with filters: document type, date range, title search, `folderId`, and `userId` scoping.
+  * `HQ_ADMIN` and `SUPER_ADMIN` see all documents. `BRANCH_ADMIN` and `USER` see only their own documents (scoped by `userId`).
   * Retrieve document details by ID (`GetById`).
   * Stream or download file attachments (`GetAttachment`) with permission checks (USER can only view/download their own attachments).
 * **Update:**
-  * `USER` can only update documents they created.
-  * `BRANCH_ADMIN` can update documents belonging to their branch.
-  * `HQ_ADMIN` can update all documents.
+  * `USER` and `BRANCH_ADMIN` can only update documents they created (`userId` ownership check).
+  * `HQ_ADMIN` and `SUPER_ADMIN` can update all documents.
 * **Delete:**
   * Direct document deletion via API is prohibited to prevent data loss and ensure audit security.
 
@@ -70,66 +71,68 @@ Manages digital attachments and physical document metadata.
 
 ### 2. Folder / Kono Module
 Manages physical folders placed on shelves.
-* **Create:** `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` can create folders under a specific shelf (`ShelfId`). A QR code is generated automatically.
+* **Create:** `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` can create folders under a specific shelf (`shelfId`). A QR code and `locationRef` are generated automatically.
 * **Read:**
-  * View list of folders with search filters and branch/division conditions.
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all folders. `BRANCH_ADMIN` and `USER` are scoped to their `addressId` (traversed via Folder → Shelf → Locker → Warehouse → addressId).
   * View all folders residing on a specific shelf (`getByShelf`).
-* **Update:** `HQ_ADMIN` and `BRANCH_ADMIN` can update folder details (name, status, location reference).
-* **Delete:** Only `HQ_ADMIN` can delete folders.
+  * Get folder details by ID (`getById`).
+* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update folder details. `BRANCH_ADMIN` is restricted to folders within their own address.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only. `BRANCH_ADMIN` can delete folders within their own address.
 
 ---
 
 ### 3. Shelf Module
 Manages physical shelves within lockers.
-* **Create:** `HQ_ADMIN` and `BRANCH_ADMIN` can create shelves under a locker (`LockerId`) and define `maxQty`.
+* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create shelves under a locker (`lockerId`) and define `maxQty`. `BRANCH_ADMIN` is validated against their `addressId`.
 * **Read:**
-  * View shelf lists filtered by Locker, Warehouse, Branch, or Division.
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all shelves. `BRANCH_ADMIN` is scoped to their `addressId` (via Shelf → Locker → Warehouse → addressId).
   * View shelves under a specific locker (`getByLocker`).
-* **Update:** `HQ_ADMIN` and `BRANCH_ADMIN` can update shelf information and status.
-* **Delete:** Only `HQ_ADMIN` can delete shelves.
+* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update shelf information and status.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
 
 ---
 
 ### 4. Locker Module
 Manages physical lockers within warehouses.
-* **Create:** `HQ_ADMIN` and `BRANCH_ADMIN` can create lockers under a warehouse (`WarehouseId`).
+* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create lockers under a warehouse (`warehouseId`). `BRANCH_ADMIN` is validated that the target warehouse's `addressId` matches their own.
 * **Read:**
-  * View locker lists (HQ sees all, Branch sees only their branch/division).
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all lockers. `BRANCH_ADMIN` is scoped to their `addressId` (via Locker → Warehouse → addressId).
   * Retrieve lockers under a specific warehouse (`getByWarehouse`).
-* **Update:** Update locker name, description, and status.
-* **Delete:** Only `HQ_ADMIN` can delete lockers.
+* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update locker details. `BRANCH_ADMIN` validated against their `addressId`.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
 
 ---
 
 ### 5. Warehouse Module
-Manages physical document warehouses for each branch.
-* **Create:** `HQ_ADMIN` can create warehouses in any branch. `BRANCH_ADMIN` can only create within their own branch.
+Manages physical document warehouses associated with an address.
+* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create warehouses. Only `addressId` is required (no `branchId` or `divisionId`).
 * **Read:**
-  * View warehouse lists filtered by branch/division.
-  * Fetch dropdown options of branches related to warehouses.
-  * Retrieve warehouses under a branch (`getByBranch`).
-* **Update:** Update warehouse name, code, description, and status.
-* **Delete:** Only `HQ_ADMIN` can delete warehouses.
+  * View warehouse list with optional `search` and `status` filters.
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all warehouses. All roles can list warehouses.
+* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update warehouse name, code, description, and status.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
+
+> **Note:** The previous `GET branches/dropdown` endpoint has been removed. Warehouse no longer has `branchId` or `divisionId` — it is associated only with `Address`.
 
 ---
 
 ### 6. Address Module
 Manages physical storage locations/buildings holding warehouses.
-* **Create:** Only `HQ_ADMIN` can create storage locations.
+* **Create:** `SUPER_ADMIN` and `HQ_ADMIN` can create storage locations.
 * **Read:**
-  * View address lists (only `HQ_ADMIN`).
-  * Fetch dropdown options of storage addresses (both `HQ_ADMIN` and `BRANCH_ADMIN`).
-* **Update:** Only `HQ_ADMIN` can update address details.
-* **Delete:** Only `HQ_ADMIN` can delete addresses.
+  * View address lists (`HQ_ADMIN` and `SUPER_ADMIN`).
+  * Fetch dropdown options of storage addresses (`HQ_ADMIN` and `BRANCH_ADMIN`).
+* **Update:** `SUPER_ADMIN` and `HQ_ADMIN` can update address details.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
 
 ---
 
 ### 7. Document Type Module
 Manages document categories.
-* **Create:** Only `HQ_ADMIN` can create document types.
+* **Create:** `SUPER_ADMIN` and `HQ_ADMIN` can create document types.
 * **Read:** All roles can view and search document types.
-* **Update:** Only `HQ_ADMIN` can update document types.
-* **Delete:** Only `HQ_ADMIN` can delete a document type (provided no documents are currently using it).
+* **Update:** `SUPER_ADMIN` and `HQ_ADMIN` can update document types.
+* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only (provided no documents are currently using it).
 
 ---
 

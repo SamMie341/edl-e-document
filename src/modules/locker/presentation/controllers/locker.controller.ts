@@ -31,10 +31,10 @@ export class LockerController {
     private readonly getLockersByWarehouseUseCase: GetLockersByWarehouseUseCase,
     private readonly updateLockerUseCase: UpdateLockerUseCase,
     private readonly deleteLockerUseCase: DeleteLockerUseCase,
-  ) {}
+  ) { }
 
   // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @Get()
   async findAll(
     @Req() req: any,
@@ -45,28 +45,22 @@ export class LockerController {
     @Query('status') status?: string,
   ) {
     const user = req.user;
-    // HQ_ADMIN : ເຫັນທັງໝົດ
-    // BRANCH_ADMIN : ຈຳກັດສະເພາະ branch + division ຕົນເອງ
-    //   warehouseId ທີ່ client ສົ່ງມາ ຍັງໄດ້ຖືກ validate ຢູ່ໃນ repository
-    //   ວ່າ warehouse ນັ້ນຕ້ອງຢູ່ໃນ branch/division ຂອງ user ດ້ວຍ
-    const isHQ = user.role === Role.HQ_ADMIN;
-    const branchId = isHQ ? undefined : user.branchId;
-    const divisionId = isHQ ? undefined : user.divisionId;
+    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
+    const addressId = isHQ ? undefined : user.addressId;
 
     const result = await this.getAllLockerUseCase.execute({
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       search,
       warehouseId,
-      branchId,
-      divisionId,
+      addressId,
       status,
     });
     return { message: 'Success', ...result };
   }
 
   // ─── GET by warehouse — HQ & BRANCH ────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @Get('warehouse/:warehouseId')
   async getByWarehouse(@Param('warehouseId') warehouseId: string) {
     const lockers =
@@ -75,7 +69,7 @@ export class LockerController {
   }
 
   // ─── CREATE — HQ & BRANCH ──────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @Post()
   async create(@Body() dto: CreateLockerDto, @Req() req: any) {
     const locker = await this.createLockerUseCase.execute(dto, req.user);
@@ -83,7 +77,7 @@ export class LockerController {
   }
 
   // ─── UPDATE — HQ & BRANCH ──────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -95,7 +89,7 @@ export class LockerController {
   }
 
   // ─── DELETE — HQ ເທົ່ານັ້ນ ─────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.deleteLockerUseCase.execute(id);

@@ -13,23 +13,14 @@ import { AddressMapper } from '../mappers/address.mapper';
 
 @Injectable()
 export class PrismaAddressRepository implements IAddressRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getDropdown(
-    divisionId?: number,
-  ): Promise<{ id: string; name: string; divisionId: number | null }[]> {
-    const condition: any = { status: 'A' };
-
-    if (divisionId !== undefined) {
-      condition.divisionId = divisionId;
-    }
-
+  async getDropdown(): Promise<{ id: string; name: string }[]> {
     return this.prisma.addressModel.findMany({
-      where: condition,
+      where: { status: 'A' },
       select: {
         id: true,
         name: true,
-        divisionId: true,
       },
       orderBy: { name: 'asc' },
     });
@@ -46,52 +37,15 @@ export class PrismaAddressRepository implements IAddressRepository {
     return AddressMapper.toDomain(model);
   }
 
-  async findByBranchId(branchId: number): Promise<Address[]> {
-    // branchId = 2: ດຶງ address ຜ່ານ division ທີ່ຂຶ້ນກັບ branch ນັ້ນ
-    if (branchId === 2) {
-      const models = await this.prisma.addressModel.findMany({
-        where: {
-          status: 'A',
-          division: {
-            branchId: branchId,
-          },
-        },
-      });
-      return models.map(AddressMapper.toDomain);
-    }
-
-    // branchId อื่น: ดึงตาม branchId ปกติ
-    const models = await this.prisma.addressModel.findMany({
-      where: { branchId, status: 'A' },
-    });
-    return models.map(AddressMapper.toDomain);
-  }
-
-  async findByDivisionId(divisionId: number): Promise<Address[]> {
-    const models = await this.prisma.addressModel.findMany({
-      where: { divisionId, status: 'A' },
-    });
-    return models.map(AddressMapper.toDomain);
-  }
-
   async findAll(
     params: AddressFilterParams,
   ): Promise<{ data: Address[]; total: number }> {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      branchId,
-      divisionId,
-      status,
-    } = params;
+    const { page = 1, limit = 10, search, status } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
     if (status) where.status = status;
-    if (branchId) where.branchId = branchId;
-    if (divisionId) where.divisionId = divisionId;
     if (search) {
       where.OR = [
         { code: { contains: search, mode: 'insensitive' } },
@@ -106,7 +60,6 @@ export class PrismaAddressRepository implements IAddressRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-
       }),
       this.prisma.addressModel.count({ where }),
     ]);

@@ -18,39 +18,18 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   async findAll(
     params: WarehouseFilterParams,
   ): Promise<{ data: Warehouse[]; total: number }> {
-    const {
-      page = 1,
-      limit = 10,
-      search,
-      branchId,
-      divisionId,
-      status,
-    } = params;
+    const { page = 1, limit = 10, search, status } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (status) where.status = status;
-    if (branchId !== undefined && !isNaN(branchId)) where.branchId = branchId;
-
-    // ໃຊ້ AND array ເພື່ອລວມ divisionId filter + search filter ໂດຍບໍ່ conflict
-    const andConditions: any[] = [];
-
-    if (divisionId !== undefined && !isNaN(divisionId)) {
-      andConditions.push({ divisionId: divisionId });
-    }
 
     if (search) {
-      andConditions.push({
-        OR: [
-          { code: { contains: search, mode: 'insensitive' } },
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ],
-      });
-    }
-
-    if (andConditions.length > 0) {
-      where.AND = andConditions;
+      where.OR = [
+        { code: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     const [models, total] = await Promise.all([
@@ -59,7 +38,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { division: true, address: true },
+        include: { address: true },
       }),
       this.prisma.warehouseModel.count({ where }),
     ]);
@@ -70,7 +49,6 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   async create(data: any): Promise<Warehouse> {
     let newCode = '0001';
 
-    // Find the last created warehouse to extract its code number
     const lastWarehouse = await this.prisma.warehouseModel.findFirst({
       where: { code: { startsWith: '' } },
       orderBy: { createdAt: 'desc' },
@@ -84,9 +62,8 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
       }
     }
 
-    // Ensure uniqueness and handle race conditions
     let isUnique = false;
-    let attemptNumber = parseInt(newCode.replace('', ''), 10) || 1;
+    let attemptNumber = parseInt(newCode, 10) || 1;
 
     while (!isUnique) {
       const codeToCheck = `${String(attemptNumber).padStart(4, '0')}`;
@@ -100,6 +77,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
         attemptNumber++;
       }
     }
+
     const model = await this.prisma.warehouseModel.create({ data });
     return WarehouseMapper.toDomain(model);
   }
@@ -114,6 +92,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
     const model = await this.prisma.warehouseModel.update({
       where: { id },
       data,
+      include: { address: true },
     });
     return WarehouseMapper.toDomain(model);
   }

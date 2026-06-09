@@ -8,7 +8,6 @@ import {
     Query,
     UseGuards,
     Put,
-    Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { CreateAddressUseCase } from '../../application/use-cases/create-address.use-case';
@@ -33,38 +32,31 @@ export class AddressController {
         private readonly getAddressDropdownUseCase: GetAddressDropdownUseCase,
     ) { }
 
-    @Roles(Role.HQ_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
     @Get()
     async getAll(
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10',
         @Query('search') search?: string,
-        @Query('branchId') branchId?: string,
-        @Query('divisionId') divisionId?: string,
         @Query('status') status?: string,
     ) {
         const result = await this.getAllAddressUseCase.execute({
             page: parseInt(page) || 1,
             limit: parseInt(limit) || 10,
             search,
-            branchId: branchId ? parseInt(branchId) : undefined,
-            divisionId: divisionId ? parseInt(divisionId) : undefined,
             status,
         });
         return { message: 'Success', ...result };
     }
 
-    @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
     @Get('dropdown')
-    async getDropdown(@Req() req: any) {
-        const data = await this.getAddressDropdownUseCase.execute(
-            req.user.role,
-            req.user.divisionId,
-        );
+    async getDropdown() {
+        const data = await this.getAddressDropdownUseCase.execute();
         return { message: 'Success', data };
     }
 
-    @Roles(Role.HQ_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
     @Post()
     async create(@Body() dto: CreateAddressDto) {
         const address = await this.createAddressUseCase.execute(dto);
@@ -74,7 +66,7 @@ export class AddressController {
         };
     }
 
-    @Roles(Role.HQ_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
     @Put(':id')
     async update(@Param('id') id: string, @Body() dto: UpdateAddressDto) {
         const address = await this.updateAddressUseCase.execute(id, dto);
@@ -84,7 +76,7 @@ export class AddressController {
         };
     }
 
-    @Roles(Role.HQ_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
     @Delete(':id')
     async delete(@Param('id') id: string) {
         await this.deleteAddressUseCase.execute(id);

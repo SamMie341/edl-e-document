@@ -25,11 +25,11 @@ export class DocumentBorrowController {
     private readonly borrowDocumentUseCase: BorrowDocumentUseCase,
     private readonly returnDocumentUseCase: ReturnDocumentUseCase,
     private readonly getBorrowHistoryUseCase: GetBorrowHistoryUseCase,
-  ) {}
+  ) { }
 
   // ─── POST /document-borrows — ຢືມເອກະສານ ─────────────────────────────────
   @Post()
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async borrow(@Body() dto: CreateBorrowDto, @Req() req: any) {
     const record = await this.borrowDocumentUseCase.execute(dto, req.user.userId);
     return { message: 'ຢືມເອກະສານສຳເລັດ', data: record };
@@ -37,7 +37,7 @@ export class DocumentBorrowController {
 
   // ─── PUT /document-borrows/:id/return — ຄືນເອກະສານ ──────────────────────
   @Put(':id/return')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async returnDoc(@Param('id') id: string) {
     const record = await this.returnDocumentUseCase.execute(id);
     return { message: 'ຄືນເອກະສານສຳເລັດ', data: record };
@@ -45,7 +45,7 @@ export class DocumentBorrowController {
 
   // ─── GET /document-borrows/active — ລາຍການທີ່ຍັງຢືມຢູ່ ──────────────────
   @Get('active')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getActive() {
     const data = await this.getBorrowHistoryUseCase.findActive();
     return { message: 'Success', data };
@@ -53,7 +53,7 @@ export class DocumentBorrowController {
 
   // ─── GET /document-borrows — ລາຍການທັງໝົດ (paginated) ───────────────────
   @Get()
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -73,7 +73,7 @@ export class DocumentBorrowController {
 
   // ─── GET /document-borrows/document/:documentId — ປະຫວັດຂອງເອກະສານ ──────
   @Get('document/:documentId')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getByDocument(@Param('documentId') documentId: string) {
     const data = await this.getBorrowHistoryUseCase.findByDocumentId(documentId);
     return { message: 'Success', data };
@@ -81,7 +81,7 @@ export class DocumentBorrowController {
 
   // ─── GET /document-borrows/folder/:folderId — ທຸກ borrow ໃນ folder ───────
   @Get('folder/:folderId')
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async getByFolder(@Param('folderId') folderId: string) {
     const data = await this.getBorrowHistoryUseCase.findByFolderId(folderId);
     return { message: 'Success', data };
