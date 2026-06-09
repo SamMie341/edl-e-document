@@ -15,30 +15,30 @@ services:
       PORT: 5000
 
       # ── Database ─────────────────────────────────────────────────────────────
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: "postgresql://postgres:1234@192.168.20.223:5432/edl_edoc_db?schema=public"
 
       # ── Authentication ───────────────────────────────────────────────────────
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-1h}
+      JWT_SECRET: "edl_super_secret_jwt_key_2026_!@#"
+      JWT_EXPIRATION: "8h"
 
       # ── File Upload ──────────────────────────────────────────────────────────
       # !! สำคัญ: ต้องเป็น absolute path ภายใน container ที่ตรงกับ volume ด้านล่าง
       UPLOAD_DESTINATION: /app/uploads/documents
-      UPLOAD_MAX_FILE_SIZE: ${UPLOAD_MAX_FILE_SIZE:-52428800}
-      UPLOAD_MAX_FILES: ${UPLOAD_MAX_FILES:-10}
+      UPLOAD_MAX_FILE_SIZE: 52428800
+      UPLOAD_MAX_FILES: 10
       UPLOAD_ALLOWED_MIME_TYPES: ${UPLOAD_ALLOWED_MIME_TYPES:-image/jpeg,image/png,image/gif,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet}
 
       # ── HRM API ──────────────────────────────────────────────────────────────
-      HRM_LOGIN_URL: ${HRM_LOGIN_URL}
-      HRM_API_URL: ${HRM_API_URL}
-      HRM_API_URL_DEPARTMENT: ${HRM_API_URL_DEPARTMENT}
-      HRM_DIVISION_API_URL: ${HRM_DIVISION_API_URL}
-      HRM_OFFICE_API_URL: ${HRM_OFFICE_API_URL}
-      HRM_USERNAME: ${HRM_USERNAME}
-      HRM_PASSWORD: ${HRM_PASSWORD}
+      HRM_LOGIN_URL: "https://api-test.edl.com.la/hrm/api/auth/login"
+      HRM_API_URL: "https://api-test.edl.com.la/hrm/api/hrms"
+      HRM_API_URL_DEPARTMENT: "https://api-test.edl.com.la/hrm/api/hrms/department"
+      HRM_DIVISION_API_URL: "https://api-test.edl.com.la/hrm/api/hrms/division"
+      HRM_OFFICE_API_URL: "https://api-test.edl.com.la/hrm/api/hrms/office"
+      HRM_USERNAME: "Ton"
+      HRM_PASSWORD: "HRM1234"
 
       # ── Other ────────────────────────────────────────────────────────────────
-      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD}
+      DEFAULT_USER_PASSWORD: "EDL1234"
 
     volumes:
       # ── Persistent upload storage ─────────────────────────────────────────────
@@ -59,11 +59,11 @@ services:
     container_name: edl-edoc-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-edl_edoc_db}
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_DB: "edl_edoc_db?schema=public"
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5432"
     volumes:
       - edl_pgdata:/var/lib/postgresql/data
     networks:
