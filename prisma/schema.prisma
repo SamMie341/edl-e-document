@@ -45,6 +45,9 @@ model UserModel {
   unitId Int?
   unit   UnitModel? @relation(fields: [unitId], references: [id])
 
+  addressId String?
+  address   AddressModel? @relation(fields: [addressId], references: [id])
+
   documents         DocumentModel[]
   borrowedDocuments DocumentBorrowModel[] @relation("BorrowedBy")
   recordedBorrows   DocumentBorrowModel[] @relation("RecordedBy")
@@ -175,6 +178,7 @@ model AddressModel {
   status  String @default("A")
 
   warehouses WarehouseModel[]
+  users      UserModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

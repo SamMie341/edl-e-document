@@ -1,5 +1,101 @@
 import { DocumentRetentionStatus } from '../value-objects/document-retention-status.enum';
 
+export class DocumentType {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+        public description: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Attachment {
+    constructor(
+        public readonly id: string,
+        public fileName: string,
+        public filePath: string,
+        public mimeType: string,
+        public size: number,
+        public readonly createdAt: Date,
+    ) { }
+}
+
+export class Folder {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+        public status: string,
+        public qrCode: string,
+        public locationRef: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Shelf {
+    constructor(
+        public readonly id: string,
+        public name: string,
+        public description: string,
+        public status: string,
+        public maxQty: number,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Locker {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+        public description: string,
+        public status: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Warehouse {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+        public description: string,
+        public status: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Address {
+    constructor(
+        public readonly id: string,
+        public code: string,
+        public name: string,
+        public details: string,
+        public status: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class User {
+    constructor(
+        public readonly id: string,
+        public role: string,
+        public empCode: string,
+        public firstNameLa: string,
+        public lastNameLa: string,
+        public phone: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
 export class DocumentEntity {
     constructor(
         public readonly id: string,
@@ -17,15 +113,14 @@ export class DocumentEntity {
         public documentTypeId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
-        public attachments: {
-            id: string;
-            fileName: string;
-            filePath: string;
-            mimeType: string;
-            size: number;
-            documentId: string;
-            createdAt: Date;
-        }[],
+        public user?: User | null,
+        public address?: Address | null,
+        public warehouse?: Warehouse | null,
+        public locker?: Locker | null,
+        public shelf?: Shelf | null,
+        public folder?: Folder | null,
+        public documentType?: DocumentType | null,
+        public attachments?: Attachment | null,
         public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
     ) { }
 

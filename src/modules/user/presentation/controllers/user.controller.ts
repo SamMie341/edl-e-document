@@ -33,7 +33,7 @@ export class UserController {
     private readonly getAllUsersUseCase: GetAllUsersUseCase,
     private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
     private readonly approveUserUseCase: ApproveUserUseCase,
-  ) {}
+  ) { }
 
   @Put('change-password')
   @Roles(Role.USER, Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
@@ -43,7 +43,7 @@ export class UserController {
   }
 
   @Put(':id/reset-password')
-  @Roles(Role.BRANCH_ADMIN, Role.HQ_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.HQ_ADMIN, Role.SUPER_ADMIN)
   async resetPassword(@Param('id') targetUserId: string, @Req() req: any) {
     await this.resetPasswordUseCase.execute(targetUserId, req.user);
     return { message: 'ຣີເຊັດລະຫັດຜ່ານສຳເລັດ' };
@@ -60,7 +60,7 @@ export class UserController {
   }
 
   @Get()
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async getAllUsers(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -78,7 +78,7 @@ export class UserController {
   }
 
   @Put(':id/role')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async updateRole(
     @Param('id') targetUserId: string,
     @Body() dto: UpdateRoleDto,
@@ -88,7 +88,7 @@ export class UserController {
   }
 
   @Patch(':id/approve')
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async approveUser(@Param('id') id: string, @Body() dto: ApproveUserDto) {
     return await this.approveUserUseCase.execute(id, dto);
   }

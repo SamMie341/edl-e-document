@@ -1,7 +1,7 @@
-import { Shelf } from '../../domain/entitites/shelf.entity';
+import { Locker, Shelf } from '../../domain/entitites/shelf.entity';
 
 export class ShelfMapper {
-  static toDomain(model: any): Shelf {
+  static toDomain(model: any & { locker?: any }): Shelf {
     const folderCount = model._count?.folders ?? 0;
     return new Shelf(
       model.id,
@@ -12,7 +12,16 @@ export class ShelfMapper {
       model.lockerId,
       model.createdAt,
       model.updatedAt,
-      model.maxQty - folderCount
+      model.maxQty - folderCount,
+      model.locker
+        ? new Locker(
+            model.locker.id,
+            model.locker.code,
+            model.locker.name,
+            model.locker.description,
+            model.locker.status,
+          )
+        : null,
     );
   }
 }

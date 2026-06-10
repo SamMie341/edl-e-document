@@ -26,6 +26,7 @@ export class UserMapper {
       model.divisionId,
       model.officeId,
       model.unitId,
+      model.addressId,
       model.createdAt,
       model.updatedAt,
 
@@ -59,6 +60,7 @@ export class UserMapper {
       divisionId: entity.divisionId,
       officeId: entity.officeId,
       unitId: entity.unitId,
+      addressId: entity.addressId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

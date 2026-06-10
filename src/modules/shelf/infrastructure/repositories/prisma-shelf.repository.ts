@@ -52,7 +52,7 @@ export class PrismaShelfRepository implements IShelfRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { folders: true } } },
+        include: { locker: true, folders: true, _count: { select: { folders: true } } },
       }),
       this.prisma.shelfModel.count({ where }),
     ]);
@@ -66,8 +66,23 @@ export class PrismaShelfRepository implements IShelfRepository {
   async create(data: any): Promise<Shelf> {
     const model = await this.prisma.shelfModel.create({
       data,
-      include: { _count: { select: { folders: true } } },
+      include: {
+        _count: { select: { folders: true } }
+      },
     });
+    return ShelfMapper.toDomain(model);
+  }
+
+  async findById(id: string): Promise<Shelf | null> {
+    const model = await this.prisma.shelfModel.findUnique({
+      where: { id },
+      include: {
+        locker: true,
+        folders: true,
+        _count: { select: { folders: true } }
+      },
+    });
+    if (!model) throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
     return ShelfMapper.toDomain(model);
   }
 

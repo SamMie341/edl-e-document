@@ -19,6 +19,7 @@ import { GetAllShelvesUseCase } from '../../application/use-cases/get-all-shelve
 import { GetShelvesByLockerUseCase } from '../../application/use-cases/get-shelves-by-locker.use-case';
 import { UpdateShelfUseCase } from '../../application/use-cases/update-shelf.use-case';
 import { DeleteShelfUseCase } from '../../application/use-cases/delete-shelf.use-case';
+import { GetShelfByIdUseCase } from '../../application/use-cases/get-shelf-by-id.use-case';
 import { CreateShelfDto } from '../../application/dtos/create-shelf.dto';
 import { UpdateShelfDto } from '../../application/dtos/update-shelf.dto';
 
@@ -29,6 +30,7 @@ export class ShelfController {
     private readonly createShelfUseCase: CreateShelfUseCase,
     private readonly getAllShelvesUseCase: GetAllShelvesUseCase,
     private readonly getShelvesByLockerUseCase: GetShelvesByLockerUseCase,
+    private readonly getShelfByIdUseCase: GetShelfByIdUseCase,
     private readonly updateShelfUseCase: UpdateShelfUseCase,
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
   ) { }
@@ -72,6 +74,13 @@ export class ShelfController {
   async getByLocker(@Param('lockerId') lockerId: string) {
     const shelves = await this.getShelvesByLockerUseCase.execute(lockerId);
     return { message: 'Success', data: shelves };
+  }
+
+  @Get(':id')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async findById(@Param('id') id: string) {
+    const shelf = await this.getShelfByIdUseCase.execute(id);
+    return { message: 'Success', data: shelf };
   }
 
   @Put(':id')
