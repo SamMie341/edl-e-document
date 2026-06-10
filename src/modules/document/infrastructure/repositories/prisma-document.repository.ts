@@ -114,7 +114,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 where: whereCondition,
                 skip,
                 take: limit,
-                include: { documentType: true, folder: true, attachments: true },
                 orderBy: { createdAt: 'desc' },
             }),
             this.prisma.documentModel.count({ where: whereCondition }),
@@ -131,8 +130,22 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             include: {
                 attachments: true,
                 documentType: true,
-                folder: true,
                 user: true,
+                folder: {
+                    include: {
+                        shelf: {
+                            include: {
+                                locker: {
+                                    include: {
+                                        warehouse: {
+                                            include: { address: true },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         });
         if (!model) return null;

@@ -19,7 +19,7 @@ export class PrismaFolderRepository implements IFolderRepository {
         addressId?: string;
         search?: string;
     }): Promise<{ data: Folder[]; total: number }> {
-    const { skip, take, shelfId, addressId, search } = params || {};
+        const { skip, take, shelfId, addressId, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
@@ -44,8 +44,6 @@ export class PrismaFolderRepository implements IFolderRepository {
                 take,
                 orderBy: { code: 'asc' },
                 include: {
-                    shelf: true,
-                    documents: true,
                     _count: { select: { documents: true } }
                 },
             }),

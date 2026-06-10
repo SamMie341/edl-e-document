@@ -12,7 +12,7 @@ export class ApproveUserUseCase {
   constructor(
     @Inject(userRepositoryInterface.USER_REPOSITORY)
     private readonly userRepository: userRepositoryInterface.IUserRepository,
-  ) {}
+  ) { }
 
   async execute(userId: string, dto: ApproveUserDto) {
     const user = await this.userRepository.findById(userId);
@@ -22,10 +22,16 @@ export class ApproveUserUseCase {
       throw new BadRequestException('ອີເມວນີ້ຖືກອະນຸມັດແລ້ວ');
     }
 
-    const updatedUser = await this.userRepository.update(userId, {
+    const updateData: any = {
       status: 'A',
       role: dto.role,
-    });
+    };
+
+    if (dto.addressId !== undefined) {
+      updateData.addressId = dto.addressId;
+    }
+
+    const updatedUser = await this.userRepository.update(userId, updateData);
 
     return {
       message: 'ອະນຸມັດຜູ້ໃຊ້ສຳເລັດ',
