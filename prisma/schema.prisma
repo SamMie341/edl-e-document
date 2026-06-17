@@ -12,7 +12,7 @@ datasource db {
 }
 
 model UserModel {
-  id       String   @id @default(uuid())
+  id       String @id @default(uuid())
   password String
   role     String
 
@@ -40,9 +40,6 @@ model UserModel {
 
   unitId Int?
   unit   UnitModel? @relation(fields: [unitId], references: [id])
-
-  addressId String?
-  address   AddressModel? @relation(fields: [addressId], references: [id])
 
   documents         DocumentModel[]
   borrowedDocuments DocumentBorrowModel[] @relation("BorrowedBy")
@@ -164,7 +161,6 @@ model AddressModel {
   division     DivisionModel?   @relation(fields: [divisionId], references: [id])
 
   warehouses WarehouseModel[]
-  users      UserModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
