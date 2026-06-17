@@ -18,7 +18,7 @@ export class SyncDivisionUseCase {
   ) {}
 
   async execute() {
-    this.logger.log('ກຳລັງເລີ່ມຕົ້ນ Sync ຂໍ້ມູນ Division ແລະ Branch...');
+    this.logger.log('ກຳລັງເລີ່ມຕົ້ນ Sync ຂໍ້ມູນ Division...');
 
     try {
       const externalDivisions = await this.externalRepo.findAll();
@@ -27,29 +27,7 @@ export class SyncDivisionUseCase {
       // 🌟 ປ່ຽນມາໃຊ້ for...of ຄືກັນກັບໂມດູນ Unit ເພື່ອຄວາມປອດໄພ
       for (const div of externalDivisions) {
         // ========================================================
-        // 🌟 1. ຈັດການ Branch ກ່ອນ (Upsert Branch)
-        // ========================================================
-        let validBranchId;
-        if (div.branchData && div.branchData.branch_id) {
-          await this.prisma.branchModel.upsert({
-            where: { id: Number(div.branchData.branch_id) },
-            update: {
-              code: div.branchData.branch_code,
-              name: div.branchData.branch_name,
-              status: div.branchData.branch_status,
-            },
-            create: {
-              id: Number(div.branchData.branch_id),
-              code: div.branchData.branch_code,
-              name: div.branchData.branch_name,
-              status: div.branchData.branch_status,
-            },
-          });
-          validBranchId = Number(div.branchData.branch_id);
-        }
-
-        // ========================================================
-        // 🛡️ 2. ກວດສອບ Department Foreign Key
+        // 🛡️ 1. ກວດສອບ Department Foreign Key
         // ========================================================
         let validDeptId;
         if (div.departmentId && Number(div.departmentId) !== 0) {
@@ -60,7 +38,7 @@ export class SyncDivisionUseCase {
         }
 
         // ========================================================
-        // 🌟 3. ບັນທຶກ Division ລົງ Database
+        // 🌟 2. ບັນທຶກ Division ລົງ Database
         // ========================================================
         await this.prisma.divisionModel.upsert({
           where: { id: Number(div.id) },
@@ -70,7 +48,6 @@ export class SyncDivisionUseCase {
             shortName: div.shortName ?? '',
             status: div.status,
             departmentId: validDeptId,
-            branchId: validBranchId, // 👈 ໃຊ້ ID ຂອງ Branch ທີ່ຫາກໍສ້າງ
             updatedAt: new Date(),
           },
           create: {
@@ -80,7 +57,6 @@ export class SyncDivisionUseCase {
             shortName: div.shortName ?? '',
             status: div.status,
             departmentId: validDeptId,
-            branchId: validBranchId, // 👈 ໃຊ້ ID ຂອງ Branch ທີ່ຫາກໍສ້າງ
           },
         });
 

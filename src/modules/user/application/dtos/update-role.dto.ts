@@ -1,7 +1,8 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty } from 'class-validator';
+import { Role } from 'src/core/auth/constants/role.enum';
 
 export class UpdateRoleDto {
   @IsNotEmpty({ message: 'ກະລຸນາລະບຸສິດທີ່ຕ້ອງການປ່ຽນ' })
-  @IsString()
-  role: string;
+  @IsEnum(Role, { message: 'ສິດການນຳໃຊ້ບໍ່ຖືກຕ້ອງ' })
+  role: Role;
 }

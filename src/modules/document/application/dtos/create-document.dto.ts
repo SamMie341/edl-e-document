@@ -1,10 +1,11 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
   IsOptional,
   IsDate,
   IsBoolean,
+  IsInt,
 } from 'class-validator';
 
 
@@ -52,13 +53,13 @@ export class CreateDocumentDto {
   @IsString()
   userId: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  folderId?: string;
+  folderId: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  documentTypeId?: string;
+  documentTypeId: string;
 
   @IsOptional()
   @Transform(({ value }) => {
@@ -68,4 +69,14 @@ export class CreateDocumentDto {
   })
   @IsBoolean()
   isContractBound?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  divisionId?: number;
 }

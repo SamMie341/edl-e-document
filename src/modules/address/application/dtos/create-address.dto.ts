@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class CreateAddressDto {
   @IsNotEmpty()
@@ -12,4 +12,12 @@ export class CreateAddressDto {
   @IsOptional()
   @IsString()
   details?: string;
+
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ departmentId' })
+  @IsNumber()
+  departmentId: number;
+
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ divisionId' })
+  @IsNumber()
+  divisionId: number;
 }

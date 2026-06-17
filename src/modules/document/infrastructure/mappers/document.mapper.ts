@@ -2,6 +2,8 @@ import { AttachmentModel } from '@prisma/client';
 import {
   Address,
   Attachment,
+  Department,
+  Division,
   DocumentEntity,
   DocumentType,
   Folder,
@@ -134,6 +136,35 @@ export class DocumentMapper {
         )
         : null,
       model.isContractBound ?? false,
+      // ── departmentId / divisionId (scalar) ───────────────────────────────
+      model.departmentId ?? null,
+      model.divisionId ?? null,
+      // ── Department ───────────────────────────────────────────────────────
+      model.department
+        ? new Department(
+          model.department.id,
+          model.department.code,
+          model.department.name,
+          model.department.phone ?? null,
+          model.department.email ?? null,
+          model.department.status,
+          model.department.createdAt,
+          model.department.updatedAt,
+        )
+        : null,
+      // ── Division ─────────────────────────────────────────────────────────
+      model.division
+        ? new Division(
+          model.division.id,
+          model.division.code,
+          model.division.name,
+          model.division.shortName,
+          model.division.status,
+          model.division.departmentId ?? null,
+          model.division.createdAt,
+          model.division.updatedAt,
+        )
+        : null,
     );
   }
 }

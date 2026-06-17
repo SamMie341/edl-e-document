@@ -20,11 +20,6 @@ export class CreateBorrowDto {
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
-  toBranchId?: number; // ສາຂາທີ່ຮັບໄປ
-
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
   toDivisionId?: number; // ພາກສ່ວນທີ່ຮັບໄປ
 
   @IsString()

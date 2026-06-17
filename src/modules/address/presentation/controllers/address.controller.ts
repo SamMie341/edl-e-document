@@ -8,6 +8,7 @@ import {
     Query,
     UseGuards,
     Put,
+    Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { CreateAddressUseCase } from '../../application/use-cases/create-address.use-case';
@@ -19,6 +20,7 @@ import { UpdateAddressDto } from '../../application/dtos/update-address.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { RolesGuard } from 'src/core/auth/guards/roles.guard';
+import { GetAddressByIdUseCase } from '../../application/use-cases/get-address-by-id.use-case';
 import { GetAddressDropdownUseCase } from '../../application/use-cases/get-address-dropdown.use-case';
 
 @Controller('addresses')
@@ -29,6 +31,7 @@ export class AddressController {
         private readonly getAllAddressUseCase: GetAllAddressUseCase,
         private readonly updateAddressUseCase: UpdateAddressUseCase,
         private readonly deleteAddressUseCase: DeleteAddressUseCase,
+        private readonly getAddressByIdUseCase: GetAddressByIdUseCase,
         private readonly getAddressDropdownUseCase: GetAddressDropdownUseCase,
     ) { }
 
@@ -49,11 +52,35 @@ export class AddressController {
         return { message: 'Success', ...result };
     }
 
-    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
     @Get('dropdown')
-    async getDropdown() {
-        const data = await this.getAddressDropdownUseCase.execute();
+    async getDropdown(
+        @Req() req: any,
+        @Query('departmentId') departmentId?: string,
+        @Query('divisionId') divisionId?: string,
+    ) {
+        const user = req.user;
+
+        let deptId = departmentId ? Number(departmentId) : undefined;
+        let divId = divisionId ? Number(divisionId) : undefined;
+
+        if (user.role === Role.BRANCH_ADMIN || user.role === Role.USER) {
+            if (user.departmentId) deptId = user.departmentId;
+            if (user.divisionId) divId = user.divisionId;
+        }
+
+        const data = await this.getAddressDropdownUseCase.execute({
+            departmentId: deptId,
+            divisionId: divId,
+        });
         return { message: 'Success', data };
+    }
+
+    @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+    @Get(':id')
+    async getById(@Param('id') id: string) {
+        const address = await this.getAddressByIdUseCase.execute(id);
+        return { message: 'Success', data: address };
     }
 
     @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)

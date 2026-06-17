@@ -19,4 +19,4 @@ import { SyncDepartmentUseCase } from './application/use-cases/sync-department.u
   ],
   exports: [SyncDepartmentUseCase, DEPARTMENT_REPOSITORY],
 })
-export class DepartmentModule {}
+export class DepartmentModule { }

@@ -16,9 +16,7 @@ export class User {
     public gender: string | null,
     public image: string | null,
 
-    public branchId: number | null,
     public departmentId: number | null,
-    public divisionId: number | null,
     public officeId: number | null,
     public unitId: number | null,
     public addressId: string | null,
@@ -26,11 +24,10 @@ export class User {
     public readonly createdAt: Date,
     public updatedAt: Date,
 
-    public branchData?: any,
     public departmentData?: any,
-    public divisionData?: any,
     public officeData?: any,
     public unitData?: any,
+    public divisions?: { id: number; name: string; shortName: string; isPrimary: boolean }[],
   ) {}
 
   getPublicProfile() {
@@ -44,17 +41,18 @@ export class User {
       gender: this.gender,
       status: this.status,
       addressId: this.addressId || null,
-      branch: this.branchId || null,
       department: this.departmentId || null,
-      division: this.divisionId || null,
       office: this.officeId || null,
       unit: this.unitId || null,
-      branchData: this.branchData || null,
       departmentData: this.departmentData || null,
-      divisionData: this.divisionData || null,
       officeData: this.officeData || null,
       unitData: this.unitData || null,
+      divisions: this.divisions || [],
     };
+  }
+
+  hasRole(role: string): boolean {
+    return this.role === role;
   }
 
   updateRole(newRole: string): void {

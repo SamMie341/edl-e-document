@@ -13,11 +13,18 @@ import { AddressMapper } from '../mappers/address.mapper';
 
 @Injectable()
 export class PrismaAddressRepository implements IAddressRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  async getDropdown(): Promise<{ id: string; name: string }[]> {
+  async getDropdown(filters?: {
+    departmentId?: number;
+    divisionId?: number;
+  }): Promise<{ id: string; name: string }[]> {
+    const where: any = { status: 'A' };
+    if (filters?.departmentId) where.departmentId = filters.departmentId;
+    if (filters?.divisionId) where.divisionId = filters.divisionId;
+
     return this.prisma.addressModel.findMany({
-      where: { status: 'A' },
+      where,
       select: {
         id: true,
         name: true,
@@ -33,7 +40,13 @@ export class PrismaAddressRepository implements IAddressRepository {
     if (existing) {
       throw new ConflictException('ລະຫັດສະຖານທີ່ນີ້ຖືກໃຊ້ງານແລ້ວ');
     }
-    const model = await this.prisma.addressModel.create({ data });
+    const model = await this.prisma.addressModel.create({
+      data,
+      include: {
+        department: true,
+        division: true,
+      },
+    });
     return AddressMapper.toDomain(model);
   }
 
@@ -59,12 +72,28 @@ export class PrismaAddressRepository implements IAddressRepository {
         where,
         skip,
         take: limit,
+        include: {
+          department: true,
+          division: true,
+        },
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.addressModel.count({ where }),
     ]);
 
     return { data: models.map(AddressMapper.toDomain), total };
+  }
+
+  async findById(id: string): Promise<Address | null> {
+    const model = await this.prisma.addressModel.findUnique({
+      where: { id },
+      include: {
+        department: true,
+        division: true,
+      },
+    });
+    if (!model) return null;
+    return AddressMapper.toDomain(model);
   }
 
   async update(id: string, data: any): Promise<Address> {
@@ -77,6 +106,10 @@ export class PrismaAddressRepository implements IAddressRepository {
     const model = await this.prisma.addressModel.update({
       where: { id },
       data,
+      include: {
+        department: true,
+        division: true,
+      },
     });
     return AddressMapper.toDomain(model);
   }

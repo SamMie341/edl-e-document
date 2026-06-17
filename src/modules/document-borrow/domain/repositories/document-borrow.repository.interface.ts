@@ -26,7 +26,6 @@ export interface CreateDocumentBorrowData {
   folderId?: string;
   borrowerId: string;
   purpose?: string;
-  toBranchId?: number;
   toDivisionId?: number;
   toLocation?: string;
   createdById: string;

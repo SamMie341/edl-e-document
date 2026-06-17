@@ -4,4 +4,5 @@ export const DIVISION_REPOSITORY = Symbol('DIVISION_REPOSITORY');
 
 export interface IDivisionRepository {
   findAll(): Promise<Division[]>;
+  findByDepartment(departmentId: number): Promise<Division[]>;
 }

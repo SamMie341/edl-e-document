@@ -1,10 +1,4 @@
-export class Warehouse {
-  constructor(
-    public readonly id: string,
-    public code: string,
-    public name: string,
-  ) {}
-}
+import { Warehouse } from '../../../warehouse/domain/entities/warehouse.entity';
 
 export class Locker {
   constructor(

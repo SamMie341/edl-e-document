@@ -10,7 +10,6 @@ export class DocumentBorrowMapper {
       model.borrowedAt,
       model.returnedAt,
       model.purpose,
-      model.toBranchId,
       model.toDivisionId,
       model.toLocation,
       model.createdById,
@@ -20,7 +19,6 @@ export class DocumentBorrowMapper {
       model.borrower,
       model.document,
       model.folder,
-      model.toBranch,
       model.toDivision,
       model.createdBy,
     );

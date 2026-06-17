@@ -15,7 +15,34 @@ export class Folder {
       description: string | null;
       status: string;
       maxQty: number;
-      lockerId: string;
+      // lockerId: string;
+      locker?: {
+        id: string;
+        code: string;
+        name: string | null;
+        description: string | null;
+        status: string;
+        warehouse?: {
+          id: string;
+          code: string;
+          name: string;
+          description: string | null;
+          status: string;
+          address?: {
+            id: string;
+            code: string;
+            name: string;
+            details: string;
+            status: string;
+            division?: {
+              id: string;
+              code: string;
+              name: string;
+              status: string;
+            } | null;
+          } | null;
+        } | null;
+      } | null;
     },
     public documents?: {
       id: string,

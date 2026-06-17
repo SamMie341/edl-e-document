@@ -6,7 +6,6 @@ import { DeleteFolderUseCase } from './application/use-cases/delete-folder.use-c
 import { FOLDER_REPOSITORY } from './domain/repositories/folder.repository.interface';
 import { PrismaFolderRepository } from './infrastructure/repositories/prisma-folder.repository';
 import { AuditModule } from '../audit/audit.module';
-import { GetFoldersByShelfUseCase } from './application/use-cases/get-folders-by-shelf.use-case';
 import { GetAllFolderUseCase } from './application/use-cases/get-all-folders.use-case';
 import { GetFolderByIdUseCase } from './application/use-cases/get-folder-by-id.use-case';
 
@@ -19,7 +18,6 @@ import { GetFolderByIdUseCase } from './application/use-cases/get-folder-by-id.u
     DeleteFolderUseCase,
     GetAllFolderUseCase,
     GetFolderByIdUseCase,
-    GetFoldersByShelfUseCase,
     {
       provide: FOLDER_REPOSITORY,
       useClass: PrismaFolderRepository,

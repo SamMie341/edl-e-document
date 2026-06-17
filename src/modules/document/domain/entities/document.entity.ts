@@ -96,6 +96,32 @@ export class User {
     ) { }
 }
 
+export class Department {
+    constructor(
+        public readonly id: number,
+        public code: string,
+        public name: string,
+        public phone: string | null,
+        public email: string | null,
+        public status: string,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
+export class Division {
+    constructor(
+        public readonly id: number,
+        public code: string,
+        public name: string,
+        public shortName: string,
+        public status: string,
+        public departmentId: number | null,
+        public readonly createdAt: Date,
+        public updatedAt: Date,
+    ) { }
+}
+
 export class DocumentEntity {
     constructor(
         public readonly id: string,
@@ -122,6 +148,10 @@ export class DocumentEntity {
         public documentType?: DocumentType | null,
         public attachments?: Attachment | null,
         public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
+        public departmentId?: number | null,
+        public divisionId?: number | null,
+        public department?: Department | null,
+        public division?: Division | null,
     ) { }
 
     /**

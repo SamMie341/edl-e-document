@@ -6,12 +6,16 @@ import { PrismaWarehouseRepository } from './infrastructure/repositories/prisma-
 import { GetAllWarehouseUseCase } from './application/use-cases/get-all-warehouse.use-case';
 import { UpdateWarehouseUseCase } from './application/use-cases/update-warehouse.use-case';
 import { DeleteWarehouseUseCase } from './application/use-cases/delete-warehouse.use-case';
+import { GetWarehouseByIdUseCase } from './application/use-cases/get-warehouse-by-id.use-case';
+import { GetWarehouseDropdownUseCase } from './application/use-cases/get-warehouse-dropdown.use-case';
 
 @Module({
   controllers: [WarehouseController],
   providers: [
     CreateWarehouseUseCase,
     GetAllWarehouseUseCase,
+    GetWarehouseByIdUseCase,
+    GetWarehouseDropdownUseCase,
     UpdateWarehouseUseCase,
     DeleteWarehouseUseCase,
     {

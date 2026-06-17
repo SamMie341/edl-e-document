@@ -4,16 +4,16 @@ import { CreateLockerUseCase } from './application/use-cases/create-locker.use-c
 import { GetAllLockersUseCase } from './application/use-cases/get-all-lockers.use-case';
 import { LOCKER_REPOSITORY } from './domain/repositories/locker.repository.interface';
 import { PrismaLockerRepository } from './infrastructure/repositories/prisma-locker.repository';
-import { GetLockersByWarehouseUseCase } from './application/use-cases/get-lockers-by-warehouse.use-case';
 import { UpdateLockerUseCase } from './application/use-cases/update-locker.use-case';
 import { DeleteLockerUseCase } from './application/use-cases/delete-locker.use-case';
+import { GetLockerByIdUseCase } from './application/use-cases/get-locker-by-id.use-case';
 
 @Module({
   controllers: [LockerController],
   providers: [
     CreateLockerUseCase,
     GetAllLockersUseCase,
-    GetLockersByWarehouseUseCase,
+    GetLockerByIdUseCase,
     UpdateLockerUseCase,
     DeleteLockerUseCase,
     {
@@ -23,4 +23,4 @@ import { DeleteLockerUseCase } from './application/use-cases/delete-locker.use-c
   ],
   exports: [LOCKER_REPOSITORY],
 })
-export class LockerModule {}
+export class LockerModule { }

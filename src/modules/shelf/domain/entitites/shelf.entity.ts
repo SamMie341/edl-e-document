@@ -21,5 +21,6 @@ export class Locker {
     public name: string,
     public description: string,
     public status: string,
+    public warehouseId: string,
   ) { }
 }

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import * as userRepositoryInterface from '../../domain/repositories/user.repository.interface';
 import { ApproveUserDto } from '../dtos/approve-user.dto';
+import { Role } from 'src/core/auth/constants/role.enum';
 
 @Injectable()
 export class ApproveUserUseCase {
@@ -22,6 +23,10 @@ export class ApproveUserUseCase {
       throw new BadRequestException('ອີເມວນີ້ຖືກອະນຸມັດແລ້ວ');
     }
 
+    if (dto.role === Role.USER && dto.divisionIds && dto.divisionIds.length > 1) {
+      throw new BadRequestException('ຜູ້ໃຊ້ງານທົ່ວໄປ (USER) ບໍ່ສາມາດຮັບຜິດຊອບຫຼາຍກວ່າ 1 ສາຂາໄດ້');
+    }
+
     const updateData: any = {
       status: 'A',
       role: dto.role,
@@ -29,6 +34,10 @@ export class ApproveUserUseCase {
 
     if (dto.addressId !== undefined) {
       updateData.addressId = dto.addressId;
+    }
+
+    if (dto.divisionIds !== undefined) {
+      updateData.divisionIds = dto.divisionIds;
     }
 
     const updatedUser = await this.userRepository.update(userId, updateData);

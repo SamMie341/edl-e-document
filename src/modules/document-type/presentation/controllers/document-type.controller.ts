@@ -34,10 +34,10 @@ export class DocumentTypeController {
     private readonly updateDocumentTypeUseCase: UpdateDocumentTypeUseCase,
     private readonly deleteDocumentTypeUseCase: DeleteDocumentTypeUseCase,
     private readonly getDocumentTypeByNameUseCase: GetDocumentTypeByNameUseCase,
-  ) {}
+  ) { }
 
   // ─── GET ALL — HQ & BRANCH & USER ────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get()
   async findAll(
     @Query('page') page: string = '1',
@@ -55,7 +55,7 @@ export class DocumentTypeController {
   }
 
   // ─── GET by name — HQ & BRANCH & USER ────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get('name/:name')
   async findByName(@Param('name') name: string) {
     const decodedName = decodeURIComponent(name);
@@ -64,7 +64,7 @@ export class DocumentTypeController {
   }
 
   // ─── GET by id — HQ & BRANCH & USER ──────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get(':id')
   async findById(@Param('id') id: string) {
     const documentType = await this.getDocumentTypeByIdUseCase.execute(id);
@@ -72,7 +72,7 @@ export class DocumentTypeController {
   }
 
   // ─── CREATE — HQ ເທົ່ານັ້ນ ────────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   @Post()
   async create(@Body() dto: CreateDocumentTypeDto) {
     const type = await this.createDocumentTypeUseCase.execute(dto);
@@ -80,7 +80,7 @@ export class DocumentTypeController {
   }
 
   // ─── UPDATE — HQ ເທົ່ານັ້ນ ────────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateDocumentTypeDto) {
     const documentType = await this.updateDocumentTypeUseCase.execute(id, dto);
@@ -88,7 +88,7 @@ export class DocumentTypeController {
   }
 
   // ─── DELETE — HQ ເທົ່ານັ້ນ ────────────────────────────────────────────────────
-  @Roles(Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id') id: string) {

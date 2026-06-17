@@ -4,6 +4,7 @@ import { SyncDivisionUseCase } from './application/use-cases/sync-divisions.use-
 import { DIVISION_REPOSITORY } from './domain/repositories/division.repository.interface';
 import { HrmDivisionRepository } from './infrastructure/repositories/hrm-division.repository';
 import { GetDivisionsUseCase } from './application/use-cases/get-division.use-case';
+import { GetDivisionsByDepartmentUseCase } from './application/use-cases/get-divisions-by-department.use-case';
 
 @Module({
   imports: [],
@@ -11,11 +12,12 @@ import { GetDivisionsUseCase } from './application/use-cases/get-division.use-ca
   providers: [
     SyncDivisionUseCase,
     GetDivisionsUseCase,
+    GetDivisionsByDepartmentUseCase,
     {
       provide: DIVISION_REPOSITORY,
       useClass: HrmDivisionRepository,
     },
   ],
-  exports: [SyncDivisionUseCase, DIVISION_REPOSITORY],
+  exports: [SyncDivisionUseCase, GetDivisionsByDepartmentUseCase, DIVISION_REPOSITORY],
 })
 export class DivisionModule {}

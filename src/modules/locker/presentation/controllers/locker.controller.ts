@@ -14,9 +14,9 @@ import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/core/auth/guards/roles.guard';
 import { CreateLockerUseCase } from '../../application/use-cases/create-locker.use-case';
 import { GetAllLockersUseCase } from '../../application/use-cases/get-all-lockers.use-case';
-import { GetLockersByWarehouseUseCase } from '../../application/use-cases/get-lockers-by-warehouse.use-case';
 import { UpdateLockerUseCase } from '../../application/use-cases/update-locker.use-case';
 import { DeleteLockerUseCase } from '../../application/use-cases/delete-locker.use-case';
+import { GetLockerByIdUseCase } from '../../application/use-cases/get-locker-by-id.use-case';
 import { CreateLockerDto } from '../../application/dtos/create-locker.dto';
 import { UpdateLockerDto } from '../../application/dtos/update-locker.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
@@ -28,9 +28,9 @@ export class LockerController {
   constructor(
     private readonly createLockerUseCase: CreateLockerUseCase,
     private readonly getAllLockerUseCase: GetAllLockersUseCase,
-    private readonly getLockersByWarehouseUseCase: GetLockersByWarehouseUseCase,
     private readonly updateLockerUseCase: UpdateLockerUseCase,
     private readonly deleteLockerUseCase: DeleteLockerUseCase,
+    private readonly getLockerByIdUseCase: GetLockerByIdUseCase,
   ) { }
 
   // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
@@ -59,13 +59,12 @@ export class LockerController {
     return { message: 'Success', ...result };
   }
 
-  // ─── GET by warehouse — HQ & BRANCH ────────────────────────────────────────
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  @Get('warehouse/:warehouseId')
-  async getByWarehouse(@Param('warehouseId') warehouseId: string) {
-    const lockers =
-      await this.getLockersByWarehouseUseCase.execute(warehouseId);
-    return { message: 'Success', data: lockers };
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    const locker = await this.getLockerByIdUseCase.execute(id);
+    return { message: 'Success', data: locker };
   }
 
   // ─── CREATE — HQ & BRANCH ──────────────────────────────────────────────────

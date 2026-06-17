@@ -7,7 +7,6 @@ export class DocumentBorrowEntity {
     public readonly borrowedAt: Date,
     public readonly returnedAt: Date | null,
     public readonly purpose: string | null,
-    public readonly toBranchId: number | null,
     public readonly toDivisionId: number | null,
     public readonly toLocation: string | null,
     public readonly createdById: string,
@@ -18,7 +17,6 @@ export class DocumentBorrowEntity {
     public readonly borrower?: any,
     public readonly document?: any,
     public readonly folder?: any,
-    public readonly toBranch?: any,
     public readonly toDivision?: any,
     public readonly createdBy?: any,
   ) {}

@@ -1,9 +1,10 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsString,
   IsOptional,
   IsDate,
   IsBoolean,
+  IsInt,
 } from 'class-validator';
 
 export class UpdateDocumentDto {
@@ -58,4 +59,14 @@ export class UpdateDocumentDto {
   })
   @IsBoolean()
   isContractBound?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  divisionId?: number;
 }

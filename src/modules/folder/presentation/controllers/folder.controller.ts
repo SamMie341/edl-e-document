@@ -19,7 +19,6 @@ import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { CreateFolderDto } from '../../application/dtos/create-folder.dto';
 import { UpdateFolderDto } from '../../application/dtos/update-folder.dto';
-import { GetFoldersByShelfUseCase } from '../../application/use-cases/get-folders-by-shelf.use-case';
 import { GetAllFolderUseCase } from '../../application/use-cases/get-all-folders.use-case';
 import { GetFolderByIdUseCase } from '../../application/use-cases/get-folder-by-id.use-case';
 
@@ -30,7 +29,6 @@ export class FolderController {
     private readonly createFolderUseCase: CreateFolderUseCase,
     private readonly getAllFolderUseCase: GetAllFolderUseCase,
     private readonly getFolderByIdUseCase: GetFolderByIdUseCase,
-    private readonly getFoldersByShelfUseCase: GetFoldersByShelfUseCase,
     private readonly updateFolderUseCase: UpdateFolderUseCase,
     private readonly deleteFolderUseCase: DeleteFolderUseCase,
   ) { }
@@ -71,15 +69,6 @@ export class FolderController {
     };
   }
 
-  @Get('shelf/:shelfId')
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
-  async getByShelf(@Param('shelfId') shelfId: string) {
-    const folders = await this.getFoldersByShelfUseCase.execute(shelfId);
-    return {
-      message: 'Success',
-      data: folders,
-    };
-  }
 
   // ─── GET BY ID ────────────────────────────────────────────────────────────
   @Get(':id')

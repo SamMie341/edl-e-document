@@ -24,8 +24,9 @@ export class WarehouseMapper {
           model.address.name,
           model.address.details,
           model.address.status,
-        )
-        : null,
+          model.address.departmentId,
+          model.address.divisionId,
+        ) : null,
     );
   }
 }

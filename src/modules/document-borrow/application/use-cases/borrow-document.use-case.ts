@@ -16,7 +16,6 @@ export class BorrowDocumentUseCase {
       folderId: dto.folderId,
       borrowerId: dto.borrowerId,
       purpose: dto.purpose,
-      toBranchId: dto.toBranchId,
       toDivisionId: dto.toDivisionId,
       toLocation: dto.toLocation,
       createdById: actorId,

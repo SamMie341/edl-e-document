@@ -22,6 +22,8 @@ import { UpdateUserRoleUseCase } from '../../application/use-cases/update-user-r
 import { UpdateRoleDto } from '../../application/dtos/update-role.dto';
 import { ApproveUserUseCase } from '../../application/use-cases/approve-user.use-case';
 import { ApproveUserDto } from '../../application/dtos/approve-user.dto';
+import { UpdateUserDivisionsUseCase } from '../../application/use-cases/update-user-divisions.use-case';
+import { UpdateUserDivisionsDto } from '../../application/dtos/update-user-divisions.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,6 +35,7 @@ export class UserController {
     private readonly getAllUsersUseCase: GetAllUsersUseCase,
     private readonly updateUserRoleUseCase: UpdateUserRoleUseCase,
     private readonly approveUserUseCase: ApproveUserUseCase,
+    private readonly updateUserDivisionsUseCase: UpdateUserDivisionsUseCase,
   ) { }
 
   @Put('change-password')
@@ -91,5 +94,18 @@ export class UserController {
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   async approveUser(@Param('id') id: string, @Body() dto: ApproveUserDto) {
     return await this.approveUserUseCase.execute(id, dto);
+  }
+
+  @Put(':id/divisions')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
+  async updateDivisions(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserDivisionsDto,
+  ) {
+    const updatedUser = await this.updateUserDivisionsUseCase.execute(id, dto.divisionIds);
+    return {
+      message: 'ອັບເດດພະແນກທີ່ຮັບຜິດຊອບສຳເລັດ',
+      data: updatedUser.getPublicProfile(),
+    };
   }
 }

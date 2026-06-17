@@ -14,6 +14,7 @@ import { GetAllUsersUseCase } from './application/use-cases/get-all-users.use-ca
 import { UpdateUserRoleUseCase } from './application/use-cases/update-user-role.use-case';
 import { RegisterUseCase } from './application/use-cases/register.use-case';
 import { ApproveUserUseCase } from './application/use-cases/approve-user.use-case';
+import { UpdateUserDivisionsUseCase } from './application/use-cases/update-user-divisions.use-case';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ApproveUserUseCase } from './application/use-cases/approve-user.use-cas
     GetProfileUseCase,
     GetAllUsersUseCase,
     UpdateUserRoleUseCase,
+    UpdateUserDivisionsUseCase,
     {
       provide: USER_REPOSITORY,
       useClass: PrismaUserRepository,

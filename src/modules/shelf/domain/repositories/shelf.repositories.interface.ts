@@ -16,7 +16,6 @@ export interface IShelfRepository {
   create(data: any): Promise<Shelf>;
   findAll(params: ShelfFilterParams): Promise<{ data: Shelf[]; total: number }>;
   findById(id: string): Promise<Shelf | null>;
-  findByLockerId(lockerId: string): Promise<Shelf[]>;
   update(id: string, data: any): Promise<Shelf>;
   delete(id: string): Promise<void>;
 }

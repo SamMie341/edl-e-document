@@ -7,5 +7,9 @@ export class Address {
     public status: string,
     public readonly createdAt: Date,
     public updatedAt: Date,
+    public departmentId?: number | null,
+    public divisionId?: number | null,
+    public departmentData?: any,
+    public divisionData?: any,
   ) {}
 }

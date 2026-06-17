@@ -40,8 +40,7 @@ export class SyncUserFromHrmUseCase {
       const defaultPassword = process.env.DEFAULT_USER_PASSWORD || 'EDL1234';
       const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-      let validBranchId = null,
-        validDeptId = null,
+      let validDeptId = null,
         validDivId = null,
         validOfficeId = null,
         validUnitId = null;
@@ -90,9 +89,8 @@ export class SyncUserFromHrmUseCase {
         gender: hrmData.gender,
         image: hrmData.image,
 
-        branchId: hrmData.office?.division?.branch_id || null,
         departmentId: validDeptId,
-        divisionId: validDivId,
+        divisionIds: validDivId ? [validDivId] : [],
         officeId: validOfficeId,
         unitId: validUnitId,
       });
