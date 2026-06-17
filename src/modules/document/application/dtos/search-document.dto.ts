@@ -23,4 +23,14 @@ export class SearchDocumentDto {
   @IsOptional()
   @IsString()
   folderId?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  divisionId?: number;
 }

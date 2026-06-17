@@ -26,7 +26,6 @@ const BORROW_INCLUDE = {
   folder: {
     select: { id: true, code: true, name: true },
   },
-  toBranch: { select: { id: true, name: true } },
   toDivision: { select: { id: true, name: true } },
   createdBy: {
     select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true },
@@ -44,7 +43,6 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
         folderId: data.folderId,
         borrowerId: data.borrowerId,
         purpose: data.purpose,
-        toBranchId: data.toBranchId,
         toDivisionId: data.toDivisionId,
         toLocation: data.toLocation,
         createdById: data.createdById,

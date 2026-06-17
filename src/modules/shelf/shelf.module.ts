@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ShelfController } from './presentation/controllers/shelf.controller';
 import { CreateShelfUseCase } from './application/use-cases/create-shelf.use-case';
-import { GetShelvesByLockerUseCase } from './application/use-cases/get-shelves-by-locker.use-case';
 import { SHELF_REPOSITORY } from './domain/repositories/shelf.repositories.interface';
 import { PrismaShelfRepository } from './infrastructure/repositories/prisma-shelf.repository';
 import { GetAllShelvesUseCase } from './application/use-cases/get-all-shelves.use-case';
@@ -14,7 +13,6 @@ import { GetShelfByIdUseCase } from './application/use-cases/get-shelf-by-id.use
   providers: [
     CreateShelfUseCase,
     GetAllShelvesUseCase,
-    GetShelvesByLockerUseCase,
     GetShelfByIdUseCase,
     UpdateShelfUseCase,
     DeleteShelfUseCase,
@@ -25,4 +23,4 @@ import { GetShelfByIdUseCase } from './application/use-cases/get-shelf-by-id.use
   ],
   exports: [SHELF_REPOSITORY],
 })
-export class ShelfModule {}
+export class ShelfModule { }

@@ -9,6 +9,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { DepartmentMapper } from '../mappers/department.mapper';
 import { HrmAuthService } from 'src/modules/hrm/infrastructure/services/hrm-auth.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class HrmDepartmentRepository implements IDepartmentRepository {
@@ -18,7 +19,13 @@ export class HrmDepartmentRepository implements IDepartmentRepository {
   constructor(
     private readonly httpService: HttpService,
     private readonly hrmAuthService: HrmAuthService,
-  ) {}
+    private readonly prisma: PrismaService,
+  ) { }
+  async findById(id: number): Promise<Department | null> {
+    const model = await this.prisma.departmentModel.findUnique({ where: { id } });
+    if (!model) return null;
+    return DepartmentMapper.toDomain(model);
+  }
 
   async findAll(): Promise<Department[]> {
     try {

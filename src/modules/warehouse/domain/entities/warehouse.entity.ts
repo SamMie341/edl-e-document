@@ -7,6 +7,8 @@ export class Address {
     public name: string,
     public details: string,
     public status: string,
+    public departmentId: number,
+    public divisionId: number,
   ) { }
 }
 
@@ -18,7 +20,6 @@ export class Warehouse {
     public description: string | null,
     public status: string,
     public addressId: string | null,
-    // public departmentId: number | null,
     public readonly createdAt: Date,
     public updatedAt: Date,
     public address?: Address | null,

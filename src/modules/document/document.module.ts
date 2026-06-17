@@ -9,6 +9,8 @@ import { AuditModule } from '../audit/audit.module';
 import { GetAllDocumentUseCase } from './application/use-cases/get-all-document.use-case';
 import { GetDocumentByIdUseCase } from './application/use-cases/get-document-by-id.use-case';
 import { UpdateDocumentUseCase } from './application/use-cases/update-document.use-case';
+import { DeleteExpiredDocumentsUseCase } from './application/use-cases/delete-expired-documents.use-case';
+import { GetExpiredDocumentsUseCase } from './application/use-cases/get-expired-documents.use-case';
 
 import { FolderModule } from '../folder/folder.module';
 
@@ -22,6 +24,8 @@ import { FolderModule } from '../folder/folder.module';
     GetAllDocumentUseCase,
     GetDocumentByIdUseCase,
     UpdateDocumentUseCase,
+    DeleteExpiredDocumentsUseCase,
+    GetExpiredDocumentsUseCase,
 
     {
       provide: DOCUMENT_REPOSITORY,

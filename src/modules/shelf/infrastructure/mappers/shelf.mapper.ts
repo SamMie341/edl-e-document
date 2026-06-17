@@ -15,12 +15,13 @@ export class ShelfMapper {
       model.maxQty - folderCount,
       model.locker
         ? new Locker(
-            model.locker.id,
-            model.locker.code,
-            model.locker.name,
-            model.locker.description,
-            model.locker.status,
-          )
+          model.locker.id,
+          model.locker.code,
+          model.locker.name,
+          model.locker.description,
+          model.locker.status,
+          model.locker.warehouseId,
+        )
         : null,
     );
   }

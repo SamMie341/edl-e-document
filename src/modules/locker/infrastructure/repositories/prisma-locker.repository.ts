@@ -52,7 +52,13 @@ export class PrismaLockerRepository implements ILockerRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { warehouse: true },
+        include: {
+          warehouse: {
+            include: {
+              address: true,
+            },
+          },
+        },
       }),
       this.prisma.lockerModel.count({ where }),
     ]);
@@ -63,12 +69,19 @@ export class PrismaLockerRepository implements ILockerRepository {
     };
   }
 
-  async findByWarehouseId(warehouseId: string): Promise<Locker[]> {
-    const models = await this.prisma.lockerModel.findMany({
-      where: { warehouseId, status: 'A' },
-      orderBy: { code: 'asc' },
+  async findById(id: string): Promise<Locker | null> {
+    const model = await this.prisma.lockerModel.findUnique({
+      where: { id },
+      include: {
+        warehouse: {
+          include: {
+            address: true,
+          },
+        },
+      },
     });
-    return models.map(LockerMapper.toDomain);
+    if (!model) return null;
+    return LockerMapper.toDomain(model);
   }
 
   async create(data: any): Promise<Locker> {
@@ -77,6 +90,14 @@ export class PrismaLockerRepository implements ILockerRepository {
     });
     if (existing) {
       throw new ConflictException(`ລະຫັດຕູ້ '${data.code}' ຖືກໃຊ້ງານແລ້ວ`);
+    }
+    if (data.warehouseId) {
+      const warehouse = await this.prisma.warehouseModel.findUnique({
+        where: { id: data.warehouseId },
+      });
+      if (!warehouse) {
+        throw new NotFoundException('ບໍ່ພົບສາງນີ້ໃນລະບົບ');
+      }
     }
     const model = await this.prisma.lockerModel.create({ data });
     return LockerMapper.toDomain(model);
@@ -89,6 +110,14 @@ export class PrismaLockerRepository implements ILockerRepository {
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ນີ້ໃນລະບົບ');
     }
+    if (data.warehouseId) {
+      const warehouse = await this.prisma.warehouseModel.findUnique({
+        where: { id: data.warehouseId },
+      });
+      if (!warehouse) {
+        throw new NotFoundException('ບໍ່ພົບສາງນີ້ໃນລະບົບ');
+      }
+    }
     const model = await this.prisma.lockerModel.update({ where: { id }, data });
     return LockerMapper.toDomain(model);
   }
@@ -100,6 +129,16 @@ export class PrismaLockerRepository implements ILockerRepository {
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ນີ້ໃນລະບົບ');
     }
+
+    const shelvesCount = await this.prisma.shelfModel.count({
+      where: { lockerId: id },
+    });
+    if (shelvesCount > 0) {
+      throw new ConflictException(
+        'ບໍ່ສາມາດລົບຕູ້ Locker ນີ້ໄດ້ ເພາະຍັງມີຊັ້ນວາງຢູ່ພາຍໃນ. ກະລຸນາລົບຊັ້ນວາງທັງໝົດກ່ອນ.',
+      );
+    }
+
     await this.prisma.lockerModel.delete({ where: { id } });
   }
 }

@@ -1,9 +1,9 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class LoginDto {
-  @IsNotEmpty({ message: 'ຊື່ຜູ້ໃຊ້ຕ້ອງບໍ່ເປັນຄ່າວ່າງ' })
-  @IsEmail({}, { message: 'ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ' })
-  email: string;
+  @IsString()
+  @IsNotEmpty({ message: 'ລະຫັດພະນັກງານຕ້ອງບໍ່ເປັນຄ່າວ່າງ' })
+  empCode: string;
 
   @IsString()
   @IsNotEmpty({ message: 'ລະຫັດຜ່ານຕ້ອງບໍ່ເປັນຄ່າວ່າງ' })

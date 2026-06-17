@@ -14,7 +14,11 @@ export interface IAddressRepository {
   findAll(
     params: AddressFilterParams,
   ): Promise<{ data: Address[]; total: number }>;
-  getDropdown(): Promise<{ id: string; name: string }[]>;
+  findById(id: string): Promise<Address | null>;
+  getDropdown(filters?: {
+    departmentId?: number;
+    divisionId?: number;
+  }): Promise<{ id: string; name: string }[]>;
   update(id: string, data: any): Promise<Address>;
   delete(id: string): Promise<void>;
 }

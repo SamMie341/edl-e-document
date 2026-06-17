@@ -20,9 +20,7 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/",
-              "host": [
-                "{{baseUrl}}"
-              ],
+              "host": ["{{baseUrl}}"],
               "path": [],
               "query": [],
               "variable": []
@@ -46,13 +44,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/addresses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses"
-              ],
+              "raw": "{{baseUrl}}/addresses?page=1&limit=10&search=&status=",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses"],
               "query": [
                 {
                   "key": "page",
@@ -68,16 +62,6 @@
                   "key": "search",
                   "value": "",
                   "description": "Query parameter: search"
-                },
-                {
-                  "key": "branchId",
-                  "value": "",
-                  "description": "Query parameter: branchId"
-                },
-                {
-                  "key": "divisionId",
-                  "value": "",
-                  "description": "Query parameter: divisionId"
                 },
                 {
                   "key": "status",
@@ -111,16 +95,58 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/addresses/dropdown",
-              "host": [
-                "{{baseUrl}}"
+              "raw": "{{baseUrl}}/addresses/dropdown?departmentId=&divisionId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", "dropdown"],
+              "query": [
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Query parameter: departmentId"
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "description": "Query parameter: divisionId"
+                }
               ],
-              "path": [
-                "addresses",
-                "dropdown"
-              ],
-              "query": [],
               "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /addresses/:id (getById)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/addresses/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", ":id"],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -147,12 +173,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/addresses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses"],
               "query": [],
               "variable": []
             },
@@ -168,7 +190,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"branchId\": 1,\n  \"divisionId\": 1\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
             }
           },
           "response": []
@@ -185,13 +207,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/addresses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", ":id"],
               "query": [],
               "variable": [
                 {
@@ -213,7 +230,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"branchId\": 1,\n  \"divisionId\": 1,\n  \"status\": \"DRAFT\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"departmentId\": 1,\n  \"divisionId\": 1,\n  \"status\": \"A\"\n}"
             }
           },
           "response": []
@@ -230,13 +247,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/addresses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["addresses", ":id"],
               "query": [],
               "variable": [
                 {
@@ -276,12 +288,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/branches",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "branches"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["branches"],
               "query": [],
               "variable": []
             },
@@ -315,12 +323,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/departments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "departments"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["departments"],
               "query": [],
               "variable": []
             },
@@ -349,13 +353,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/departments/sync",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "departments",
-                "sync"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["departments", "sync"],
               "query": [],
               "variable": []
             },
@@ -389,13 +388,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/divisions/sync",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "divisions",
-                "sync"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["divisions", "sync"],
               "query": [],
               "variable": []
             },
@@ -424,12 +418,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/divisions",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "divisions"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["divisions"],
               "query": [],
               "variable": []
             },
@@ -463,12 +453,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents"],
               "query": [
                 {
                   "key": "page",
@@ -538,13 +524,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", ":id"],
               "query": [],
               "variable": [
                 {
@@ -579,12 +560,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents"],
               "query": [],
               "variable": []
             },
@@ -617,13 +594,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", ":id"],
               "query": [],
               "variable": [
                 {
@@ -662,14 +634,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents/:id/attachments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                ":id",
-                "attachments"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", ":id", "attachments"],
               "query": [],
               "variable": [
                 {
@@ -704,14 +670,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/documents/attachments/:attachmentId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                "attachments",
-                ":attachmentId"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["documents", "attachments", ":attachmentId"],
               "query": [],
               "variable": [
                 {
@@ -751,12 +711,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types"],
               "query": [
                 {
                   "key": "page",
@@ -806,14 +762,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types/name/:name",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types",
-                "name",
-                ":name"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types", "name", ":name"],
               "query": [],
               "variable": [
                 {
@@ -848,13 +798,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types", ":id"],
               "query": [],
               "variable": [
                 {
@@ -889,12 +834,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types"],
               "query": [],
               "variable": []
             },
@@ -927,13 +868,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types", ":id"],
               "query": [],
               "variable": [
                 {
@@ -972,13 +908,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/document-types/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "document-types",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["document-types", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1018,12 +949,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/folders",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "folders"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["folders"],
               "query": [],
               "variable": []
             },
@@ -1056,12 +983,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/folders",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "folders"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["folders"],
               "query": [
                 {
                   "key": "page",
@@ -1111,14 +1034,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/folders/shelf/:shelfId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "folders",
-                "shelf",
-                ":shelfId"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", "shelf", ":shelfId"],
               "query": [],
               "variable": [
                 {
@@ -1153,13 +1070,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/folders/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "folders",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1198,13 +1110,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/folders/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "folders",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["folders", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1244,12 +1151,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/lockers",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lockers"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["lockers"],
               "query": [
                 {
                   "key": "page",
@@ -1293,7 +1196,7 @@
           "response": []
         },
         {
-          "name": "GET /lockers/warehouse/:warehouseId (getByWarehouse)",
+          "name": "GET /lockers/:id (findById)",
           "request": {
             "method": "GET",
             "header": [
@@ -1303,21 +1206,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/lockers/warehouse/:warehouseId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lockers",
-                "warehouse",
-                ":warehouseId"
-              ],
+              "raw": "{{baseUrl}}/lockers/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["lockers", ":id"],
               "query": [],
               "variable": [
                 {
-                  "key": "warehouseId",
+                  "key": "id",
                   "value": "1",
-                  "description": "Path variable: warehouseId"
+                  "description": "Path variable: id"
                 }
               ]
             },
@@ -1346,12 +1243,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/lockers",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lockers"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["lockers"],
               "query": [],
               "variable": []
             },
@@ -1384,13 +1277,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/lockers/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lockers",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["lockers", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1412,7 +1300,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"warehouseId\": \"1\",\n  \"status\": \"DRAFT\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"warehouseId\": \"1\",\n  \"status\": \"A\"\n}"
             }
           },
           "response": []
@@ -1429,13 +1317,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/lockers/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lockers",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["lockers", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1475,13 +1358,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/offices/sync",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "offices",
-                "sync"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["offices", "sync"],
               "query": [],
               "variable": []
             },
@@ -1510,12 +1388,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/offices",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "offices"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["offices"],
               "query": [],
               "variable": []
             },
@@ -1549,12 +1423,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/shelves",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "shelves"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["shelves"],
               "query": [],
               "variable": []
             },
@@ -1587,12 +1457,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/shelves",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "shelves"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["shelves"],
               "query": [
                 {
                   "key": "page",
@@ -1652,14 +1518,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/shelves/locker/:lockerId",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "shelves",
-                "locker",
-                ":lockerId"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["shelves", "locker", ":lockerId"],
               "query": [],
               "variable": [
                 {
@@ -1694,13 +1554,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/shelves/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "shelves",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["shelves", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1739,13 +1594,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/shelves/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "shelves",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["shelves", ":id"],
               "query": [],
               "variable": [
                 {
@@ -1785,13 +1635,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/units/sync",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "units",
-                "sync"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["units", "sync"],
               "query": [],
               "variable": []
             },
@@ -1820,12 +1665,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/units",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "units"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["units"],
               "query": [],
               "variable": []
             },
@@ -1859,19 +1700,14 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"],
               "query": [],
               "variable": []
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@edl.com.la\",\n  \"empCode\": \"empCode_val\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"admin@edl.com.la\",\n  \"empCode\": \"empCode_val\",\n  \"password\": \"EDL1234\"\n}"
             }
           },
           "response": []
@@ -1888,19 +1724,14 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"],
               "query": [],
               "variable": []
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@edl.com.la\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"empCode\": \"ADMIN000\",\n  \"password\": \"EDL1234\"\n}"
             }
           },
           "response": []
@@ -1922,13 +1753,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/change-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "change-password"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "change-password"],
               "query": [],
               "variable": []
             },
@@ -1961,14 +1787,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/:id/reset-password",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                ":id",
-                "reset-password"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "reset-password"],
               "query": [],
               "variable": [
                 {
@@ -2003,13 +1823,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "profile"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"],
               "query": [],
               "variable": []
             },
@@ -2038,12 +1853,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
               "query": [
                 {
                   "key": "page",
@@ -2088,14 +1899,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/:id/role",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                ":id",
-                "role"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "role"],
               "query": [],
               "variable": [
                 {
@@ -2134,14 +1939,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/users/:id/approve",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                ":id",
-                "approve"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "approve"],
               "query": [],
               "variable": [
                 {
@@ -2167,16 +1966,11 @@
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "Warehouse",
-      "item": [
+        },
         {
-          "name": "GET /warehouses/branches/dropdown (getBranchDropdown)",
+          "name": "PUT /users/:id/divisions (Update Divisions)",
           "request": {
-            "method": "GET",
+            "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
@@ -2184,17 +1978,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/warehouses/branches/dropdown",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "warehouses",
-                "branches",
-                "dropdown"
-              ],
+              "raw": "{{baseUrl}}/users/:id/divisions",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "divisions"],
               "query": [],
-              "variable": []
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -2205,10 +1999,19 @@
                   "type": "string"
                 }
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"divisionIds\": [\n    1,\n    2\n  ]\n}"
             }
           },
           "response": []
-        },
+        }
+      ]
+    },
+    {
+      "name": "Warehouse",
+      "item": [
         {
           "name": "GET /warehouses (findAll)",
           "request": {
@@ -2220,13 +2023,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/warehouses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "warehouses"
-              ],
+              "raw": "{{baseUrl}}/warehouses?page=1&limit=10&search=&status=&addressId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses"],
               "query": [
                 {
                   "key": "page",
@@ -2244,19 +2043,14 @@
                   "description": "Query parameter: search"
                 },
                 {
-                  "key": "branchId",
-                  "value": "",
-                  "description": "Query parameter: branchId"
-                },
-                {
-                  "key": "divisionId",
-                  "value": "",
-                  "description": "Query parameter: divisionId"
-                },
-                {
                   "key": "status",
                   "value": "",
                   "description": "Query parameter: status"
+                },
+                {
+                  "key": "addressId",
+                  "value": "",
+                  "description": "Query parameter: addressId"
                 }
               ],
               "variable": []
@@ -2275,7 +2069,7 @@
           "response": []
         },
         {
-          "name": "GET /warehouses/branch (getByBranch)",
+          "name": "GET /warehouses/dropdown (getDropdown)",
           "request": {
             "method": "GET",
             "header": [
@@ -2285,16 +2079,53 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/warehouses/branch",
-              "host": [
-                "{{baseUrl}}"
+              "raw": "{{baseUrl}}/warehouses/dropdown?addressId=",
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses", "dropdown"],
+              "query": [
+                {
+                  "key": "addressId",
+                  "value": "",
+                  "description": "Query parameter: addressId"
+                }
               ],
-              "path": [
-                "warehouses",
-                "branch"
-              ],
-              "query": [],
               "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /warehouses/:id (findById)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/warehouses/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses", ":id"],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -2321,12 +2152,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/warehouses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "warehouses"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses"],
               "query": [],
               "variable": []
             },
@@ -2342,7 +2169,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"branchId\": 1,\n  \"divisionId\": 1,\n  \"addressId\": \"1\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"addressId\": \"1\"\n}"
             }
           },
           "response": []
@@ -2359,13 +2186,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/warehouses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "warehouses",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses", ":id"],
               "query": [],
               "variable": [
                 {
@@ -2387,7 +2209,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"branchId\": 1,\n  \"divisionId\": 1,\n  \"addressId\": \"1\",\n  \"status\": \"DRAFT\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"addressId\": \"1\",\n  \"status\": \"A\"\n}"
             }
           },
           "response": []
@@ -2404,13 +2226,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/warehouses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "warehouses",
-                ":id"
-              ],
+              "host": ["{{baseUrl}}"],
+              "path": ["warehouses", ":id"],
               "query": [],
               "variable": [
                 {
@@ -2439,6 +2256,11 @@
   "variable": [
     {
       "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl_prod",
       "value": "https://api-edoc.edl.com.la/api/v1",
       "type": "string"
     },

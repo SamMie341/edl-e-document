@@ -6,5 +6,5 @@ export class Department {
     public phone: string,
     public email: string,
     public status: string,
-  ) {}
+  ) { }
 }

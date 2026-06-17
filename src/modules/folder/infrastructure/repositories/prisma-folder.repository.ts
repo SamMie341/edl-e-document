@@ -44,6 +44,19 @@ export class PrismaFolderRepository implements IFolderRepository {
                 take,
                 orderBy: { code: 'asc' },
                 include: {
+                    shelf: {
+                        include: {
+                            locker: {
+                                include: {
+                                    warehouse: {
+                                        include: {
+                                            address: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     _count: { select: { documents: true } }
                 },
             }),
@@ -94,22 +107,33 @@ export class PrismaFolderRepository implements IFolderRepository {
         const model = await this.prisma.folderModel.findUnique({
             where: { id },
             include: {
-                shelf: true,
+                shelf: {
+                    include: {
+                        locker: {
+                            include: {
+                                warehouse: {
+                                    include: {
+                                        address: {
+                                            include: {
+                                                division: {
+                                                    include: {
+                                                        department: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 documents: true,
                 _count: { select: { documents: true } },
             },
         });
         if (!model) throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         return FolderMapper.toDomain(model);
-    }
-
-    async findByShelfId(shelfId: string): Promise<Folder[]> {
-        const models = await this.prisma.folderModel.findMany({
-            where: { shelfId, status: 'A' },
-            orderBy: { code: 'asc' },
-            include: { _count: { select: { documents: true } } },
-        });
-        return models.map((model) => FolderMapper.toDomain(model));
     }
 
     async update(id: string, data: any): Promise<Folder> {
@@ -130,6 +154,15 @@ export class PrismaFolderRepository implements IFolderRepository {
             }
         }
 
+        if (data.shelfId) {
+            const shelf = await this.prisma.shelfModel.findUnique({
+                where: { id: data.shelfId },
+            });
+            if (!shelf) {
+                throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
+            }
+        }
+
         const model = await this.prisma.folderModel.update({ where: { id }, data });
         return FolderMapper.toDomain(model);
     }
@@ -141,6 +174,16 @@ export class PrismaFolderRepository implements IFolderRepository {
         if (!existing) {
             throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         }
+
+        const documentsCount = await this.prisma.documentModel.count({
+            where: { folderId: id },
+        });
+        if (documentsCount > 0) {
+            throw new ConflictException(
+                'ບໍ່ສາມາດລົບແຟ້ມເອກະສານນີ້ໄດ້ ເພາະຍັງມີເອກະສານຢູ່ພາຍໃນ. ກະລຸນາຍ້າຍ ຫຼື ລົບເອກະສານທັງໝົດກ່ອນ.',
+            );
+        }
+
         await this.prisma.folderModel.delete({ where: { id } });
     }
 }

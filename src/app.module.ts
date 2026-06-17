@@ -4,7 +4,6 @@ import { DocumentModule } from './modules/document/document.module';
 import { CoreModule } from './core/core.module';
 import { UserModule } from './modules/user/user.module';
 import { FolderModule } from './modules/folder/folder.module';
-import { BranchModule } from './modules/branch/branch.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { DocumentTypeModule } from './modules/document-type/document-type.module';
 import { DepartmentModule } from './modules/department/department.module';
@@ -30,7 +29,6 @@ import { DocumentBorrowModule } from './modules/document-borrow/document-borrow.
     UserModule,
     DocumentModule,
     FolderModule,
-    BranchModule,
     AuditModule,
     DocumentTypeModule,
     DepartmentModule,
@@ -48,4 +46,4 @@ import { DocumentBorrowModule } from './modules/document-borrow/document-borrow.
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

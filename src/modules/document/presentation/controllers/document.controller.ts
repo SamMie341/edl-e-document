@@ -14,6 +14,7 @@ import {
   Query,
   UploadedFiles,
   Put,
+  Delete,
 } from '@nestjs/common';
 import { CreateDocumentUseCase } from '../../application/use-cases/create-document.use-case';
 import { CreateDocumentDto } from '../../application/dtos/create-document.dto';
@@ -30,7 +31,8 @@ import type { Response } from 'express';
 import { createReadStream } from 'fs';
 import { GetAllDocumentUseCase } from '../../application/use-cases/get-all-document.use-case';
 import { GetDocumentByIdUseCase } from '../../application/use-cases/get-document-by-id.use-case';
-import { MulterConfigService } from '../../../../core/config/multer-config.service';
+import { DeleteExpiredDocumentsUseCase } from '../../application/use-cases/delete-expired-documents.use-case';
+import { GetExpiredDocumentsUseCase } from '../../application/use-cases/get-expired-documents.use-case';
 
 
 @Controller('documents')
@@ -43,7 +45,8 @@ export class DocumentController {
     private readonly getAllDocumentUseCase: GetAllDocumentUseCase,
     private readonly getDocumentByIdUseCase: GetDocumentByIdUseCase,
     private readonly updateDocumentUseCase: UpdateDocumentUseCase,
-    private readonly multerConfigService: MulterConfigService,
+    private readonly deleteExpiredDocumentsUseCase: DeleteExpiredDocumentsUseCase,
+    private readonly getExpiredDocumentsUseCase: GetExpiredDocumentsUseCase,
   ) { }
 
   @Get()
@@ -57,6 +60,8 @@ export class DocumentController {
     @Query('endDate') endDate?: string,
     @Query('search') search?: string,
     @Query('folderId') folderId?: string,
+    @Query('departmentId') departmentId?: string,
+    @Query('divisionId') divisionId?: string,
   ) {
     const user = req.user;
     const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
@@ -72,6 +77,8 @@ export class DocumentController {
       search,
       folderId,
       userId,
+      departmentId: departmentId ? parseInt(departmentId) : undefined,
+      divisionId: divisionId ? parseInt(divisionId) : undefined,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {
@@ -141,7 +148,6 @@ export class DocumentController {
     };
   }
 
-
   // ─── UPLOAD ATTACHMENT ────────────────────────────────────────────────────────
   @Post(':id/attachments')
   @Roles(Role.SUPER_ADMIN, Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
@@ -191,5 +197,21 @@ export class DocumentController {
       'Content-Disposition': `inline; filename="${encodeURIComponent(attachment.fileName)}"`,
     });
     return new StreamableFile(fileStream);
+  }
+
+  // ─── GET EXPIRED (list for review) ─────────────────────────────────────────
+  @Get('expired')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async getExpiredDocuments() {
+    const result = await this.getExpiredDocumentsUseCase.execute();
+    return { message: 'Success', ...result };
+  }
+
+  // ─── DELETE EXPIRED (bulk delete after review) ────────────────────────────
+  @Delete('expired')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async deleteExpiredDocuments() {
+    const result = await this.deleteExpiredDocumentsUseCase.execute();
+    return { message: result.message, deleted: result.deleted };
   }
 }

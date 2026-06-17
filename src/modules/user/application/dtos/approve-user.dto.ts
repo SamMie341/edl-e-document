@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Role } from 'src/core/auth/constants/role.enum';
 
 export class ApproveUserDto {
@@ -9,4 +9,9 @@ export class ApproveUserDto {
   @IsOptional()
   @IsString()
   addressId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  divisionIds?: number[];
 }

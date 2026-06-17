@@ -17,7 +17,7 @@ async function main() {
     update: {}, // ถ้ามีแล้ว ไม่ต้องทำอะไร
     create: {
       password: hashedPassword,
-      role: 'SUPER_ADMIN', // 👈 ต้องตรงกับ Enum หรือรูปแบบสิทธิ์ในระบบของคุณ
+      role: 'SUPER_ADMIN',
       empCode: 'ADMIN000',
       empId: 0,
       firstNameLa: 'ຜູ້ເບິ່ງແຍງລະບົບ',

@@ -12,7 +12,7 @@ datasource db {
 }
 
 model UserModel {
-  id       String @id @default(uuid())
+  id       String   @id @default(uuid())
   password String
   role     String
 
@@ -30,14 +30,10 @@ model UserModel {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  branchId Int?
-  branch   BranchModel? @relation(fields: [branchId], references: [id])
-
   departmentId Int?
   department   DepartmentModel? @relation(fields: [departmentId], references: [id])
 
-  divisionId Int?
-  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+  userDivisions UserDivisionModel[]
 
   officeId Int?
   office   OfficeModel? @relation(fields: [officeId], references: [id])
@@ -69,22 +65,6 @@ model AttachmentModel {
   @@map("attachments")
 }
 
-model BranchModel {
-  id     Int     @id
-  code   String?
-  name   String
-  status String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  divisions       DivisionModel[]
-  users           UserModel[]
-  documentBorrows DocumentBorrowModel[]
-
-  @@map("branches")
-}
-
 model DepartmentModel {
   id        Int      @id
   code      String
@@ -99,7 +79,9 @@ model DepartmentModel {
   divisions DivisionModel[]
   offices   OfficeModel[]
   units     UnitModel[]
+  documents DocumentModel[]
   // warehouses WarehouseModel[]
+  addresses AddressModel[]
 
   @@map("departments")
 }
@@ -114,16 +96,15 @@ model DivisionModel {
   departmentId Int?
   department   DepartmentModel? @relation(fields: [departmentId], references: [id])
 
-  branchId Int?
-  branch   BranchModel? @relation(fields: [branchId], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users           UserModel[]
+  userDivisions   UserDivisionModel[]
   offices         OfficeModel[]
   units           UnitModel[]
   documentBorrows DocumentBorrowModel[]
+  documents       DocumentModel[]
+  addresses       AddressModel[]
 
   @@map("divisions")
 }
@@ -176,6 +157,11 @@ model AddressModel {
   name    String
   details String
   status  String @default("A")
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
 
   warehouses WarehouseModel[]
   users      UserModel[]
@@ -295,6 +281,12 @@ model DocumentModel {
   documentTypeId String?
   documentType   DocumentTypeModel? @relation(fields: [documentTypeId], references: [id])
 
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id])
+
   attachments AttachmentModel[]
   borrows     DocumentBorrowModel[]
 
@@ -335,8 +327,6 @@ model DocumentBorrowModel {
   purpose String? // ຈຸດປະສົງ
 
   // ພາກສ່ວນໃດ
-  toBranchId   Int?
-  toBranch     BranchModel?   @relation(fields: [toBranchId], references: [id])
   toDivisionId Int?
   toDivision   DivisionModel? @relation(fields: [toDivisionId], references: [id])
   toLocation   String? // free text ເສີມ (ຫ້ອງ, ຊັ້ນ, ...)
@@ -350,4 +340,17 @@ model DocumentBorrowModel {
   updatedAt DateTime @updatedAt
 
   @@map("document_borrows")
+}
+
+model UserDivisionModel {
+  id         String        @id @default(uuid())
+  userId     String
+  user       UserModel     @relation(fields: [userId], references: [id])
+  divisionId Int
+  division   DivisionModel @relation(fields: [divisionId], references: [id])
+  isPrimary  Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  @@unique([userId, divisionId])
+  @@map("user_divisions")
 }

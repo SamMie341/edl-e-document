@@ -21,7 +21,7 @@ export class ResetPasswordUseCase {
     if (!targetUser) throw new NotFoundException('ບໍ່ພົບບັນຊີຜູ້ໃຊ້');
 
     if (adminUser.role === Role.BRANCH_ADMIN) {
-      if (adminUser.branchId) {
+      if (adminUser.addressId !== targetUser.addressId) {
         throw new ForbiddenException(
           'ທ່ານບໍ່ມີສິດຣີເຊັດລະຫັດຜ່ານພະນັກງານສາຂາອື່ນ...',
         );

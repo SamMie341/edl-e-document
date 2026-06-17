@@ -64,6 +64,14 @@ export class PrismaShelfRepository implements IShelfRepository {
   }
 
   async create(data: any): Promise<Shelf> {
+    if (data.lockerId) {
+      const locker = await this.prisma.lockerModel.findUnique({
+        where: { id: data.lockerId },
+      });
+      if (!locker) {
+        throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃນລະບົບ');
+      }
+    }
     const model = await this.prisma.shelfModel.create({
       data,
       include: {
@@ -86,19 +94,18 @@ export class PrismaShelfRepository implements IShelfRepository {
     return ShelfMapper.toDomain(model);
   }
 
-  async findByLockerId(lockerId: string): Promise<Shelf[]> {
-    const models = await this.prisma.shelfModel.findMany({
-      where: { lockerId, status: 'A' },
-      orderBy: { name: 'asc' },
-      include: { _count: { select: { folders: true } } },
-    });
-    return models.map((model) => ShelfMapper.toDomain(model));
-  }
-
   async update(id: string, data: any): Promise<Shelf> {
     const existing = await this.prisma.shelfModel.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
+    }
+    if (data.lockerId) {
+      const locker = await this.prisma.lockerModel.findUnique({
+        where: { id: data.lockerId },
+      });
+      if (!locker) {
+        throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃນລະບົບ');
+      }
     }
     const model = await this.prisma.shelfModel.update({
       where: { id },
@@ -113,6 +120,16 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງນີ້ໃນລະບົບ');
     }
+
+    const foldersCount = await this.prisma.folderModel.count({
+      where: { shelfId: id },
+    });
+    if (foldersCount > 0) {
+      throw new ConflictException(
+        'ບໍ່ສາມາດລົບຊັ້ນວາງນີ້ໄດ້ ເພາະຍັງມີແຟ້ມເອກະສານຢູ່ພາຍໃນ. ກະລຸນາລົບແຟ້ມເອກະສານທັງໝົດກ່ອນ.',
+      );
+    }
+
     await this.prisma.shelfModel.delete({ where: { id } });
   }
 }

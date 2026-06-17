@@ -4,27 +4,62 @@ import { PrismaService } from 'src/core/database/prisma.service';
 import { User } from '../../domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 
+const USER_INCLUDE = {
+  department: true,
+  office: true,
+  unit: true,
+  userDivisions: {
+    include: { division: true },
+    orderBy: { isPrimary: 'desc' as const },
+  },
+};
+
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userData: any): Promise<User> {
+    const { divisionIds, ...data } = userData;
     const model = await this.prisma.userModel.create({
-      data: userData,
+      data: {
+        ...data,
+        ...(divisionIds?.length
+          ? {
+              userDivisions: {
+                create: divisionIds.map((id: number, index: number) => ({
+                  divisionId: id,
+                  isPrimary: index === 0,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: USER_INCLUDE,
     });
     return UserMapper.toDomain(model);
   }
+
   async update(id: string, data: any): Promise<User> {
+    const { divisionIds, ...rest } = data;
+
+    if (divisionIds !== undefined) {
+      // Replace all divisions
+      await this.prisma.userDivisionModel.deleteMany({ where: { userId: id } });
+      if (divisionIds.length > 0) {
+        await this.prisma.userDivisionModel.createMany({
+          data: divisionIds.map((divId: number, index: number) => ({
+            userId: id,
+            divisionId: divId,
+            isPrimary: index === 0,
+          })),
+        });
+      }
+    }
+
     const model = await this.prisma.userModel.update({
       where: { id },
-      data,
-      include: {
-        branch: true,
-        department: true,
-        division: true,
-        office: true,
-        unit: true,
-      },
+      data: rest,
+      include: USER_INCLUDE,
     });
     return UserMapper.toDomain(model);
   }
@@ -40,13 +75,7 @@ export class PrismaUserRepository implements IUserRepository {
         where: whereCondition,
         skip: skip,
         take: take,
-        include: {
-          branch: true,
-          department: true,
-          division: true,
-          office: true,
-          unit: true,
-        },
+        include: USER_INCLUDE,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.userModel.count({ where: whereCondition }),
@@ -60,13 +89,7 @@ export class PrismaUserRepository implements IUserRepository {
   async findById(id: string): Promise<User | null> {
     const model = await this.prisma.userModel.findUnique({
       where: { id },
-      include: {
-        branch: true,
-        department: true,
-        division: true,
-        office: true,
-        unit: true,
-      },
+      include: USER_INCLUDE,
     });
     if (!model) return null;
     return UserMapper.toDomain(model);
@@ -75,13 +98,7 @@ export class PrismaUserRepository implements IUserRepository {
   async findByEmpCode(empCode: string): Promise<User | null> {
     const model = await this.prisma.userModel.findUnique({
       where: { empCode },
-      include: {
-        branch: true,
-        department: true,
-        division: true,
-        office: true,
-        unit: true,
-      },
+      include: USER_INCLUDE,
     });
     if (!model) return null;
     return UserMapper.toDomain(model);
@@ -90,13 +107,7 @@ export class PrismaUserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const model = await this.prisma.userModel.findUnique({
       where: { email },
-      include: {
-        branch: true,
-        department: true,
-        division: true,
-        office: true,
-        unit: true,
-      },
+      include: USER_INCLUDE,
     });
     if (!model) return null;
     return UserMapper.toDomain(model);

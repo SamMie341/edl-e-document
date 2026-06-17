@@ -16,6 +16,8 @@ import { CreateWarehouseUseCase } from '../../application/use-cases/create-wareh
 import { GetAllWarehouseUseCase } from '../../application/use-cases/get-all-warehouse.use-case';
 import { UpdateWarehouseUseCase } from '../../application/use-cases/update-warehouse.use-case';
 import { DeleteWarehouseUseCase } from '../../application/use-cases/delete-warehouse.use-case';
+import { GetWarehouseByIdUseCase } from '../../application/use-cases/get-warehouse-by-id.use-case';
+import { GetWarehouseDropdownUseCase } from '../../application/use-cases/get-warehouse-dropdown.use-case';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { CreateWarehouseDto } from '../../application/dtos/create-warehouse.dto';
@@ -29,6 +31,8 @@ export class WarehouseController {
     private readonly getAllWarehouseUseCase: GetAllWarehouseUseCase,
     private readonly updateWarehouseUseCase: UpdateWarehouseUseCase,
     private readonly deleteWarehouseUseCase: DeleteWarehouseUseCase,
+    private readonly getWarehouseByIdUseCase: GetWarehouseByIdUseCase,
+    private readonly getWarehouseDropdownUseCase: GetWarehouseDropdownUseCase,
   ) { }
 
   // ─── GET ALL ─────────────────────────────────────────────────────────────────
@@ -39,14 +43,32 @@ export class WarehouseController {
     @Query('limit') limit: string = '10',
     @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('addressId') addressId?: string,
   ) {
     const result = await this.getAllWarehouseUseCase.execute({
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       search,
       status,
+      addressId,
     });
     return { message: 'Success', ...result };
+  }
+
+  // ─── DROPDOWN ─────────────────────────────────────────────────────────────
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Get('dropdown')
+  async getDropdown(@Query('addressId') addressId?: string) {
+    const data = await this.getWarehouseDropdownUseCase.execute({ addressId });
+    return { message: 'Success', data };
+  }
+
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    const warehouse = await this.getWarehouseByIdUseCase.execute(id);
+    return { message: 'Success', data: warehouse };
   }
 
   // ─── CREATE ───────────────────────────────────────────────────────────────

@@ -16,7 +16,7 @@ export interface ILockerRepository {
   findAll(
     params: LockerFilterParams,
   ): Promise<{ data: Locker[]; total: number }>;
-  findByWarehouseId(warehouseId: string): Promise<Locker[]>;
+  findById(id: string): Promise<Locker | null>;
   update(id: string, data: any): Promise<Locker>;
   delete(id: string): Promise<void>;
 }

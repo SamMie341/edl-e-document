@@ -24,7 +24,7 @@ export class LoginUseCase {
   ) {}
 
   async execute(dto: LoginDto): Promise<{ accessToken: string; user: any }> {
-    const user = await this.userRepository.findByEmail(dto.email);
+    const user = await this.userRepository.findByEmpCode(dto.empCode);
 
     if (!user) {
       throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ HRMS...');
@@ -38,7 +38,7 @@ export class LoginUseCase {
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
+      throw new UnauthorizedException('ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
     }
 
     const payload = {
@@ -46,9 +46,7 @@ export class LoginUseCase {
       email: user.email,
       role: user.role,
       addressId: user.addressId,
-      branchId: user.branchId,
       departmentId: user.departmentId,
-      divisionId: user.divisionId,
       officeId: user.officeId,
       unitId: user.unitId,
     };

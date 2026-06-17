@@ -102,9 +102,8 @@ export class RegisterUseCase {
       status: 'P',
       gender: hrmData.gender,
       image: hrmData.image,
-      branchId: hrmData.office?.division?.branch_id || null,
       departmentId: validDeptId,
-      divisionId: validDivId,
+      divisionIds: validDivId ? [validDivId] : [],
       officeId: validOfficeId,
       unitId: validUnitId,
     });

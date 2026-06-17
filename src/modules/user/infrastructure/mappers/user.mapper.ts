@@ -1,9 +1,15 @@
-import { UserModel } from '@prisma/client';
 import { User } from '../../domain/entities/user.entity';
 import { Role } from 'src/core/auth/constants/role.enum';
 
 export class UserMapper {
   static toDomain(model: any): User {
+    const divisions = (model.userDivisions ?? []).map((ud: any) => ({
+      id: ud.divisionId,
+      name: ud.division?.name ?? null,
+      shortName: ud.division?.shortName ?? null,
+      isPrimary: ud.isPrimary,
+    }));
+
     return new User(
       model.id,
       model.password,
@@ -21,20 +27,17 @@ export class UserMapper {
       model.gender,
       model.image,
 
-      model.branchId,
       model.departmentId,
-      model.divisionId,
       model.officeId,
       model.unitId,
       model.addressId,
       model.createdAt,
       model.updatedAt,
 
-      model.branch,
       model.department,
-      model.division,
       model.office,
       model.unit,
+      divisions,
     );
   }
 
@@ -55,9 +58,7 @@ export class UserMapper {
       status: entity.status,
       gender: entity.gender,
       image: entity.image,
-      branchId: entity.branchId,
       departmentId: entity.departmentId,
-      divisionId: entity.divisionId,
       officeId: entity.officeId,
       unitId: entity.unitId,
       addressId: entity.addressId,

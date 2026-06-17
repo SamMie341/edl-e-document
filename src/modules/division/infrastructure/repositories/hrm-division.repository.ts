@@ -43,4 +43,9 @@ export class HrmDivisionRepository implements IDivisionRepository {
       throw new InternalServerErrorException('ເຊື່ອມຕໍ່ລະບົບ HRM ລົ້ມເຫຼວ');
     }
   }
+
+  async findByDepartment(departmentId: number): Promise<Division[]> {
+    const all = await this.findAll();
+    return all.filter((d) => d.departmentId === departmentId);
+  }
 }
