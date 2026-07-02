@@ -58,6 +58,8 @@ export class PrismaLockerRepository implements ILockerRepository {
               address: true,
             },
           },
+          shelves: { select: { id: true, name: true } },
+          _count: { select: { shelves: true } },
         },
       }),
       this.prisma.lockerModel.count({ where }),
@@ -73,6 +75,7 @@ export class PrismaLockerRepository implements ILockerRepository {
     const model = await this.prisma.lockerModel.findUnique({
       where: { id },
       include: {
+        shelves: true,
         warehouse: {
           include: {
             address: true,
@@ -140,5 +143,46 @@ export class PrismaLockerRepository implements ILockerRepository {
     }
 
     await this.prisma.lockerModel.delete({ where: { id } });
+  }
+
+  async getDropdown(params?: {
+    warehouseId?: string;
+    addressId?: string;
+    status?: string;
+  }): Promise<any[]> {
+    const where: any = {};
+    if (params?.status) where.status = params.status;
+
+    if (params?.warehouseId || params?.addressId) {
+      const warehouseFilter: any = {};
+      if (params?.warehouseId) warehouseFilter.id = params.warehouseId;
+      if (params?.addressId) warehouseFilter.addressId = params.addressId;
+      where.warehouse = { is: warehouseFilter };
+    }
+
+    const models = await this.prisma.lockerModel.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        status: true,
+        warehouse: {
+          select: {
+            id: true,
+            name: true,
+            address: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return models;
   }
 }

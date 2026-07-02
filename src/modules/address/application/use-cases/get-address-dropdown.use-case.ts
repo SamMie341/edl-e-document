@@ -8,7 +8,7 @@ export class GetAddressDropdownUseCase {
     private readonly addressRepository: addressRepositoriesInterface.IAddressRepository,
   ) {}
 
-  async execute(filters?: { departmentId?: number; divisionId?: number }) {
+  async execute(filters?: { departmentId?: number; divisionId?: number; userId?: string }) {
     return await this.addressRepository.getDropdown(filters);
   }
 }

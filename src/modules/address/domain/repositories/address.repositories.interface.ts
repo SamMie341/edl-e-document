@@ -18,6 +18,7 @@ export interface IAddressRepository {
   getDropdown(filters?: {
     departmentId?: number;
     divisionId?: number;
+    userId?: string;
   }): Promise<{ id: string; name: string }[]>;
   update(id: string, data: any): Promise<Address>;
   delete(id: string): Promise<void>;

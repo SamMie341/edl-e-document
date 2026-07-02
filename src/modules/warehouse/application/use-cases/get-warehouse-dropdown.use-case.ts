@@ -8,7 +8,7 @@ export class GetWarehouseDropdownUseCase {
     private readonly warehouseRepository: warehouseRepositoryInterface.IWarehouseRepository,
   ) {}
 
-  async execute(filters?: { addressId?: string }) {
+  async execute(filters?: { addressId?: string; departmentId?: number; divisionId?: number }) {
     return await this.warehouseRepository.getDropdown(filters);
   }
 }

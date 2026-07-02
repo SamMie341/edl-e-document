@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import * as documentBorrowRepositoryInterface from '../../domain/repositories/document-borrow.repository.interface';
 import { DocumentBorrowEntity } from '../../domain/entities/document-borrow.entity';
 
@@ -14,18 +14,41 @@ export class GetBorrowHistoryUseCase {
     return await this.borrowRepository.findAll(params);
   }
 
-  // ປະຫວັດຂອງເອກະສານໃດໜຶ່ງ
-  async findByDocumentId(documentId: string): Promise<DocumentBorrowEntity[]> {
-    return await this.borrowRepository.findByDocumentId(documentId);
+  // ປະຫວັດຂອງເອກະສານໃດໜຶ່ງ (ກຣອງຕາມ scope ຖ້າມີ)
+  async findByDocumentId(
+    documentId: string,
+    departmentId?: number,
+    divisionId?: number,
+  ): Promise<DocumentBorrowEntity[]> {
+    return await this.borrowRepository.findByDocumentId(documentId, departmentId, divisionId);
   }
 
-  // ປະຫວັດທຸກເອກະສານໃນ folder
-  async findByFolderId(folderId: string): Promise<DocumentBorrowEntity[]> {
-    return await this.borrowRepository.findByFolderId(folderId);
+  // ປະຫວັດທຸກເອກະສານໃນ folder (ກຣອງຕາມ scope ຖ້າມີ)
+  async findByFolderId(
+    folderId: string,
+    departmentId?: number,
+    divisionId?: number,
+  ): Promise<DocumentBorrowEntity[]> {
+    return await this.borrowRepository.findByFolderId(folderId, departmentId, divisionId);
   }
 
-  // ລາຍການທີ່ຍັງຢືມຢູ່ (ຍັງບໍ່ຄືນ)
-  async findActive(): Promise<DocumentBorrowEntity[]> {
-    return await this.borrowRepository.findActive();
+  // ລາຍການທີ່ຍັງຢືມຢູ່ (ກຣອງຕາມ scope ຖ້າມີ)
+  async findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]> {
+    return await this.borrowRepository.findActive(departmentId, divisionId);
+  }
+
+  // ດຶງລາຍການຢືມດ້ວຍ ID
+  async findById(id: string): Promise<DocumentBorrowEntity> {
+    const record = await this.borrowRepository.findById(id);
+    if (!record) throw new NotFoundException('ບໍ່ພົບລາຍການຢືມນີ້');
+    return record;
+  }
+
+  // ປະຫວັດຕາມ division ທີ່ຮັບໄປ (toDivisionId)
+  async findByDivisionId(
+    divisionId: number,
+    activeOnly = false,
+  ): Promise<DocumentBorrowEntity[]> {
+    return await this.borrowRepository.findByDivisionId(divisionId, activeOnly);
   }
 }

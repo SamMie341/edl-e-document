@@ -15,6 +15,7 @@ import {
   UploadedFiles,
   Put,
   Delete,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreateDocumentUseCase } from '../../application/use-cases/create-document.use-case';
 import { CreateDocumentDto } from '../../application/dtos/create-document.dto';
@@ -33,6 +34,7 @@ import { GetAllDocumentUseCase } from '../../application/use-cases/get-all-docum
 import { GetDocumentByIdUseCase } from '../../application/use-cases/get-document-by-id.use-case';
 import { DeleteExpiredDocumentsUseCase } from '../../application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from '../../application/use-cases/get-expired-documents.use-case';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 
 @Controller('documents')
@@ -47,6 +49,7 @@ export class DocumentController {
     private readonly updateDocumentUseCase: UpdateDocumentUseCase,
     private readonly deleteExpiredDocumentsUseCase: DeleteExpiredDocumentsUseCase,
     private readonly getExpiredDocumentsUseCase: GetExpiredDocumentsUseCase,
+    private readonly prisma: PrismaService,
   ) { }
 
   @Get()
@@ -64,9 +67,32 @@ export class DocumentController {
     @Query('divisionId') divisionId?: string,
   ) {
     const user = req.user;
-    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    // USER / BRANCH_ADMIN: ເຫັນສະເພາະເອກະສານຕົນເອງ
-    const userId = isHQ ? undefined : user.userId;
+    let targetUserId: string | undefined = undefined;
+    let targetDivisionId: number | undefined = divisionId ? parseInt(divisionId) : undefined;
+    let targetDepartmentId: number | undefined = departmentId ? parseInt(departmentId) : undefined;
+    let targetDivisionIds: number[] | undefined = undefined;
+
+    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      const allowedDivisionIds = userDivs.map((ud) => ud.divisionId);
+
+      if (targetDivisionId !== undefined) {
+        if (allowedDivisionIds.includes(targetDivisionId)) {
+          targetDivisionIds = [targetDivisionId];
+        } else {
+          targetDivisionIds = [-1]; // not authorized for the requested divisionId
+        }
+      } else {
+        targetDivisionIds = allowedDivisionIds.length > 0 ? allowedDivisionIds : [-1];
+      }
+    } else {
+      if (targetDivisionId !== undefined) {
+        targetDivisionIds = [targetDivisionId];
+      }
+    }
 
     const params = {
       page: parseInt(page) || 1,
@@ -76,9 +102,9 @@ export class DocumentController {
       endDate,
       search,
       folderId,
-      userId,
-      departmentId: departmentId ? parseInt(departmentId) : undefined,
-      divisionId: divisionId ? parseInt(divisionId) : undefined,
+      userId: targetUserId,
+      departmentId: targetDepartmentId,
+      divisionIds: targetDivisionIds,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {
@@ -90,8 +116,22 @@ export class DocumentController {
   // ─── GET BY ID ────────────────────────────────────────────────────────────────
   @Get(':id')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
-  async getDocumentById(@Param('id') id: string) {
+  async getDocumentById(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
     const document = await this.getDocumentByIdUseCase.execute(id);
+
+    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      const allowedDivisionIds = userDivs.map((ud) => ud.divisionId);
+
+      if (!document.divisionId || !allowedDivisionIds.includes(document.divisionId)) {
+        throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
+      }
+    }
+
     return {
       message: 'Success',
       data: document,

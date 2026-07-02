@@ -10,6 +10,7 @@ export class FolderMapper {
       model.status,
       model.qrCode,
       model.locationRef,
+      model.description,
       model.shelfId,
       model.createdAt,
       model.updatedAt,

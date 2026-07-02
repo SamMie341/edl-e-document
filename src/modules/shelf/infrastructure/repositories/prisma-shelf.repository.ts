@@ -43,6 +43,7 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ];
     }
 
@@ -52,7 +53,19 @@ export class PrismaShelfRepository implements IShelfRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { locker: true, folders: true, _count: { select: { folders: true } } },
+        include: {
+          locker: {
+            include: {
+              warehouse: {
+                include: {
+                  address: true,
+                },
+              },
+            },
+          },
+          folders: true,
+          _count: { select: { folders: true } }
+        },
       }),
       this.prisma.shelfModel.count({ where }),
     ]);
@@ -71,6 +84,20 @@ export class PrismaShelfRepository implements IShelfRepository {
       if (!locker) {
         throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃນລະບົບ');
       }
+
+      if (data.name) {
+        const existing = await this.prisma.shelfModel.findFirst({
+          where: {
+            lockerId: data.lockerId,
+            name: data.name,
+          },
+        });
+        if (existing) {
+          throw new ConflictException(
+            `ຊື່ຊັ້ນວາງ '${data.name}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`,
+          );
+        }
+      }
     }
     const model = await this.prisma.shelfModel.create({
       data,
@@ -85,7 +112,15 @@ export class PrismaShelfRepository implements IShelfRepository {
     const model = await this.prisma.shelfModel.findUnique({
       where: { id },
       include: {
-        locker: true,
+        locker: {
+          include: {
+            warehouse: {
+              include: {
+                address: true,
+              },
+            },
+          },
+        },
         folders: true,
         _count: { select: { folders: true } }
       },
@@ -107,6 +142,25 @@ export class PrismaShelfRepository implements IShelfRepository {
         throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃນລະບົບ');
       }
     }
+
+    const nameToCheck = data.name !== undefined ? data.name : existing.name;
+    const lockerIdToCheck = data.lockerId !== undefined ? data.lockerId : existing.lockerId;
+
+    if (nameToCheck) {
+      const duplicate = await this.prisma.shelfModel.findFirst({
+        where: {
+          lockerId: lockerIdToCheck,
+          name: nameToCheck,
+          NOT: { id },
+        },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          `ຊື່ຊັ້ນວາງ '${nameToCheck}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`,
+        );
+      }
+    }
+
     const model = await this.prisma.shelfModel.update({
       where: { id },
       data,

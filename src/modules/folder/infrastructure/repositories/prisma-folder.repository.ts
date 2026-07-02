@@ -28,6 +28,8 @@ export class PrismaFolderRepository implements IFolderRepository {
             where.OR = [
                 { code: { contains: search, mode: 'insensitive' } },
                 { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { locationRef: { contains: search, mode: 'insensitive' } },
             ];
         }
 
@@ -66,15 +68,47 @@ export class PrismaFolderRepository implements IFolderRepository {
     }
 
     async create(data: any): Promise<Folder> {
-        const code: string = data.code;
+        let code = data.code?.trim();
 
-        // ─── ตรวจ duplicate ───────────────────────────────────────────────────
-        const existing = await this.prisma.folderModel.findUnique({
-            where: { code },
-            include: { _count: { select: { documents: true } } },
-        });
-        if (existing) {
-            throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວ`);
+        if (!code) {
+            // Auto generate folder code (starts at '0001' and increments)
+            let newCode = '0001';
+            const lastFolder = await this.prisma.folderModel.findFirst({
+                where: { code: { startsWith: '' } },
+                orderBy: { createdAt: 'desc' },
+            });
+
+            if (lastFolder && lastFolder.code) {
+                const match = lastFolder.code.match(/(\d+)/);
+                if (match && match[1]) {
+                    const nextNumber = parseInt(match[1], 10) + 1;
+                    newCode = `${String(nextNumber).padStart(4, '0')}`;
+                }
+            }
+
+            // Ensure uniqueness
+            let isUnique = false;
+            let attemptNumber = parseInt(newCode, 10) || 1;
+            while (!isUnique) {
+                const codeToCheck = `${String(attemptNumber).padStart(4, '0')}`;
+                const existing = await this.prisma.folderModel.findUnique({
+                    where: { code: codeToCheck },
+                });
+                if (!existing) {
+                    code = codeToCheck;
+                    isUnique = true;
+                } else {
+                    attemptNumber++;
+                }
+            }
+        } else {
+            // Check duplicate if manually supplied
+            const existing = await this.prisma.folderModel.findUnique({
+                where: { code },
+            });
+            if (existing) {
+                throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວ`);
+            }
         }
 
         // ─── ดึง shelf เพื่อสร้าง locationRef ───────────────────────────────

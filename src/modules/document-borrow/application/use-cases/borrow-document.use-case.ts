@@ -14,7 +14,7 @@ export class BorrowDocumentUseCase {
     return await this.borrowRepository.create({
       documentId: dto.documentId,
       folderId: dto.folderId,
-      borrowerId: dto.borrowerId,
+      borrower: dto.borrower,
       purpose: dto.purpose,
       toDivisionId: dto.toDivisionId,
       toLocation: dto.toLocation,

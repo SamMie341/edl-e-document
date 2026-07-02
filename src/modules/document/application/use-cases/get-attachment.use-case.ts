@@ -33,17 +33,22 @@ export class GetAttachmentUseCase {
 
     const doc = attachment.document;
 
-    if (user.role === Role.USER && doc.userId !== user.userId) {
-      throw new AppException(
-        'UNAUTHORIZATION',
-        'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ຂອງເອກະສານສະບັບນີ້',
-        '',
-        HttpStatus.UNAUTHORIZED,
-      );
+    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      const allowedDivisionIds = userDivs.map((ud) => ud.divisionId);
+
+      if (!doc.divisionId || !allowedDivisionIds.includes(doc.divisionId)) {
+        throw new AppException(
+          'UNAUTHORIZATION',
+          'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ຂອງເອກະສານສະບັບນີ້',
+          '',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
     }
-    // if (user.role === Role.BRANCH_ADMIN && doc.branchId !== user.branchId) {
-    //     throw new AppException('UNAUTHORIZATION', 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ໌ສາຂາອື່ນ', '', HttpStatus.UNAUTHORIZED);
-    // }
 
     if (!fs.existsSync(attachment.filePath)) {
       throw new AppException(

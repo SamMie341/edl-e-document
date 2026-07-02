@@ -54,7 +54,7 @@ export class FolderController {
   ) {
     const user = req.user;
     const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    const addressId = isHQ ? undefined : user.addressId;
+    const addressId = isHQ ? undefined : (user.addressId || 'none');
 
     const result = await this.getAllFolderUseCase.execute({
       page: parseInt(page, 10) || 1,

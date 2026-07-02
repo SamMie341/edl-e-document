@@ -41,12 +41,14 @@ export class LoginUseCase {
       throw new UnauthorizedException('ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
     }
 
+    const primaryDiv = user.divisions?.find((d: any) => d.isPrimary) || user.divisions?.[0];
     const payload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       addressId: user.addressId,
       departmentId: user.departmentId,
+      divisionId: primaryDiv ? primaryDiv.id : null,
       officeId: user.officeId,
       unitId: user.unitId,
     };

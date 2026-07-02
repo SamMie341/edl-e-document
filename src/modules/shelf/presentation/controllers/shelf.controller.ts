@@ -41,7 +41,7 @@ export class ShelfController {
   }
 
   @Get()
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   async findAll(
     @Req() req: any,
     @Query('page') page: string = '1',
@@ -53,7 +53,7 @@ export class ShelfController {
   ) {
     const user = req.user;
     const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    const addressId = isHQ ? undefined : user.addressId;
+    const addressId = isHQ ? undefined : (user.addressId || 'none');
 
     const result = await this.getAllShelvesUseCase.execute({
       page: parseInt(page, 10) || 1,
@@ -86,7 +86,7 @@ export class ShelfController {
   }
 
   @Delete(':id')
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   async delete(@Param('id') id: string) {
     await this.deleteShelfUseCase.execute(id);
     return { message: 'ລົບຊັ້ນວາງສຳເລັດ' };

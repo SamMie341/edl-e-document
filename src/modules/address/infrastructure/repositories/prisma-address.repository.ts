@@ -18,10 +18,24 @@ export class PrismaAddressRepository implements IAddressRepository {
   async getDropdown(filters?: {
     departmentId?: number;
     divisionId?: number;
+    userId?: string;
   }): Promise<{ id: string; name: string }[]> {
     const where: any = { status: 'A' };
     if (filters?.departmentId) where.departmentId = filters.departmentId;
-    if (filters?.divisionId) where.divisionId = filters.divisionId;
+
+    if (filters?.userId) {
+      const userDivisions = await this.prisma.userDivisionModel.findMany({
+        where: { userId: filters.userId },
+        select: { divisionId: true },
+      });
+      const divisionIds = userDivisions.map((ud) => ud.divisionId);
+      where.OR = [
+        { divisionId: { in: divisionIds } },
+        { divisionId: null },
+      ];
+    } else if (filters?.divisionId) {
+      where.divisionId = filters.divisionId;
+    }
 
     return this.prisma.addressModel.findMany({
       where,

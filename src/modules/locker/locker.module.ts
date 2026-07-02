@@ -7,6 +7,7 @@ import { PrismaLockerRepository } from './infrastructure/repositories/prisma-loc
 import { UpdateLockerUseCase } from './application/use-cases/update-locker.use-case';
 import { DeleteLockerUseCase } from './application/use-cases/delete-locker.use-case';
 import { GetLockerByIdUseCase } from './application/use-cases/get-locker-by-id.use-case';
+import { GetDropdownLockersUseCase } from './application/use-cases/get-dropdown-lockers.use-case';
 
 @Module({
   controllers: [LockerController],
@@ -14,6 +15,7 @@ import { GetLockerByIdUseCase } from './application/use-cases/get-locker-by-id.u
     CreateLockerUseCase,
     GetAllLockersUseCase,
     GetLockerByIdUseCase,
+    GetDropdownLockersUseCase,
     UpdateLockerUseCase,
     DeleteLockerUseCase,
     {

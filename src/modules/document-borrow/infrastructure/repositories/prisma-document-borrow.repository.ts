@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   IDocumentBorrowRepository,
   CreateDocumentBorrowData,
@@ -10,27 +10,38 @@ import { DocumentBorrowMapper } from '../mappers/document-borrow.mapper';
 
 // ─── Include ທົ່ວໄປ ──────────────────────────────────────────────────────────
 const BORROW_INCLUDE = {
-  borrower: {
-    select: {
-      id: true,
-      firstNameLa: true,
-      lastNameLa: true,
-      firstNameEng: true,
-      lastNameEng: true,
-      empCode: true,
-    },
-  },
   document: {
-    select: { id: true, docNo: true, title: true, folderId: true },
+    select: { id: true, docNo: true, title: true, folderId: true, departmentId: true, divisionId: true },
   },
   folder: {
     select: { id: true, code: true, name: true },
   },
-  toDivision: { select: { id: true, name: true } },
+  toDivision: { select: { id: true, name: true, departmentId: true } },
   createdBy: {
     select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true },
   },
 };
+
+// ─── Helper: สร้าง scope where clause ────────────────────────────────────────
+// departmentId (BRANCH_ADMIN): กรองผ่าน document.departmentId หรือ toDivision.departmentId
+// divisionId   (USER):         กรองผ่าน toDivisionId (ฝั่งรับ)
+function buildScopeWhere(
+  departmentId?: number,
+  divisionId?: number,
+): any {
+  if (departmentId) {
+    return {
+      OR: [
+        { document: { is: { departmentId } } },
+        { documentId: null, toDivision: { is: { departmentId } } },
+      ],
+    };
+  }
+  if (divisionId) {
+    return { toDivisionId: divisionId };
+  }
+  return {};
+}
 
 @Injectable()
 export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository {
@@ -41,7 +52,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
       data: {
         documentId: data.documentId,
         folderId: data.folderId,
-        borrowerId: data.borrowerId,
+        borrower: data.borrower,
         purpose: data.purpose,
         toDivisionId: data.toDivisionId,
         toLocation: data.toLocation,
@@ -54,13 +65,14 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   }
 
   async findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }> {
-    const { page = 1, limit = 10, documentId, folderId, borrowerId, activeOnly } = params;
+    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly } = params;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: any = {
+      ...buildScopeWhere(departmentId, divisionId),
+    };
     if (documentId) where.documentId = documentId;
     if (folderId) where.folderId = folderId;
-    if (borrowerId) where.borrowerId = borrowerId;
     if (activeOnly) where.returnedAt = null;
 
     const [models, total] = await Promise.all([
@@ -86,33 +98,80 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     return DocumentBorrowMapper.toDomain(model);
   }
 
-  async findByDocumentId(documentId: string): Promise<DocumentBorrowEntity[]> {
+  async findByDocumentId(
+    documentId: string,
+    departmentId?: number,
+    divisionId?: number,
+  ): Promise<DocumentBorrowEntity[]> {
+    const scope = buildScopeWhere(departmentId, divisionId);
+    const where: any = { documentId, ...scope };
+
     const models = await this.prisma.documentBorrowModel.findMany({
-      where: { documentId },
+      where,
       orderBy: { borrowedAt: 'desc' },
       include: BORROW_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
 
-  async findByFolderId(folderId: string): Promise<DocumentBorrowEntity[]> {
+  async findByFolderId(
+    folderId: string,
+    departmentId?: number,
+    divisionId?: number,
+  ): Promise<DocumentBorrowEntity[]> {
+    const scope = buildScopeWhere(departmentId, divisionId);
+
+    // ຮວມ folder scope ກັບ scope ຂອງ role:
     // ດຶງ borrows ທີ່ຢືມ folder ໂດຍກົງ ຫຼື ຢືມ document ທີ່ຢູ່ໃນ folder ນີ້
-    const models = await this.prisma.documentBorrowModel.findMany({
-      where: {
-        OR: [
-          { folderId },
-          { document: { folderId } },
+    let where: any;
+    if (scope.OR) {
+      // BRANCH_ADMIN: ຕ້ອງ match ທັງ folder ແລະ department scope
+      where = {
+        AND: [
+          { OR: [{ folderId }, { document: { folderId } }] },
+          { OR: scope.OR },
         ],
-      },
+      };
+    } else if (scope.toDivisionId) {
+      // USER: ຕ້ອງ match ທັງ folder ແລະ division scope
+      where = {
+        AND: [
+          { OR: [{ folderId }, { document: { folderId } }] },
+          { toDivisionId: scope.toDivisionId },
+        ],
+      };
+    } else {
+      where = {
+        OR: [{ folderId }, { document: { folderId } }],
+      };
+    }
+
+    const models = await this.prisma.documentBorrowModel.findMany({
+      where,
       orderBy: { borrowedAt: 'desc' },
       include: BORROW_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
 
-  async findActive(): Promise<DocumentBorrowEntity[]> {
+  async findByDivisionId(divisionId: number, activeOnly = false): Promise<DocumentBorrowEntity[]> {
+    const where: any = { toDivisionId: divisionId };
+    if (activeOnly) where.returnedAt = null;
+
     const models = await this.prisma.documentBorrowModel.findMany({
-      where: { returnedAt: null },
+      where,
+      orderBy: { borrowedAt: 'desc' },
+      include: BORROW_INCLUDE,
+    });
+    return models.map(DocumentBorrowMapper.toDomain);
+  }
+
+  async findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]> {
+    const scope = buildScopeWhere(departmentId, divisionId);
+    const where: any = { returnedAt: null, ...scope };
+
+    const models = await this.prisma.documentBorrowModel.findMany({
+      where,
       orderBy: { borrowedAt: 'desc' },
       include: BORROW_INCLUDE,
     });

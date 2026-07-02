@@ -99,6 +99,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             userId,
             departmentId,
             divisionId,
+            divisionIds,
         } = params;
         const skip = (page - 1) * limit;
         const whereCondition: any = {};
@@ -106,7 +107,12 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         if (folderId) whereCondition.folderId = folderId;
         if (userId) whereCondition.userId = userId;
         if (departmentId) whereCondition.departmentId = departmentId;
-        if (divisionId) whereCondition.divisionId = divisionId;
+
+        if (divisionIds && divisionIds.length > 0) {
+            whereCondition.divisionId = { in: divisionIds };
+        } else if (divisionId) {
+            whereCondition.divisionId = divisionId;
+        }
 
         if (documentTypeId) whereCondition.documentTypeId = Number(documentTypeId);
         if (startDate || endDate) {
@@ -121,7 +127,16 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         if (search) {
             whereCondition.OR = [
                 { docNo: { contains: search, mode: 'insensitive' } },
+                { subDocNo: { contains: search, mode: 'insensitive' } },
                 { title: { contains: search, mode: 'insensitive' } },
+                { shortName: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { division: { name: { contains: search, mode: 'insensitive' } } },
+                { department: { name: { contains: search, mode: 'insensitive' } } },
+                { user: { firstNameLa: { contains: search, mode: 'insensitive' } } },
+                { user: { lastNameLa: { contains: search, mode: 'insensitive' } } },
+                { user: { firstNameEng: { contains: search, mode: 'insensitive' } } },
+                { user: { lastNameEng: { contains: search, mode: 'insensitive' } } },
             ];
         }
         const [models, total] = await this.prisma.$transaction([
@@ -131,8 +146,37 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 take: limit,
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    user: {
+                        include: {
+                            // department: true,
+                            userDivisions: {
+                                where: { isPrimary: true },
+                                include: { division: true },
+                            },
+                        },
+                    },
                     department: true,
                     division: true,
+                    documentType: true,
+                    attachments: true,
+                    folder: {
+                        include: {
+                            shelf: {
+                                include: {
+                                    _count: {
+                                        select: { folders: true },
+                                    },
+                                    locker: {
+                                        include: {
+                                            warehouse: {
+                                                include: { address: true },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
             }),
             this.prisma.documentModel.count({ where: whereCondition }),
@@ -149,13 +193,24 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             include: {
                 attachments: true,
                 documentType: true,
-                user: true,
+                user: {
+                    include: {
+                        department: true,
+                        userDivisions: {
+                            where: { isPrimary: true },
+                            include: { division: true },
+                        },
+                    },
+                },
                 department: true,
                 division: true,
                 folder: {
                     include: {
                         shelf: {
                             include: {
+                                _count: {
+                                    select: { folders: true },
+                                },
                                 locker: {
                                     include: {
                                         warehouse: {

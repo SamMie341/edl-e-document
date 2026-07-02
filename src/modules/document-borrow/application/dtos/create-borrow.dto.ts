@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsUUID, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateBorrowDto {
@@ -10,8 +10,9 @@ export class CreateBorrowDto {
   @IsOptional()
   folderId?: string; // ຢືມທັງ folder
 
-  @IsUUID()
-  borrowerId: string; // user ທີ່ຢືມ
+  @IsNotEmpty()
+  @IsString()
+  borrower: string; // user ທີ່ຢືມ
 
   @IsString()
   @IsOptional()

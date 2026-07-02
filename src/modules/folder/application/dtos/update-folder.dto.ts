@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateFolderDto {
   @IsOptional()
@@ -12,6 +12,10 @@ export class UpdateFolderDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  description: string;
 
   @IsOptional()
   @IsString()

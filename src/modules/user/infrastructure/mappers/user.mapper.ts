@@ -10,6 +10,19 @@ export class UserMapper {
       isPrimary: ud.isPrimary,
     }));
 
+    // Dynamically resolve addressId from department or division addresses
+    let resolvedAddressId = model.addressId || null;
+    if (!resolvedAddressId) {
+      if (model.department?.addresses && model.department.addresses.length > 0) {
+        resolvedAddressId = model.department.addresses[0].id;
+      } else {
+        const primaryUd = model.userDivisions?.find((ud: any) => ud.isPrimary) || model.userDivisions?.[0];
+        if (primaryUd?.division?.addresses && primaryUd.division.addresses.length > 0) {
+          resolvedAddressId = primaryUd.division.addresses[0].id;
+        }
+      }
+    }
+
     return new User(
       model.id,
       model.password,
@@ -30,7 +43,7 @@ export class UserMapper {
       model.departmentId,
       model.officeId,
       model.unitId,
-      model.addressId,
+      resolvedAddressId,
       model.createdAt,
       model.updatedAt,
 
@@ -61,7 +74,6 @@ export class UserMapper {
       departmentId: entity.departmentId,
       officeId: entity.officeId,
       unitId: entity.unitId,
-      addressId: entity.addressId,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };

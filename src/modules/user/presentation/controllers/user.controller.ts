@@ -68,6 +68,7 @@ export class UserController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('status') status: string = 'A',
+    @Query('search') search?: string,
   ) {
     const pageNumber = parseInt(page, 10) || 1;
     const limitNumber = parseInt(limit, 10) || 10;
@@ -76,6 +77,7 @@ export class UserController {
       pageNumber,
       limitNumber,
       finalStatus,
+      search,
     );
     return { message: 'Success', ...result };
   }

@@ -3,6 +3,7 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import * as shelfRepositoriesInterface from '../../domain/repositories/shelf.repositories.interface';
 import { CreateShelfDto } from '../dtos/create-shelf.dto';

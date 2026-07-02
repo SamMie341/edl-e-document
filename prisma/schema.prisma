@@ -9,7 +9,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model UserModel {
@@ -42,9 +41,8 @@ model UserModel {
   unitId Int?
   unit   UnitModel? @relation(fields: [unitId], references: [id])
 
-  documents         DocumentModel[]
-  borrowedDocuments DocumentBorrowModel[] @relation("BorrowedBy")
-  recordedBorrows   DocumentBorrowModel[] @relation("RecordedBy")
+  documents       DocumentModel[]
+  recordedBorrows DocumentBorrowModel[] @relation("RecordedBy")
 
   @@map("users")
 }
@@ -230,6 +228,7 @@ model FolderModel {
   status      String  @default("A")
   qrCode      String
   locationRef String?
+  description String
 
   shelfId String
   shelf   ShelfModel @relation(fields: [shelfId], references: [id])
@@ -315,8 +314,7 @@ model DocumentBorrowModel {
   folder   FolderModel? @relation(fields: [folderId], references: [id])
 
   // ຄົນທີ່ຢືມ
-  borrowerId String
-  borrower   UserModel @relation("BorrowedBy", fields: [borrowerId], references: [id])
+  borrower String
 
   borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
   returnedAt DateTime? // null = ຍັງບໍ່ຄືນ

@@ -7,6 +7,7 @@ export interface IUserRepository {
     skip?: number,
     take?: number,
     status?: string,
+    search?: string,
   ): Promise<{ data: User[]; total: number }>;
   findByEmpCode(empCode: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
