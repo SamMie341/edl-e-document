@@ -22,7 +22,7 @@ export class DocumentMapper {
     const locker = shelf?.locker ?? null;
     const warehouse = locker?.warehouse ?? null;
     const address = warehouse?.address ?? null;
-    const user = address?.user ?? null;
+    const user = model?.user ?? null;
 
     return new DocumentEntity(
       model.id,
@@ -35,11 +35,41 @@ export class DocumentMapper {
       model.description || '',
       model.docExpire,
       model.qrCode,
+      // ── departmentId / divisionId (scalar) ───────────────────────────────
+      model.departmentId ?? null,
+      model.divisionId ?? null,
       model.userId,
       model.folderId,
       model.documentTypeId,
       model.createdAt,
       model.updatedAt,
+      model.isContractBound ?? false,
+      // ── Department ───────────────────────────────────────────────────────
+      model.department
+        ? new Department(
+          model.department.id,
+          model.department.code,
+          model.department.name,
+          model.department.phone ?? null,
+          model.department.email ?? null,
+          model.department.status,
+          model.department.createdAt,
+          model.department.updatedAt,
+        )
+        : null,
+      // ── Division ─────────────────────────────────────────────────────────
+      model.division
+        ? new Division(
+          model.division.id,
+          model.division.code,
+          model.division.name,
+          model.division.shortName,
+          model.division.status,
+          model.division.departmentId ?? null,
+          model.division.createdAt,
+          model.division.updatedAt,
+        )
+        : null,
       user ? new User(
         user.id,
         user.role,
@@ -49,8 +79,10 @@ export class DocumentMapper {
         user.phone,
         user.createdAt,
         user.updatedAt,
+        user.department,
+        user.division,
       ) : null,
-      // ── Address (ปลาย chain) ──────────────────────────────────────────────
+      // ── Address ──────────────────────────────────────────────
       address
         ? new Address(
           address.id,
@@ -94,6 +126,8 @@ export class DocumentMapper {
           shelf.description,
           shelf.status,
           shelf.maxQty,
+          shelf._count?.folders ?? 0,
+          shelf.maxQty - (shelf._count?.folders ?? 0),
           shelf.createdAt,
           shelf.updatedAt,
         )
@@ -133,36 +167,6 @@ export class DocumentMapper {
               att.size,
               att.createdAt,
             ),
-        )
-        : null,
-      model.isContractBound ?? false,
-      // ── departmentId / divisionId (scalar) ───────────────────────────────
-      model.departmentId ?? null,
-      model.divisionId ?? null,
-      // ── Department ───────────────────────────────────────────────────────
-      model.department
-        ? new Department(
-          model.department.id,
-          model.department.code,
-          model.department.name,
-          model.department.phone ?? null,
-          model.department.email ?? null,
-          model.department.status,
-          model.department.createdAt,
-          model.department.updatedAt,
-        )
-        : null,
-      // ── Division ─────────────────────────────────────────────────────────
-      model.division
-        ? new Division(
-          model.division.id,
-          model.division.code,
-          model.division.name,
-          model.division.shortName,
-          model.division.status,
-          model.division.departmentId ?? null,
-          model.division.createdAt,
-          model.division.updatedAt,
         )
         : null,
     );

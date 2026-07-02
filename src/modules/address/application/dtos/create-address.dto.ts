@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
 
 export class CreateAddressDto {
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ ລະຫັດສະຖານທີ່' })
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ ຊື່ສະຖານທີ່' })
   @IsString()
   name: string;
 
@@ -13,11 +13,11 @@ export class CreateAddressDto {
   @IsString()
   details?: string;
 
-  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ departmentId' })
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ ຝ່າຍ' })
   @IsNumber()
   departmentId: number;
 
-  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ divisionId' })
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ ພະແນກ/ສາຂາແຂວງ' })
   @IsNumber()
   divisionId: number;
 }

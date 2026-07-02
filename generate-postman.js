@@ -5,14 +5,15 @@ const path = require('path');
 const controllers = [
   'src/app.controller.ts',
   'src/modules/address/presentation/controllers/address.controller.ts',
-  'src/modules/branch/presentation/controllers/branch.controller.ts',
   'src/modules/department/presentation/controller/department.controller.ts',
   'src/modules/division/presentation/controller/division.controller.ts',
   'src/modules/document/presentation/controllers/document.controller.ts',
+  'src/modules/document-borrow/presentation/controllers/document-borrow.controller.ts',
   'src/modules/document-type/presentation/controllers/document-type.controller.ts',
   'src/modules/folder/presentation/controllers/folder.controller.ts',
   'src/modules/locker/presentation/controllers/locker.controller.ts',
   'src/modules/office/presentation/controller/office.controller.ts',
+  'src/modules/search/presentation/controllers/search.controller.ts',
   'src/modules/shelf/presentation/controllers/shelf.controller.ts',
   'src/modules/unit/presentation/controllers/unit.controller.ts',
   'src/modules/user/presentation/controllers/auth.controller.ts',
@@ -66,13 +67,14 @@ function parseDtoFile(dtoFilePath) {
 function getDummyValueForType(fieldName, type) {
   const lowerFieldName = fieldName.toLowerCase();
   if (lowerFieldName.includes('status')) {
-    return 'DRAFT';
+    return 'A';
   }
   
   type = type.toLowerCase();
   if (type.includes('string')) {
     if (lowerFieldName.includes('email')) return 'admin@edl.com.la';
-    if (lowerFieldName.includes('password')) return 'password123';
+    if (lowerFieldName.includes('empcode')) return 'ADMIN000';
+    if (lowerFieldName.includes('password')) return 'EDL1234';
     if (lowerFieldName.includes('date')) return new Date().toISOString();
     if (lowerFieldName.includes('id')) return '1';
     return `${fieldName}_val`;
@@ -224,6 +226,11 @@ const postmanCollection = {
   variable: [
     {
       key: "baseUrl",
+      value: "http://localhost:5000/api/v1",
+      type: "string"
+    },
+    {
+      key: "baseUrl_prod",
       value: "https://api-edoc.edl.com.la/api/v1",
       type: "string"
     },

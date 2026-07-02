@@ -63,15 +63,17 @@ export class AddressController {
 
         let deptId = departmentId ? Number(departmentId) : undefined;
         let divId = divisionId ? Number(divisionId) : undefined;
+        let userId: string | undefined = undefined;
 
         if (user.role === Role.BRANCH_ADMIN || user.role === Role.USER) {
             if (user.departmentId) deptId = user.departmentId;
-            if (user.divisionId) divId = user.divisionId;
+            userId = user.userId;
         }
 
         const data = await this.getAddressDropdownUseCase.execute({
             departmentId: deptId,
-            divisionId: divId,
+            divisionId: userId ? undefined : divId,
+            userId,
         });
         return { message: 'Success', data };
     }

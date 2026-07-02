@@ -6,10 +6,16 @@ import {
   IsDate,
   IsBoolean,
   IsInt,
+  IsUUID,
 } from 'class-validator';
 
 
 export class CreateDocumentDto {
+
+  @IsOptional()
+  @IsUUID()
+  id: string;
+
   @IsNotEmpty()
   @IsString()
   docNo: string;
@@ -51,7 +57,7 @@ export class CreateDocumentDto {
 
   @IsOptional()
   @IsString()
-  userId: string;
+  userId?: string;
 
   @IsNotEmpty()
   @IsString()

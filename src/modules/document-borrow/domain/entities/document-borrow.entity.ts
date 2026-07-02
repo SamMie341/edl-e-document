@@ -3,7 +3,7 @@ export class DocumentBorrowEntity {
     public readonly id: string,
     public readonly documentId: string | null,
     public readonly folderId: string | null,
-    public readonly borrowerId: string,
+    public readonly borrower: string,
     public readonly borrowedAt: Date,
     public readonly returnedAt: Date | null,
     public readonly purpose: string | null,
@@ -14,7 +14,6 @@ export class DocumentBorrowEntity {
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     // Relations (optional, populated when included)
-    public readonly borrower?: any,
     public readonly document?: any,
     public readonly folder?: any,
     public readonly toDivision?: any,

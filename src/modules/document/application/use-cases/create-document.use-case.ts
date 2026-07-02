@@ -4,6 +4,7 @@ import { DocumentEntity } from '../../domain/entities/document.entity';
 import * as documentRepositoryInterface from '../../domain/repositories/document.repository.interface';
 import { v4 as uuidv4 } from 'uuid';
 import * as fileStorageInterface from 'src/core/interfaces/file-storage.interface';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class CreateDocumentUseCase {
@@ -12,6 +13,7 @@ export class CreateDocumentUseCase {
     private readonly documentRepository: documentRepositoryInterface.IDocumentRepository,
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorageService: fileStorageInterface.IFileStorageService,
+    private readonly prisma: PrismaService,
   ) { }
 
   async execute(
@@ -19,7 +21,8 @@ export class CreateDocumentUseCase {
     userId: string,
     files: Express.Multer.File[],
   ) {
-    const qrCode = dto.qrCode || dto.docNo;
+    const generatedId = dto.id || uuidv4();
+    const qrCode = generatedId;
 
     const attachmentsData: {
       fileName: string;
@@ -46,10 +49,27 @@ export class CreateDocumentUseCase {
       }
     }
 
+    // ─── Fetch creator's department and primary division ────────────────────
+    const creator = await this.prisma.userModel.findUnique({
+      where: { id: userId },
+      select: {
+        departmentId: true,
+        userDivisions: {
+          where: { isPrimary: true },
+          select: { divisionId: true },
+          take: 1,
+        },
+      },
+    });
+    const primaryDivisionId = creator?.userDivisions?.[0]?.divisionId ?? null;
+
     const dataToSave = {
       ...dto,
+      id: generatedId,
       userId,
       qrCode,
+      departmentId: dto.departmentId ?? creator?.departmentId ?? null,
+      divisionId: dto.divisionId ?? primaryDivisionId ?? null,
       attachments: attachmentsData,
     };
 

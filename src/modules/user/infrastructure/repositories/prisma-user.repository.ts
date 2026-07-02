@@ -5,11 +5,21 @@ import { User } from '../../domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 
 const USER_INCLUDE = {
-  department: true,
+  department: {
+    include: {
+      addresses: true,
+    },
+  },
   office: true,
   unit: true,
   userDivisions: {
-    include: { division: true },
+    include: {
+      division: {
+        include: {
+          addresses: true,
+        },
+      },
+    },
     orderBy: { isPrimary: 'desc' as const },
   },
 };
@@ -40,7 +50,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async update(id: string, data: any): Promise<User> {
-    const { divisionIds, ...rest } = data;
+    const { divisionIds, addressId, ...rest } = data;
 
     if (divisionIds !== undefined) {
       // Replace all divisions
@@ -68,8 +78,22 @@ export class PrismaUserRepository implements IUserRepository {
     skip?: number,
     take?: number,
     status?: string,
+    search?: string,
   ): Promise<{ data: User[]; total: number }> {
-    const whereCondition = status ? { status: status } : {};
+    const whereCondition: any = status ? { status } : {};
+
+    if (search) {
+      whereCondition.OR = [
+        { empCode: { contains: search, mode: 'insensitive' } },
+        { firstNameLa: { contains: search, mode: 'insensitive' } },
+        { lastNameLa: { contains: search, mode: 'insensitive' } },
+        { firstNameEng: { contains: search, mode: 'insensitive' } },
+        { lastNameEng: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     const [models, total] = await this.prisma.$transaction([
       this.prisma.userModel.findMany({
         where: whereCondition,

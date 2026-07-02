@@ -6,7 +6,7 @@ export class DocumentBorrowMapper {
       model.id,
       model.documentId,
       model.folderId,
-      model.borrowerId,
+      model.borrower,       // scalar String
       model.borrowedAt,
       model.returnedAt,
       model.purpose,
@@ -16,7 +16,6 @@ export class DocumentBorrowMapper {
       model.note,
       model.createdAt,
       model.updatedAt,
-      model.borrower,
       model.document,
       model.folder,
       model.toDivision,

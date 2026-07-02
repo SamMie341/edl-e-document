@@ -17,6 +17,7 @@ import { GetAllLockersUseCase } from '../../application/use-cases/get-all-locker
 import { UpdateLockerUseCase } from '../../application/use-cases/update-locker.use-case';
 import { DeleteLockerUseCase } from '../../application/use-cases/delete-locker.use-case';
 import { GetLockerByIdUseCase } from '../../application/use-cases/get-locker-by-id.use-case';
+import { GetDropdownLockersUseCase } from '../../application/use-cases/get-dropdown-lockers.use-case';
 import { CreateLockerDto } from '../../application/dtos/create-locker.dto';
 import { UpdateLockerDto } from '../../application/dtos/update-locker.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
@@ -31,10 +32,11 @@ export class LockerController {
     private readonly updateLockerUseCase: UpdateLockerUseCase,
     private readonly deleteLockerUseCase: DeleteLockerUseCase,
     private readonly getLockerByIdUseCase: GetLockerByIdUseCase,
+    private readonly getDropdownLockersUseCase: GetDropdownLockersUseCase,
   ) { }
 
   // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get()
   async findAll(
     @Req() req: any,
@@ -46,7 +48,7 @@ export class LockerController {
   ) {
     const user = req.user;
     const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    const addressId = isHQ ? undefined : user.addressId;
+    const addressId = isHQ ? undefined : (user.addressId || 'none');
 
     const result = await this.getAllLockerUseCase.execute({
       page: parseInt(page) || 1,
@@ -57,6 +59,26 @@ export class LockerController {
       status,
     });
     return { message: 'Success', ...result };
+  }
+
+  // ─── GET DROPDOWN ────────────────────────────────────────────────────────────
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  @Get('dropdown')
+  async getDropdown(
+    @Req() req: any,
+    @Query('warehouseId') warehouseId?: string,
+    @Query('status') status?: string,
+  ) {
+    const user = req.user;
+    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
+    const addressId = isHQ ? undefined : (user.addressId || 'none');
+
+    const data = await this.getDropdownLockersUseCase.execute({
+      warehouseId,
+      addressId,
+      status,
+    });
+    return { message: 'Success', data };
   }
 
   // ─── GET BY ID ─────────────────────────────────────────────────────────────
@@ -90,8 +112,8 @@ export class LockerController {
   // ─── DELETE — HQ ເທົ່ານັ້ນ ─────────────────────────────────────────────────
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.deleteLockerUseCase.execute(id);
+  async delete(@Param('id') id: string, @Req() req: any) {
+    await this.deleteLockerUseCase.execute(id, req.user);
     return { message: 'ລົບຕູ້ Locker ສຳເລັດ' };
   }
 }

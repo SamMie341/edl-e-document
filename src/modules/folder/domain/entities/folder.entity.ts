@@ -6,6 +6,7 @@ export class Folder {
     public status: string,
     public qrCode: string,
     public locationRef: string | null,
+    public description: string,
     public shelfId: string,
     public readonly createdAt: Date,
     public updatedAt: Date,

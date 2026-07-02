@@ -3,10 +3,6 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 export class UpdateShelfDto {
   @IsOptional()
   @IsString()
-  code?: string;
-
-  @IsOptional()
-  @IsString()
   name?: string;
 
   @IsOptional()

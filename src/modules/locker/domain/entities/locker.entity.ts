@@ -10,6 +10,9 @@ export class Locker {
     public warehouseId: string | null,
     public readonly createdAt: Date,
     public updatedAt: Date,
+    public shelvesCount?: number,
+    public shelves?: { id: string; name: string }[],
     public warehouse?: Warehouse | null,
-  ) {}
+
+  ) { }
 }

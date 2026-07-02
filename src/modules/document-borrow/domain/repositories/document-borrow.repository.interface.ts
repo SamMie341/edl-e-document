@@ -8,23 +8,27 @@ export interface DocumentBorrowFilterParams {
   documentId?: string;
   folderId?: string;
   borrowerId?: string;
-  activeOnly?: boolean; // true = ສະເພາະທີ່ຍັງຢືມຢູ່
+  divisionId?: number;    // ກອງຕາມ division ທີ່ຮັບໄປ
+  departmentId?: number;  // ກອງຕາມ department (ສຳລັບ BRANCH_ADMIN)
+  activeOnly?: boolean;   // true = ສະເພາະທີ່ຍັງຢືມຢູ່
 }
 
 export interface IDocumentBorrowRepository {
   create(data: CreateDocumentBorrowData): Promise<DocumentBorrowEntity>;
   findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }>;
   findById(id: string): Promise<DocumentBorrowEntity | null>;
-  findByDocumentId(documentId: string): Promise<DocumentBorrowEntity[]>;
-  findByFolderId(folderId: string): Promise<DocumentBorrowEntity[]>;
-  findActive(): Promise<DocumentBorrowEntity[]>;
+  findByDocumentId(documentId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
+  findByFolderId(folderId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
+  findByDivisionId(divisionId: number, activeOnly?: boolean): Promise<DocumentBorrowEntity[]>;
+  findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
   return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity>;
 }
+
 
 export interface CreateDocumentBorrowData {
   documentId?: string;
   folderId?: string;
-  borrowerId: string;
+  borrower: string;
   purpose?: string;
   toDivisionId?: number;
   toLocation?: string;

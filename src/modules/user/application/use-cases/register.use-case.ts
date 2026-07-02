@@ -22,12 +22,12 @@ export class RegisterUseCase {
     private readonly hrmAuthService: HrmAuthService,
     private readonly httpService: HttpService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async execute(dto: RegisterDto) {
-    const existingEmail = await this.userRepository.findByEmail(dto.email);
-    if (existingEmail)
-      throw new ConflictException('ອີເມວນີ້ຖືກນຳໃຊ້ໃນລະບົບແລ້ວ...');
+    // const existingEmail = await this.userRepository.findByEmail(dto.email);
+    // if (existingEmail)
+    //   throw new ConflictException('ອີເມວນີ້ຖືກນຳໃຊ້ໃນລະບົບແລ້ວ...');
 
     const existingEmpCode = await this.userRepository.findByEmpCode(
       dto.empCode,
@@ -87,9 +87,9 @@ export class RegisterUseCase {
       if (exist) validUnitId = hrmData.office.unit_id;
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password || 'EDL1234', 10);
     const newUser = await this.userRepository.create({
-      email: dto.email,
+      // email: dto.email,
       password: hashedPassword,
       role: Role.USER,
       empId: hrmData.emp_id,
@@ -99,7 +99,7 @@ export class RegisterUseCase {
       firstNameEng: hrmData.first_name_eng,
       lastNameEng: hrmData.last_name_eng,
       phone: hrmData.phone,
-      status: 'P',
+      status: 'A',
       gender: hrmData.gender,
       image: hrmData.image,
       departmentId: validDeptId,

@@ -28,7 +28,7 @@ export class User {
     public officeData?: any,
     public unitData?: any,
     public divisions?: { id: number; name: string; shortName: string; isPrimary: boolean }[],
-  ) {}
+  ) { }
 
   getPublicProfile() {
     return {
@@ -45,9 +45,9 @@ export class User {
       office: this.officeId || null,
       unit: this.unitId || null,
       departmentData: this.departmentData || null,
+      divisions: this.divisions || [],
       officeData: this.officeData || null,
       unitData: this.unitData || null,
-      divisions: this.divisions || [],
     };
   }
 

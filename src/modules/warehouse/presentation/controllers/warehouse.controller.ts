@@ -39,18 +39,36 @@ export class WarehouseController {
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get()
   async findAll(
+    @Req() req: any,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('addressId') addressId?: string,
   ) {
+    const user = req.user;
+
+    // ─── Role-based department / division scoping ──────────────────────────
+    // SUPER_ADMIN & HQ_ADMIN: ເຫັນທັງໝົດ (no extra filter)
+    // BRANCH_ADMIN          : ເຫັນສະເພາະ warehouse ໃນ department ຂອງຕົວເອງ
+    // USER                  : ເຫັນສະເພາະ warehouse ໃນ division ຂອງຕົວເອງ
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    }
+
     const result = await this.getAllWarehouseUseCase.execute({
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       search,
       status,
       addressId,
+      departmentId,
+      divisionId,
     });
     return { message: 'Success', ...result };
   }
@@ -58,8 +76,27 @@ export class WarehouseController {
   // ─── DROPDOWN ─────────────────────────────────────────────────────────────
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
   @Get('dropdown')
-  async getDropdown(@Query('addressId') addressId?: string) {
-    const data = await this.getWarehouseDropdownUseCase.execute({ addressId });
+  async getDropdown(
+    @Req() req: any,
+    @Query('addressId') addressId?: string,
+  ) {
+    const user = req.user;
+
+    // ─── Role-based department / division scoping ──────────────────────────
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    }
+
+    const data = await this.getWarehouseDropdownUseCase.execute({
+      addressId,
+      departmentId,
+      divisionId,
+    });
     return { message: 'Success', data };
   }
 

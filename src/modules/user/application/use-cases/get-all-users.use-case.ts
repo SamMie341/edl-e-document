@@ -13,6 +13,7 @@ export class GetAllUsersUseCase {
     page: number = 1,
     limit: number = 10,
     status?: string,
+    search?: string,
   ): Promise<PaginatedResult<any>> {
     if (page < 1 || limit < 1) throw new BadRequestException();
     const skip = (page - 1) * limit;
@@ -20,6 +21,7 @@ export class GetAllUsersUseCase {
       skip,
       limit,
       status,
+      search,
     );
     const totalPages = Math.ceil(total / limit);
 

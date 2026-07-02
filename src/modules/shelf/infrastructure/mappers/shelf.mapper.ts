@@ -21,6 +21,7 @@ export class ShelfMapper {
           model.locker.description,
           model.locker.status,
           model.locker.warehouseId,
+          model.locker.warehouse,
         )
         : null,
     );

@@ -42,6 +42,8 @@ export class Shelf {
         public description: string,
         public status: string,
         public maxQty: number,
+        public count: number,
+        public remainingQty: number,
         public readonly createdAt: Date,
         public updatedAt: Date,
     ) { }
@@ -93,6 +95,8 @@ export class User {
         public phone: string,
         public readonly createdAt: Date,
         public updatedAt: Date,
+        public department?: Department | null,
+        public division?: Division | null,
     ) { }
 }
 
@@ -134,11 +138,16 @@ export class DocumentEntity {
         public description: string,
         public docExpire: Date,
         public qrCode: string,
+        public departmentId: number | null,
+        public divisionId: number | null,
         public userId: string,
         public folderId: string | null,
         public documentTypeId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
+        public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
+        public department?: Department | null,
+        public division?: Division | null,
         public user?: User | null,
         public address?: Address | null,
         public warehouse?: Warehouse | null,
@@ -147,11 +156,7 @@ export class DocumentEntity {
         public folder?: Folder | null,
         public documentType?: DocumentType | null,
         public attachments?: Attachment | null,
-        public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
-        public departmentId?: number | null,
-        public divisionId?: number | null,
-        public department?: Department | null,
-        public division?: Division | null,
+
     ) { }
 
     /**

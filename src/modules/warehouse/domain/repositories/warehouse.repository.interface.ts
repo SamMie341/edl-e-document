@@ -8,6 +8,8 @@ export interface WarehouseFilterParams {
   search?: string;
   status?: string;
   addressId?: string;
+  departmentId?: number;
+  divisionId?: number;
 }
 
 export interface IWarehouseRepository {
@@ -16,7 +18,7 @@ export interface IWarehouseRepository {
     params: WarehouseFilterParams,
   ): Promise<{ data: Warehouse[]; total: number }>;
   findById(id: string): Promise<Warehouse | null>;
-  getDropdown(filters?: { addressId?: string }): Promise<{ id: string; name: string }[]>;
+  getDropdown(filters?: { addressId?: string; departmentId?: number; divisionId?: number }): Promise<{ id: string; name: string }[]>;
   update(id: string, data: any): Promise<Warehouse>;
   delete(id: string): Promise<void>;
 }
