@@ -7,6 +7,8 @@ export interface AddressFilterParams {
   limit?: number;
   search?: string;
   status?: string;
+  departmentId?: number;
+  divisionId?: number;
 }
 
 export interface IAddressRepository {

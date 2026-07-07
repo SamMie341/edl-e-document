@@ -1846,6 +1846,52 @@
           "response": []
         },
         {
+          "name": "GET /lockers/dropdown (getDropdown)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lockers/dropdown",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lockers",
+                "dropdown"
+              ],
+              "query": [
+                {
+                  "key": "warehouseId",
+                  "value": "",
+                  "description": "Query parameter: warehouseId"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Query parameter: status"
+                }
+              ],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "GET /lockers/:id (findById)",
           "request": {
             "method": "GET",

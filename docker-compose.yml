@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  # ---------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: edl_edoc_db
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - edl_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d edl_edoc_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------
+  # NestJS Application
+  # ---------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: edl_edoc_app
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    volumes:
+      # Bind mount → ชี้ไปยังโฟลเดอร์นอกโปรเจกต์ กำหนดใน .env ด้วย UPLOAD_HOST_PATH
+      - ${UPLOAD_HOST_PATH:-/opt/edl-uploads}:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edl_network
+
+# ---------------------------------------------
+# Named Volumes
+# ---------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  # uploads_data ถูกเปลี่ยนเป็น bind mount แล้ว (ดู UPLOAD_HOST_PATH ใน .env)
+
+# ---------------------------------------------
+# Networks
+# ---------------------------------------------
+networks:
+  edl_network:
+    driver: bridge

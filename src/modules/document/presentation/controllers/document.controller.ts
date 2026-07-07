@@ -72,7 +72,15 @@ export class DocumentController {
     let targetDepartmentId: number | undefined = departmentId ? parseInt(departmentId) : undefined;
     let targetDivisionIds: number[] | undefined = undefined;
 
-    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
+    if (user.role === Role.USER) {
+      // USER เห็นเฉพาะ document ใน primary division ของตัวเอง
+      const primaryDiv = await this.prisma.userDivisionModel.findFirst({
+        where: { userId: user.userId, isPrimary: true },
+        select: { divisionId: true },
+      });
+      targetDivisionIds = primaryDiv ? [primaryDiv.divisionId] : [-1];
+    } else if (user.role === Role.BRANCH_ADMIN) {
+      // BRANCH_ADMIN เห็นเฉพาะ document ใน divisions ที่ถูก assign
       const userDivs = await this.prisma.userDivisionModel.findMany({
         where: { userId: user.userId },
         select: { divisionId: true },
@@ -120,13 +128,22 @@ export class DocumentController {
     const user = req.user;
     const document = await this.getDocumentByIdUseCase.execute(id);
 
-    if (user.role === Role.USER || user.role === Role.BRANCH_ADMIN) {
+    if (user.role === Role.USER) {
+      // USER เห็นเฉพาะ document ใน primary division ของตัวเอง
+      const primaryDiv = await this.prisma.userDivisionModel.findFirst({
+        where: { userId: user.userId, isPrimary: true },
+        select: { divisionId: true },
+      });
+      if (!document.divisionId || !primaryDiv || document.divisionId !== primaryDiv.divisionId) {
+        throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
+      }
+    } else if (user.role === Role.BRANCH_ADMIN) {
+      // BRANCH_ADMIN เห็นเฉพาะ document ใน divisions ที่ถูก assign
       const userDivs = await this.prisma.userDivisionModel.findMany({
         where: { userId: user.userId },
         select: { divisionId: true },
       });
       const allowedDivisionIds = userDivs.map((ud) => ud.divisionId);
-
       if (!document.divisionId || !allowedDivisionIds.includes(document.divisionId)) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
       }
@@ -140,12 +157,12 @@ export class DocumentController {
 
   // ─── CREATE ───────────────────────────────────────────────────────────────────
   @Post()
-  @UseInterceptors(FilesInterceptor('files', 10, {
+  @UseInterceptors(FilesInterceptor('files', Number.MAX_SAFE_INTEGER, {
     storage: require('multer').memoryStorage(),
-    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: Number(process.env.UPLOAD_MAX_FILES ?? 10) },
     fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
-      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
-      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      if (file.mimetype !== 'application/pdf') {
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ບໍ່ອະນຸຍາດໄຟລ໌"${file.mimetype}"`), false);
+      }
       cb(null, true);
     },
   }))
@@ -165,12 +182,12 @@ export class DocumentController {
 
   // ─── UPDATE ───────────────────────────────────────────────────────────────────
   @Put(':id')
-  @UseInterceptors(FilesInterceptor('files', 10, {
+  @UseInterceptors(FilesInterceptor('files', Number.MAX_SAFE_INTEGER, {
     storage: require('multer').memoryStorage(),
-    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: Number(process.env.UPLOAD_MAX_FILES ?? 10) },
     fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
-      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
-      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      if (file.mimetype !== 'application/pdf') {
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບ "${file.mimetype}"`), false);
+      }
       cb(null, true);
     },
   }))
@@ -193,10 +210,10 @@ export class DocumentController {
   @Roles(Role.SUPER_ADMIN, Role.USER, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @UseInterceptors(FileInterceptor('file', {
     storage: require('multer').memoryStorage(),
-    limits: { fileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE ?? 52428800), files: 1 },
     fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
-      const allowed = (process.env.UPLOAD_ALLOWED_MIME_TYPES ?? 'image/jpeg,image/png,image/gif,image/webp,application/pdf').split(',').map((t) => t.trim());
-      if (!allowed.includes(file.mimetype)) return cb(new BadRequestException(`ປະເພດໄຟລ໌ "${file.mimetype}" ບໍ່ໄດ້ຮັບອະນຸຍາດ`), false);
+      if (file.mimetype !== 'application/pdf') {
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບ "${file.mimetype}"`), false);
+      }
       cb(null, true);
     },
   }))
@@ -235,6 +252,27 @@ export class DocumentController {
     res.set({
       'Content-Type': attachment.mimeType,
       'Content-Disposition': `inline; filename="${encodeURIComponent(attachment.fileName)}"`,
+    });
+    return new StreamableFile(fileStream);
+  }
+
+  // ─── DOWNLOAD ATTACHMENT (force download) ─────────────────────────────────────
+  @Get('attachments/:attachmentId/download')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async downloadAttachment(
+    @Param('attachmentId') attachmentId: string,
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const attachment = await this.getAttachmentUseCase.execute(
+      attachmentId,
+      req.user,
+    );
+    const fileStream = createReadStream(attachment.filePath);
+    res.set({
+      'Content-Type': attachment.mimeType,
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(attachment.fileName)}"`,
+      'Content-Length': attachment.size,
     });
     return new StreamableFile(fileStream);
   }

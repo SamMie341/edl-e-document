@@ -67,12 +67,14 @@ export class PrismaAddressRepository implements IAddressRepository {
   async findAll(
     params: AddressFilterParams,
   ): Promise<{ data: Address[]; total: number }> {
-    const { page = 1, limit = 10, search, status } = params;
+    const { page = 1, limit = 10, search, status, departmentId, divisionId } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
 
     if (status) where.status = status;
+    if (departmentId) where.departmentId = departmentId;
+    if (divisionId) where.divisionId = divisionId;
     if (search) {
       where.OR = [
         { code: { contains: search, mode: 'insensitive' } },
