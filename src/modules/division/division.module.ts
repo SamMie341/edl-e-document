@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { DivisionController } from './presentation/controller/division.controller';
 import { SyncDivisionUseCase } from './application/use-cases/sync-divisions.use-case';
@@ -7,7 +8,7 @@ import { GetDivisionsUseCase } from './application/use-cases/get-division.use-ca
 import { GetDivisionsByDepartmentUseCase } from './application/use-cases/get-divisions-by-department.use-case';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [DivisionController],
   providers: [
     SyncDivisionUseCase,

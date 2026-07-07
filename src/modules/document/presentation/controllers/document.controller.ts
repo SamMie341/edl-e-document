@@ -65,6 +65,7 @@ export class DocumentController {
     @Query('folderId') folderId?: string,
     @Query('departmentId') departmentId?: string,
     @Query('divisionId') divisionId?: string,
+    @Query('retentionStatus') retentionStatus?: string,
   ) {
     const user = req.user;
     let targetUserId: string | undefined = undefined;
@@ -113,6 +114,7 @@ export class DocumentController {
       userId: targetUserId,
       departmentId: targetDepartmentId,
       divisionIds: targetDivisionIds,
+      retentionStatus,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {
