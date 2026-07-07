@@ -26,4 +26,5 @@ export interface DocumentFilterParams {
   departmentId?: number;
   divisionId?: number;
   divisionIds?: number[];
+  retentionStatus?: string;
 }

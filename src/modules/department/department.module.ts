@@ -7,7 +7,7 @@ import { HrmDepartmentRepository } from './infrastructure/repositories/hrm-depar
 import { SyncDepartmentUseCase } from './application/use-cases/sync-department.use-case';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [DepartmentController],
   providers: [
     GetDepartmentsUseCase,

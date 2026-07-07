@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { UnitController } from './presentation/controllers/unit.controller';
 import { SyncUnitUseCase } from './application/use-cases/sync-units.use-case';
@@ -6,7 +7,7 @@ import { HrmUnitRepository } from './infrastructure/repositories/hrm-unit.reposi
 import { GetUnitsUseCase } from './application/use-cases/get-units.use-case';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [UnitController],
   providers: [
     SyncUnitUseCase,
