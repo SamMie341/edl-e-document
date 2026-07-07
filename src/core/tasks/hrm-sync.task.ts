@@ -40,8 +40,8 @@ export class HrmSyncTask {
     }
   }
 
-  // async onModuleInit() {
-  //   this.logger.log('🚀 ກຳລັງກວດສອບສະຖານະຂໍ້ມູນ...');
-  //   await this.handleCron();
-  // }
+  async onModuleInit() {
+    this.logger.log('🚀 ກຳລັງກວດສອບສະຖານະຂໍ້ມູນ...');
+    await this.handleCron();
+  }
 }
