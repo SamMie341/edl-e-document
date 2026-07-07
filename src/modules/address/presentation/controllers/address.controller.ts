@@ -42,12 +42,16 @@ export class AddressController {
         @Query('limit') limit: string = '10',
         @Query('search') search?: string,
         @Query('status') status?: string,
+        @Query('departmentId') departmentId?: string,
+        @Query('divisionId') divisionId?: string,
     ) {
         const result = await this.getAllAddressUseCase.execute({
             page: parseInt(page) || 1,
             limit: parseInt(limit) || 10,
             search,
             status,
+            departmentId: departmentId ? parseInt(departmentId) : undefined,
+            divisionId: divisionId ? parseInt(divisionId) : undefined,
         });
         return { message: 'Success', ...result };
     }

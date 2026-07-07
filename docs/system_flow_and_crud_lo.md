@@ -98,8 +98,13 @@
 * **Read (ອ່ານ):**
   * `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເຫັນທຸກຕູ້. `BRANCH_ADMIN` ຖືກຈໍາກັດຕາມ `addressId` (ຜ່ານ Locker → Warehouse → addressId).
   * ດຶງຂໍ້ມູນຕູ້ເອກະສານທັງໝົດທີ່ຢູ່ໃນສາງໃດໜຶ່ງ (`getByWarehouse`).
+  * **[ໃໝ່] ດຶງຂໍ້ມູນ Dropdown** (`GET /lockers/dropdown`): ດຶງລາຍຊື່ຕູ້ທີ່ຖືກຫຍໍ້ ສຳລັບການຕື່ມຂໍ້ມູນໃນ Dropdown ໃນ Frontend / Mobile App. ຜົນລັບຈະລວມ `id`, `name`, `code`, `status` ພ້ອມຂໍ້ມູນສາງ (`warehouse.id`, `warehouse.name`) ແລະ ສະຖານທີ່ (`address.id`, `address.name`).
+    * ສາມາດກອງຜ່ານ query parameter:
+      * `warehouseId` — ດຶງສະເພາະຕູ້ໃນສາງນັ້ນ
+      * `status` — ດຶງສະເພາະຕູ້ທີ່ມີສະຖານະທີ່ລະບຸ (ເຊັ່ນ `A`)
+    * `BRANCH_ADMIN` / `USER` ຈະໄດ້ຮັບສະເພາະຕູ້ພາຍໃນ `addressId` ຂອງຕົນ (`addressId` ຖືກ inject ຈາກ JWT payload ໂດຍອັດຕະໂນມັດ ຜ່ານ `req.user.addressId`).
 * **Update (ແກ້ໄຂ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນຕູ້. `BRANCH_ADMIN` ຖືກກວດສອບ `addressId`.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
+* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ. ບໍ່ສາມາດລົບຕູ້ທີ່ຍັງມີຊັ້ນວາງຢູ່ພາຍໃນໄດ້ (ລະບົບຈະ throw `ConflictException`).
 
 ---
 
@@ -199,3 +204,54 @@
 ### 15. ໂມດູນບັນທຶກປະຫວັດ (Audit Log Module)
 * **Create (ສ້າງ):** ລະບົບຈະບັນທຶກປະຫວັດການເຄື່ອນໄຫວ (ເຊັ່ນ: ການສ້າງເອກະສານ, ການແກ້ໄຂ, ການເບິ່ງເອກະສານ) ໂດຍອັດຕະໂນມັດຜ່ານ Repository ພາຍໃນ.
 * **Read / Update / Delete:** ບໍ່ມີ API ໃຫ້ເປີດເຜີຍເພື່ອແກ້ໄຂ ຫຼື ລົບປະຫວັດ ເພື່ອຮັກສາຄວາມຖືກຕ້ອງ ແລະ ຄວາມໂປ່ງໃສຂອງຂໍ້ມູນການກວດສອບ.
+
+---
+
+## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-07-02
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+
+**ໂມດູນຕູ້ເອກະສານ (Locker Module)**
+
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **Endpoint ໃໝ່:** `GET /lockers/dropdown` | ເພີ່ມ endpoint ສຳລັບດຶງລາຍຊື່ຕູ້ (Locker) ໃນຮູບແບບ Dropdown ທີ່ຫຍໍ້ (Lightweight) ສຳລັບ Frontend ແລະ Mobile App |
+| **Use Case ໃໝ່:** `GetDropdownLockersUseCase` | ເພີ່ມ Use Case ທີ່ເຮັດໜ້າທີ່ query ຂໍ້ມູນ Dropdown ຈາກ Repository |
+| **Method ໃໝ່:** `getDropdown()` ໃນ `ILockerRepository` | ເພີ່ມ contract ໃໝ່ໃນ Interface ແລະ ນຳໄປຕັ້ງຄ່າໃນ `PrismaLockerRepository` |
+| **Postman Collection:** `GET /lockers/dropdown` | ເພີ່ມ request entry ໃໝ່ໃນ Locker section ຂອງ `edl-e-document.postman_collection.json` |
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+
+**ໂມດູນຕູ້ເອກະສານ (Locker Module)**
+
+| ລາຍການ | ກ່ອນໜ້ານີ້ | ຫຼັງຈາກນີ້ |
+|--------|-----------|----------|
+| **Delete ຕູ້** | ລົບໄດ້ (HQ+SUPER ເທົ່ານັ້ນ) — ບໍ່ໄດ້ຕ້ອງການເງື່ອນໄຂ | ລົບໄດ້ (HQ+SUPER ເທົ່ານັ້ນ) — ລະບົບຈະ **throw `ConflictException`** ຖ້າຕູ້ຍັງມີຊັ້ນວາງ (`Shelf`) ຢູ່ພາຍໃນ |
+| **ເອກະສານ (Docs)** | ໂມດູນ Locker ອະທິບາຍ Read ສຽງ 2 ຈຸດ | ເພີ່ມຄຳອະທິບາຍ Dropdown endpoint ລວມ query params ແລະ RBAC scoping |
+
+#### 📌 ລາຍລະອຽດ Dropdown Response Shape
+
+`GET /lockers/dropdown` ສົ່ງຄືນ array ຂອງ object ທີ່ມີ fields ດັ່ງນີ້:
+
+```json
+[
+  {
+    "id": "uuid",
+    "name": "ຊື່ຕູ້",
+    "code": "ລະຫັດຕູ້",
+    "status": "A",
+    "warehouse": {
+      "id": "uuid",
+      "name": "ຊື່ສາງ",
+      "address": {
+        "id": 1,
+        "name": "ຊື່ສະຖານທີ່"
+      }
+    }
+  }
+]
+```
+
+> **ໝາຍເຫດ RBAC:** `BRANCH_ADMIN` ແລະ `USER` ທີ່ຮ້ອງຂໍ endpoint ນີ້ຈະຖືກ inject `addressId` ຈາກ `req.user.addressId` ໂດຍອັດຕະໂນມັດ — ຜ່ານໂຄງສ້າງ Locker → Warehouse → Address — ດັ່ງນັ້ນຈຶ່ງຈະໄດ້ຮັບສະເພາະຕູ້ທີ່ຢູ່ໃນ branch ຂອງຕົນ.
