@@ -131,41 +131,67 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         // ต้องแปลงเป็น Prisma date-range conditions โดยอ้างอิง logic เดียวกับ entity getter
         if (retentionStatus) {
             const now = new Date();
+            // d10End: วันสุดท้ายของวันเดียวกันเมื่อ 10 ปีที่แล้ว (local time)
+            const d10End = new Date(
+                now.getFullYear() - 10,
+                now.getMonth(),
+                now.getDate(),
+                23,
+                59,
+                59,
+                999,
+            );
 
-            // วันที่ครบ 10 ปีพอดี (เริ่มต้น)
-            const tenYearsAgo = new Date(now);
-            tenYearsAgo.setFullYear(now.getFullYear() - 10);
+            // d11End: วันสุดท้ายของวันเดียวกันเมื่อ 11 ปีที่แล้ว (local time)
+            const d11End = new Date(
+                now.getFullYear() - 11,
+                now.getMonth(),
+                now.getDate(),
+                23,
+                59,
+                59,
+                999,
+            );
 
-            // วันที่เกิน 10 ปี (เลยไป 1 วัน)
-            const tenYearsAgoPlusOneDay = new Date(tenYearsAgo);
-            tenYearsAgoPlusOneDay.setDate(tenYearsAgoPlusOneDay.getDate() - 1);
+            let retentionDocDate: any = {};
 
             switch (retentionStatus) {
                 case 'ACTIVE':
-                    // อายุ < 10 ปี: docDate > tenYearsAgo
-                    whereCondition.docDate = { gt: tenYearsAgo };
+                    // อายุ < 10 ปี: docDate > d10End AND ไม่ติดพันสัญญา
+                    retentionDocDate = { gt: d10End };
+                    whereCondition.isContractBound = false;
                     break;
 
                 case 'DESTROYABLE':
-                    // อายุ === 10 ปีพอดี AND ไม่ติดพันสัญญา
-                    whereCondition.docDate = {
-                        gte: tenYearsAgoPlusOneDay,
-                        lte: tenYearsAgo,
+                    // อายุ === 10 ปีพอดี: docDate ระหว่าง (d11End, d10End] AND ไม่ติดพันสัญญา
+                    retentionDocDate = {
+                        gt: d11End,
+                        lte: d10End,
                     };
                     whereCondition.isContractBound = false;
                     break;
 
                 case 'DESTROYABLE_HOLD':
-                    // ติดพันสัญญา (อายุ >= 10 ปี)
-                    whereCondition.docDate = { lte: tenYearsAgo };
+                    // ติดพันสัญญา (โดยไม่จำกัดอายุ)
                     whereCondition.isContractBound = true;
                     break;
 
                 case 'EXPIRED':
-                    // อายุ > 10 ปี AND ไม่ติดพันสัญญา
-                    whereCondition.docDate = { lt: tenYearsAgoPlusOneDay };
+                    // อายุ > 10 ปี (11 ปีขึ้นไป): docDate <= d11End AND ไม่ติดพันสัญญา
+                    retentionDocDate = { lte: d11End };
                     whereCondition.isContractBound = false;
                     break;
+            }
+
+            if (Object.keys(retentionDocDate).length > 0) {
+                if (whereCondition.docDate) {
+                    whereCondition.docDate = {
+                        ...whereCondition.docDate,
+                        ...retentionDocDate,
+                    };
+                } else {
+                    whereCondition.docDate = retentionDocDate;
+                }
             }
         }
         if (search) {
