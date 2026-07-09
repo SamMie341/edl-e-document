@@ -203,6 +203,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 { description: { contains: search, mode: 'insensitive' } },
                 { division: { name: { contains: search, mode: 'insensitive' } } },
                 { department: { name: { contains: search, mode: 'insensitive' } } },
+                { documentType: { name: { contains: search, mode: 'insensitive' } } },
                 { user: { firstNameLa: { contains: search, mode: 'insensitive' } } },
                 { user: { lastNameLa: { contains: search, mode: 'insensitive' } } },
                 { user: { firstNameEng: { contains: search, mode: 'insensitive' } } },

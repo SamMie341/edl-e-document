@@ -12,6 +12,7 @@ export const SEARCH_ENTITY_TYPES = [
   'addresses',
   'departments',
   'divisions',
+  'document-types',
 ] as const;
 
 export type SearchEntityType = (typeof SEARCH_ENTITY_TYPES)[number];
@@ -93,7 +94,7 @@ function detectMatchedFields(
 // ─── Use Case ─────────────────────────────────────────────────────────────────
 @Injectable()
 export class GlobalSearchUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async execute(params: GlobalSearchParams) {
     const {
@@ -142,434 +143,471 @@ export class GlobalSearchUseCase {
       addressRows,
       departmentRows,
       divisionRows,
+      documentTypeRows,
     ] = await Promise.all([
       // ── Documents ───────────────────────────────────────────────────────────
       wants('documents')
         ? this.prisma.documentModel.findMany({
-            where: {
-              AND: [
-                ...(divisionWhere ? [{ divisionId: divisionWhere }] : []),
-                ...(hasDateFilter ? [{ docDate: dateFilter }] : []),
-                {
-                  OR: [
-                    { docNo: { contains: q, mode } },
-                    { subDocNo: { contains: q, mode } },
-                    { title: { contains: q, mode } },
-                    { shortName: { contains: q, mode } },
-                    { description: { contains: q, mode } },
-                    { division: { name: { contains: q, mode } } },
-                    { department: { name: { contains: q, mode } } },
-                    { user: { firstNameLa: { contains: q, mode } } },
-                    { user: { lastNameLa: { contains: q, mode } } },
-                    { user: { firstNameEng: { contains: q, mode } } },
-                    { user: { lastNameEng: { contains: q, mode } } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              docNo: true,
-              subDocNo: true,
-              title: true,
-              shortName: true,
-              description: true,
-              docDate: true,
-              docExpire: true,
-              isContractBound: true,
-              division: { select: { id: true, name: true } },
-              department: { select: { id: true, name: true } },
-              documentType: { select: { id: true, name: true } },
-              user: { select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true } },
-              // ── ข้อ 4: borrow status ──────────────────────────────────────
-              borrows: {
-                where: { returnedAt: null },
-                take: 1,
-                orderBy: { borrowedAt: 'desc' },
-                select: {
-                  id: true,
-                  borrower: true,
-                  borrowedAt: true,
-                  purpose: true,
-                  toDivision: { select: { id: true, name: true } },
-                },
+          where: {
+            AND: [
+              ...(divisionWhere ? [{ divisionId: divisionWhere }] : []),
+              ...(hasDateFilter ? [{ docDate: dateFilter }] : []),
+              {
+                OR: [
+                  { docNo: { contains: q, mode } },
+                  { subDocNo: { contains: q, mode } },
+                  { title: { contains: q, mode } },
+                  { shortName: { contains: q, mode } },
+                  { description: { contains: q, mode } },
+                  { division: { name: { contains: q, mode } } },
+                  { department: { name: { contains: q, mode } } },
+                  { documentType: { name: { contains: q, mode } } },
+                  { user: { firstNameLa: { contains: q, mode } } },
+                  { user: { lastNameLa: { contains: q, mode } } },
+                  { user: { firstNameEng: { contains: q, mode } } },
+                  { user: { lastNameEng: { contains: q, mode } } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            docNo: true,
+            subDocNo: true,
+            title: true,
+            shortName: true,
+            description: true,
+            docDate: true,
+            docExpire: true,
+            isContractBound: true,
+            division: { select: { id: true, name: true } },
+            department: { select: { id: true, name: true } },
+            documentType: { select: { id: true, name: true } },
+            user: { select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true } },
+            // ── ข้อ 4: borrow status ──────────────────────────────────────
+            borrows: {
+              where: { returnedAt: null },
+              take: 1,
+              orderBy: { borrowedAt: 'desc' },
+              select: {
+                id: true,
+                borrower: true,
+                borrowedAt: true,
+                purpose: true,
+                toDivision: { select: { id: true, name: true } },
               },
             },
-          })
+          },
+        })
         : Promise.resolve(null),
 
       // ── Folders ─────────────────────────────────────────────────────────────
       wants('folders')
         ? this.prisma.folderModel.findMany({
-            where: {
-              AND: [
-                ...(
-                  !isPrivileged && userAddressId
-                    ? [{ shelf: { locker: { warehouse: { addressId: userAddressId } } } }]
-                    : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                    { description: { contains: q, mode } },
-                    { locationRef: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { code: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              description: true,
-              locationRef: true,
-              qrCode: true,
-              shelf: {
-                select: {
-                  id: true,
-                  name: true,
-                  locker: {
-                    select: {
-                      id: true,
-                      name: true,
-                      warehouse: {
-                        select: {
-                          id: true,
-                          name: true,
-                          address: { select: { id: true, name: true } },
-                        },
+          where: {
+            AND: [
+              ...(
+                !isPrivileged && userAddressId
+                  ? [{ shelf: { locker: { warehouse: { addressId: userAddressId } } } }]
+                  : []
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                  { description: { contains: q, mode } },
+                  { locationRef: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { code: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            locationRef: true,
+            qrCode: true,
+            shelf: {
+              select: {
+                id: true,
+                name: true,
+                locker: {
+                  select: {
+                    id: true,
+                    name: true,
+                    warehouse: {
+                      select: {
+                        id: true,
+                        name: true,
+                        address: { select: { id: true, name: true } },
                       },
                     },
                   },
                 },
               },
             },
-          })
+          },
+        })
         : Promise.resolve(null),
 
       // ── Warehouses ──────────────────────────────────────────────────────────
       wants('warehouses')
         ? this.prisma.warehouseModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userAddressId
-                    ? [{ addressId: userAddressId }]
-                    : !isPrivileged && userDepartmentId
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userAddressId
+                  ? [{ addressId: userAddressId }]
+                  : !isPrivileged && userDepartmentId
                     ? [{ address: { departmentId: userDepartmentId } }]
                     : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                    { description: { contains: q, mode } },
-                    { address: { name: { contains: q, mode } } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              description: true,
-              status: true,
-              address: { select: { id: true, name: true } },
-            },
-          })
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                  { description: { contains: q, mode } },
+                  { address: { name: { contains: q, mode } } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            status: true,
+            address: { select: { id: true, name: true } },
+          },
+        })
         : Promise.resolve(null),
 
       // ── Lockers ─────────────────────────────────────────────────────────────
       wants('lockers')
         ? this.prisma.lockerModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userAddressId
-                    ? [{ warehouse: { addressId: userAddressId } }]
-                    : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                    { description: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { code: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              description: true,
-              status: true,
-              warehouse: {
-                select: {
-                  id: true,
-                  name: true,
-                  address: { select: { id: true, name: true } },
-                },
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userAddressId
+                  ? [{ warehouse: { addressId: userAddressId } }]
+                  : []
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                  { description: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { code: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+            status: true,
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                address: { select: { id: true, name: true } },
               },
             },
-          })
+          },
+        })
         : Promise.resolve(null),
 
       // ── Shelves ─────────────────────────────────────────────────────────────
       wants('shelves')
         ? this.prisma.shelfModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userAddressId
-                    ? [{ locker: { warehouse: { addressId: userAddressId } } }]
-                    : []
-                ),
-                {
-                  OR: [
-                    { name: { contains: q, mode } },
-                    { description: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              maxQty: true,
-              status: true,
-              locker: {
-                select: {
-                  id: true,
-                  code: true,
-                  name: true,
-                  warehouse: {
-                    select: {
-                      id: true,
-                      name: true,
-                      address: { select: { id: true, name: true } },
-                    },
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userAddressId
+                  ? [{ locker: { warehouse: { addressId: userAddressId } } }]
+                  : []
+              ),
+              {
+                OR: [
+                  { name: { contains: q, mode } },
+                  { description: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            maxQty: true,
+            status: true,
+            locker: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                warehouse: {
+                  select: {
+                    id: true,
+                    name: true,
+                    address: { select: { id: true, name: true } },
                   },
                 },
               },
             },
-          })
+          },
+        })
         : Promise.resolve(null),
 
       // ── Users (SUPER_ADMIN & HQ_ADMIN only) ─────────────────────────────────
       wants('users') && isPrivileged
         ? this.prisma.userModel.findMany({
-            where: {
-              OR: [
-                { empCode: { contains: q, mode } },
-                { firstNameLa: { contains: q, mode } },
-                { lastNameLa: { contains: q, mode } },
-                { firstNameEng: { contains: q, mode } },
-                { lastNameEng: { contains: q, mode } },
-                { email: { contains: q, mode } },
-                { phone: { contains: q, mode } },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              empCode: true,
-              firstNameLa: true,
-              lastNameLa: true,
-              firstNameEng: true,
-              lastNameEng: true,
-              email: true,
-              role: true,
-              status: true,
-              department: { select: { id: true, name: true } },
-            },
-          })
+          where: {
+            OR: [
+              { empCode: { contains: q, mode } },
+              { firstNameLa: { contains: q, mode } },
+              { lastNameLa: { contains: q, mode } },
+              { firstNameEng: { contains: q, mode } },
+              { lastNameEng: { contains: q, mode } },
+              { email: { contains: q, mode } },
+              { phone: { contains: q, mode } },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            empCode: true,
+            firstNameLa: true,
+            lastNameLa: true,
+            firstNameEng: true,
+            lastNameEng: true,
+            email: true,
+            role: true,
+            status: true,
+            department: { select: { id: true, name: true } },
+          },
+        })
         : Promise.resolve(null),
 
       // ── Addresses ───────────────────────────────────────────────────────────
       wants('addresses')
         ? this.prisma.addressModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userDivisionIds && userDivisionIds.length > 0
-                    ? [{ OR: [{ divisionId: { in: userDivisionIds } }, { divisionId: null }] }]
-                    : !isPrivileged && userDepartmentId
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userDivisionIds && userDivisionIds.length > 0
+                  ? [{ OR: [{ divisionId: { in: userDivisionIds } }, { divisionId: null }] }]
+                  : !isPrivileged && userDepartmentId
                     ? [{ departmentId: userDepartmentId }]
                     : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                    { details: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              details: true,
-              division: { select: { id: true, name: true } },
-              department: { select: { id: true, name: true } },
-            },
-          })
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                  { details: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            details: true,
+            division: { select: { id: true, name: true } },
+            department: { select: { id: true, name: true } },
+          },
+        })
         : Promise.resolve(null),
 
       // ── Departments ─────────────────────────────────────────────────────────
       wants('departments')
         ? this.prisma.departmentModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userDepartmentId
-                    ? [{ id: userDepartmentId }]
-                    : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              email: true,
-              phone: true,
-              status: true,
-            },
-          })
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userDepartmentId
+                  ? [{ id: userDepartmentId }]
+                  : []
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            email: true,
+            phone: true,
+            status: true,
+          },
+        })
         : Promise.resolve(null),
 
       // ── Divisions ────────────────────────────────────────────────────────────
       wants('divisions')
         ? this.prisma.divisionModel.findMany({
-            where: {
-              AND: [
-                { status: 'A' },
-                ...(
-                  !isPrivileged && userDivisionIds && userDivisionIds.length > 0
-                    ? [{ id: { in: userDivisionIds } }]
-                    : []
-                ),
-                {
-                  OR: [
-                    { code: { contains: q, mode } },
-                    { name: { contains: q, mode } },
-                    { shortName: { contains: q, mode } },
-                  ],
-                },
-              ],
-            },
-            skip,
-            take,
-            orderBy: { name: 'asc' },
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              shortName: true,
-              status: true,
-              department: { select: { id: true, name: true } },
-            },
-          })
+          where: {
+            AND: [
+              { status: 'A' },
+              ...(
+                !isPrivileged && userDivisionIds && userDivisionIds.length > 0
+                  ? [{ id: { in: userDivisionIds } }]
+                  : []
+              ),
+              {
+                OR: [
+                  { code: { contains: q, mode } },
+                  { name: { contains: q, mode } },
+                  { shortName: { contains: q, mode } },
+                ],
+              },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            shortName: true,
+            status: true,
+            department: { select: { id: true, name: true } },
+          },
+        })
+        : Promise.resolve(null),
+
+      // ── Document Types ──────────────────────────────────────────────────────
+      wants('document-types')
+        ? this.prisma.documentTypeModel.findMany({
+          where: {
+            OR: [
+              { code: { contains: q, mode } },
+              { name: { contains: q, mode } },
+              { description: { contains: q, mode } },
+            ],
+          },
+          skip,
+          take,
+          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            code: true,
+            name: true,
+            description: true,
+          },
+        })
         : Promise.resolve(null),
     ]);
 
     // ─── Post-process documents ───────────────────────────────────────────────
     const processedDocs = docRows
       ? docRows.map((doc) => {
-          // ── ข้อ 4: Borrow status ─────────────────────────────────────────
-          const activeBorrow = doc.borrows?.[0] ?? null;
-          const borrowStatus = activeBorrow
-            ? { isBorrowed: true, borrowedBy: activeBorrow.borrower, borrowedAt: activeBorrow.borrowedAt, purpose: activeBorrow.purpose ?? null, toDivision: activeBorrow.toDivision ?? null }
-            : { isBorrowed: false, borrowedBy: null, borrowedAt: null, purpose: null, toDivision: null };
+        // ── ข้อ 4: Borrow status ─────────────────────────────────────────
+        const activeBorrow = doc.borrows?.[0] ?? null;
+        const borrowStatus = activeBorrow
+          ? { isBorrowed: true, borrowedBy: activeBorrow.borrower, borrowedAt: activeBorrow.borrowedAt, purpose: activeBorrow.purpose ?? null, toDivision: activeBorrow.toDivision ?? null }
+          : { isBorrowed: false, borrowedBy: null, borrowedAt: null, purpose: null, toDivision: null };
 
-          // ── ข้อ 6 (ส่วนหนึ่ง): Retention status ─────────────────────────
-          const retentionStatus = calcRetentionStatus(doc.docDate, doc.isContractBound);
+        // ── ข้อ 6 (ส่วนหนึ่ง): Retention status ─────────────────────────
+        const retentionStatus = calcRetentionStatus(doc.docDate, doc.isContractBound);
 
-          // ── ข้อ 8: Matched fields ────────────────────────────────────────
-          const matchedIn = detectMatchedFields(q, {
-            docNo: doc.docNo,
-            subDocNo: doc.subDocNo ?? null,
-            title: doc.title,
-            shortName: doc.shortName ?? null,
-            description: doc.description ?? null,
-            divisionName: doc.division?.name ?? null,
-            departmentName: doc.department?.name ?? null,
-            ownerFirstName: doc.user?.firstNameLa ?? null,
-            ownerLastName: doc.user?.lastNameLa ?? null,
-          });
+        // ── ข้อ 8: Matched fields ────────────────────────────────────────
+        const matchedIn = detectMatchedFields(q, {
+          docNo: doc.docNo,
+          subDocNo: doc.subDocNo ?? null,
+          title: doc.title,
+          shortName: doc.shortName ?? null,
+          description: doc.description ?? null,
+          divisionName: doc.division?.name ?? null,
+          departmentName: doc.department?.name ?? null,
+          documentTypeName: doc.documentType?.name ?? null,
+          ownerFirstName: doc.user?.firstNameLa ?? null,
+          ownerLastName: doc.user?.lastNameLa ?? null,
+        });
 
-          const { borrows: _borrows, ...docFields } = doc;
-          return { ...docFields, retentionStatus, borrowStatus, matchedIn };
-        })
+        const { borrows: _borrows, ...docFields } = doc;
+        return { ...docFields, retentionStatus, borrowStatus, matchedIn };
+      })
       : null;
 
     // ─── Post-process folders (ข้อ 8 only) ──────────────────────────────────
     const processedFolders = folderRows
       ? folderRows.map((folder) => ({
-          ...folder,
-          matchedIn: detectMatchedFields(q, {
-            code: folder.code,
-            name: folder.name,
-            description: folder.description ?? null,
-            locationRef: folder.locationRef ?? null,
-          }),
-        }))
+        ...folder,
+        matchedIn: detectMatchedFields(q, {
+          code: folder.code,
+          name: folder.name,
+          description: folder.description ?? null,
+          locationRef: folder.locationRef ?? null,
+        }),
+      }))
       : null;
 
     // ─── Post-process users (ข้อ 8 only) ────────────────────────────────────
     const processedUsers = userRows
       ? userRows.map((user) => ({
-          ...user,
-          matchedIn: detectMatchedFields(q, {
-            empCode: user.empCode ?? null,
-            firstNameLa: user.firstNameLa ?? null,
-            lastNameLa: user.lastNameLa ?? null,
-            firstNameEng: (user as any).firstNameEng ?? null,
-            lastNameEng: (user as any).lastNameEng ?? null,
-            email: (user as any).email ?? null,
-            phone: (user as any).phone ?? null,
-          }),
-        }))
+        ...user,
+        matchedIn: detectMatchedFields(q, {
+          empCode: user.empCode ?? null,
+          firstNameLa: user.firstNameLa ?? null,
+          lastNameLa: user.lastNameLa ?? null,
+          firstNameEng: (user as any).firstNameEng ?? null,
+          lastNameEng: (user as any).lastNameEng ?? null,
+          email: (user as any).email ?? null,
+          phone: (user as any).phone ?? null,
+        }),
+      }))
+      : null;
+
+    // ─── Post-process document-types (ข้อ 8 only) ───────────────────────────
+    const processedDocTypes = documentTypeRows
+      ? documentTypeRows.map((docType) => ({
+        ...docType,
+        matchedIn: detectMatchedFields(q, {
+          code: docType.code ?? null,
+          name: docType.name,
+          description: docType.description ?? null,
+        }),
+      }))
       : null;
 
     // ─── Build paginated response ─────────────────────────────────────────────
@@ -583,6 +621,7 @@ export class GlobalSearchUseCase {
       addresses: addressRows !== null ? paginateResult(addressRows, limit, page) : undefined,
       departments: departmentRows !== null ? paginateResult(departmentRows, limit, page) : undefined,
       divisions: divisionRows !== null ? paginateResult(divisionRows, limit, page) : undefined,
+      'document-types': processedDocTypes !== null ? paginateResult(processedDocTypes, limit, page) : undefined,
     };
   }
 }

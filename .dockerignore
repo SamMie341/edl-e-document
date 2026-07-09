@@ -45,3 +45,9 @@ Thumbs.db
 docs/
 README.md
 *.postman_collection.json
+
+# --- เพิ่ม: ตัด service อื่นออกจาก build context ของ app ---
+# (nginx/backup เป็นคนละ service, ไม่ควรถูกส่งเข้า build context ของ NestJS app)
+nginx/
+backup/
+scripts/
