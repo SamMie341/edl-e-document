@@ -123,6 +123,14 @@ export class DocumentController {
     };
   }
 
+  // ─── GET EXPIRED (list for review) ─────────────────────────────────────────
+  @Get('expired')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async getExpiredDocuments() {
+    const result = await this.getExpiredDocumentsUseCase.execute();
+    return { message: 'Success', ...result };
+  }
+
   // ─── GET BY ID ────────────────────────────────────────────────────────────────
   @Get(':id')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
@@ -277,14 +285,6 @@ export class DocumentController {
       'Content-Length': attachment.size,
     });
     return new StreamableFile(fileStream);
-  }
-
-  // ─── GET EXPIRED (list for review) ─────────────────────────────────────────
-  @Get('expired')
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async getExpiredDocuments() {
-    const result = await this.getExpiredDocumentsUseCase.execute();
-    return { message: 'Success', ...result };
   }
 
   // ─── DELETE EXPIRED (bulk delete after review) ────────────────────────────

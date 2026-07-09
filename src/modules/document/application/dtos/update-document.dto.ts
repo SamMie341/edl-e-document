@@ -19,6 +19,10 @@ export class UpdateDocumentDto {
 
   @IsOptional()
   @IsString()
+  shortName?: string;
+
+  @IsOptional()
+  @IsString()
   subDocNo?: string;
 
   @IsOptional()
