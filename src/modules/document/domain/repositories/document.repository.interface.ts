@@ -17,7 +17,7 @@ export interface DocumentFilterParams {
   page?: number;
   limit?: number;
 
-  documentTypeId?: number;
+  documentTypeId?: string;
   startDate?: string;
   endDate?: string;
   search?: string;
