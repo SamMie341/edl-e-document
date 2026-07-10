@@ -106,7 +106,7 @@ export class DocumentController {
     const params = {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
-      documentTypeId: documentTypeId ? parseInt(documentTypeId) : undefined,
+      documentTypeId: documentTypeId ? documentTypeId : undefined,
       startDate,
       endDate,
       search,

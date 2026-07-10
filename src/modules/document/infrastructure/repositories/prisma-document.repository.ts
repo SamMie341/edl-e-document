@@ -115,7 +115,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             whereCondition.divisionId = divisionId;
         }
 
-        if (documentTypeId) whereCondition.documentTypeId = Number(documentTypeId);
+        if (documentTypeId) whereCondition.documentTypeId = documentTypeId;
         if (startDate || endDate) {
             whereCondition.docDate = {};
             if (startDate) {
