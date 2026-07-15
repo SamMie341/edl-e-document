@@ -99,7 +99,7 @@ export class RegisterUseCase {
       firstNameEng: hrmData.first_name_eng,
       lastNameEng: hrmData.last_name_eng,
       phone: hrmData.phone,
-      status: 'A',
+      status: 'P',
       gender: hrmData.gender,
       image: hrmData.image,
       departmentId: validDeptId,

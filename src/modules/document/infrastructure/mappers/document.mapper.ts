@@ -1,6 +1,5 @@
 import { AttachmentModel } from '@prisma/client';
 import {
-  Address,
   Attachment,
   Department,
   Division,
@@ -12,16 +11,16 @@ import {
   User,
   Warehouse,
 } from '../../domain/entities/document.entity';
+import { SubDocumentMapper } from '../../../sub-document/infrastructure/mappers/sub-document.mapper';
 
 export class DocumentMapper {
   static toDomain(model: any): DocumentEntity {
-    // ── ดึง chain: folder → shelf → locker → warehouse → address ──────────
+    // ── ດຶງ chain: folder → shelf → locker → warehouse ──────────
     const att = model.attachment ?? null;
     const folder = model.folder ?? null;
     const shelf = folder?.shelf ?? null;
     const locker = shelf?.locker ?? null;
     const warehouse = locker?.warehouse ?? null;
-    const address = warehouse?.address ?? null;
     const user = model?.user ?? null;
 
     return new DocumentEntity(
@@ -29,8 +28,6 @@ export class DocumentMapper {
       model.docNo,
       model.shortName,
       model.docDate,
-      model.subDocNo,
-      model.subDocDate,
       model.title,
       model.description || '',
       model.docExpire,
@@ -82,18 +79,6 @@ export class DocumentMapper {
         user.department,
         user.division,
       ) : null,
-      // ── Address ──────────────────────────────────────────────
-      address
-        ? new Address(
-          address.id,
-          address.code,
-          address.name,
-          address.details,
-          address.status,
-          address.createdAt,
-          address.updatedAt,
-        )
-        : null,
       // ── Warehouse ─────────────────────────────────────────────────────────
       warehouse
         ? new Warehouse(
@@ -169,6 +154,9 @@ export class DocumentMapper {
             ),
         )
         : null,
+      model.subDocuments
+        ? model.subDocuments.map((sub: any) => SubDocumentMapper.toDomain(sub))
+        : [],
     );
   }
 }

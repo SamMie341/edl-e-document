@@ -7,7 +7,10 @@ import {
   IsBoolean,
   IsInt,
   IsUUID,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { CreateSubDocumentDto } from '../../../sub-document/application/dtos/create-sub-document.dto';
 
 
 export class CreateDocumentDto {
@@ -30,13 +33,10 @@ export class CreateDocumentDto {
   shortName?: string;
 
   @IsOptional()
-  @IsString()
-  subDocNo?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => (value ? new Date(value) : value))
-  @IsDate()
-  subDocDate?: Date;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateSubDocumentDto)
+  subDocuments?: CreateSubDocumentDto[];
 
   @IsNotEmpty({ message: 'ຫົວຂໍ້ເອກະສານຫ້າມເປັນຄ່າວ່າງ' })
   @IsString()

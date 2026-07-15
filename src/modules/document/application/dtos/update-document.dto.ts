@@ -23,15 +23,6 @@ export class UpdateDocumentDto {
 
   @IsOptional()
   @IsString()
-  subDocNo?: string;
-
-  @IsOptional()
-  @Transform(({ value }) => (value ? new Date(value) : value))
-  @IsDate()
-  subDocDate?: Date;
-
-  @IsOptional()
-  @IsString()
   title?: string;
 
   @IsOptional()

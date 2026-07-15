@@ -29,9 +29,9 @@ export class CreateLockerUseCase {
 
       // 2. If user is BRANCH_ADMIN, verify warehouse belongs to their branch
       if (user.role === Role.BRANCH_ADMIN) {
-        if (warehouse.addressId !== user.addressId) {
+        if (warehouse.departmentId !== user.departmentId) {
           throw new ForbiddenException(
-            'ທ່ານບໍ່ມີສິດສ້າງຕູ້ Locker ໃນສາງຂອງສາຂາອື່ນ',
+            'ທ່ານບໍ່ມີສິດສ້າງຕູ້ Locker ໃນສາງຂອງພະແນກອື່ນ',
           );
         }
       }

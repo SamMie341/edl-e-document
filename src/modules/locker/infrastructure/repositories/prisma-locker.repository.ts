@@ -23,7 +23,8 @@ export class PrismaLockerRepository implements ILockerRepository {
       limit = 10,
       search,
       warehouseId,
-      addressId,
+      departmentId,
+      divisionId,
       status,
     } = params;
     const skip = (page - 1) * limit;
@@ -31,10 +32,11 @@ export class PrismaLockerRepository implements ILockerRepository {
     const where: any = {};
     if (status) where.status = status;
 
-    if (warehouseId || addressId) {
+    if (warehouseId || departmentId || divisionId) {
       const warehouseFilter: any = {};
       if (warehouseId) warehouseFilter.id = warehouseId;
-      if (addressId) warehouseFilter.addressId = addressId;
+      if (departmentId) warehouseFilter.departmentId = departmentId;
+      if (divisionId) warehouseFilter.divisionId = divisionId;
       where.warehouse = { is: warehouseFilter };
     }
 
@@ -55,7 +57,8 @@ export class PrismaLockerRepository implements ILockerRepository {
         include: {
           warehouse: {
             include: {
-              address: true,
+              department: true,
+              division: true,
             },
           },
           shelves: { select: { id: true, name: true } },
@@ -78,7 +81,8 @@ export class PrismaLockerRepository implements ILockerRepository {
         shelves: true,
         warehouse: {
           include: {
-            address: true,
+            department: true,
+            division: true,
           },
         },
       },
@@ -147,16 +151,18 @@ export class PrismaLockerRepository implements ILockerRepository {
 
   async getDropdown(params?: {
     warehouseId?: string;
-    addressId?: string;
+    departmentId?: number;
+    divisionId?: number;
     status?: string;
   }): Promise<any[]> {
     const where: any = {};
     if (params?.status) where.status = params.status;
 
-    if (params?.warehouseId || params?.addressId) {
+    if (params?.warehouseId || params?.departmentId || params?.divisionId) {
       const warehouseFilter: any = {};
       if (params?.warehouseId) warehouseFilter.id = params.warehouseId;
-      if (params?.addressId) warehouseFilter.addressId = params.addressId;
+      if (params?.departmentId) warehouseFilter.departmentId = params.departmentId;
+      if (params?.divisionId) warehouseFilter.divisionId = params.divisionId;
       where.warehouse = { is: warehouseFilter };
     }
 
@@ -171,7 +177,13 @@ export class PrismaLockerRepository implements ILockerRepository {
           select: {
             id: true,
             name: true,
-            address: {
+            department: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            division: {
               select: {
                 id: true,
                 name: true,
@@ -186,3 +198,4 @@ export class PrismaLockerRepository implements ILockerRepository {
     return models;
   }
 }
+

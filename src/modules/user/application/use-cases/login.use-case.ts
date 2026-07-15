@@ -46,7 +46,6 @@ export class LoginUseCase {
       sub: user.id,
       email: user.email,
       role: user.role,
-      addressId: user.addressId,
       departmentId: user.departmentId,
       divisionId: primaryDiv ? primaryDiv.id : null,
       officeId: user.officeId,

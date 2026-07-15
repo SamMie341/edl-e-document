@@ -32,9 +32,6 @@ export class ApproveUserUseCase {
       role: dto.role,
     };
 
-    if (dto.addressId !== undefined) {
-      updateData.addressId = dto.addressId;
-    }
 
     if (dto.divisionIds !== undefined) {
       updateData.divisionIds = dto.divisionIds;

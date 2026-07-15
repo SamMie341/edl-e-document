@@ -9,7 +9,6 @@ export const SEARCH_ENTITY_TYPES = [
   'lockers',
   'shelves',
   'users',
-  'addresses',
   'departments',
   'divisions',
   'document-types',
@@ -28,7 +27,6 @@ export interface GlobalSearchParams {
   userId?: string;
   userRole?: string;
   userDivisionIds?: number[];
-  userAddressId?: string;
   userDepartmentId?: number;
 }
 
@@ -107,7 +105,6 @@ export class GlobalSearchUseCase {
       userId,
       userRole,
       userDivisionIds,
-      userAddressId,
       userDepartmentId,
     } = params;
 
@@ -140,7 +137,6 @@ export class GlobalSearchUseCase {
       lockerRows,
       shelfRows,
       userRows,
-      addressRows,
       departmentRows,
       divisionRows,
       documentTypeRows,
@@ -155,10 +151,10 @@ export class GlobalSearchUseCase {
               {
                 OR: [
                   { docNo: { contains: q, mode } },
-                  { subDocNo: { contains: q, mode } },
                   { title: { contains: q, mode } },
                   { shortName: { contains: q, mode } },
                   { description: { contains: q, mode } },
+                  { subDocuments: { some: { subDocNo: { contains: q, mode } } } },
                   { division: { name: { contains: q, mode } } },
                   { department: { name: { contains: q, mode } } },
                   { documentType: { name: { contains: q, mode } } },
@@ -176,13 +172,13 @@ export class GlobalSearchUseCase {
           select: {
             id: true,
             docNo: true,
-            subDocNo: true,
             title: true,
             shortName: true,
             description: true,
             docDate: true,
             docExpire: true,
             isContractBound: true,
+            subDocuments: { select: { id: true, subDocNo: true, subDocDate: true }, orderBy: { createdAt: 'asc' } },
             division: { select: { id: true, name: true } },
             department: { select: { id: true, name: true } },
             documentType: { select: { id: true, name: true } },
@@ -210,8 +206,8 @@ export class GlobalSearchUseCase {
           where: {
             AND: [
               ...(
-                !isPrivileged && userAddressId
-                  ? [{ shelf: { locker: { warehouse: { addressId: userAddressId } } } }]
+                !isPrivileged && userDepartmentId
+                  ? [{ shelf: { locker: { warehouse: { departmentId: userDepartmentId } } } }]
                   : []
               ),
               {
@@ -246,7 +242,8 @@ export class GlobalSearchUseCase {
                       select: {
                         id: true,
                         name: true,
-                        address: { select: { id: true, name: true } },
+                        department: { select: { id: true, name: true } },
+                        division: { select: { id: true, name: true } },
                       },
                     },
                   },
@@ -264,18 +261,17 @@ export class GlobalSearchUseCase {
             AND: [
               { status: 'A' },
               ...(
-                !isPrivileged && userAddressId
-                  ? [{ addressId: userAddressId }]
-                  : !isPrivileged && userDepartmentId
-                    ? [{ address: { departmentId: userDepartmentId } }]
-                    : []
+                !isPrivileged && userDepartmentId
+                  ? [{ departmentId: userDepartmentId }]
+                  : []
               ),
               {
                 OR: [
                   { code: { contains: q, mode } },
                   { name: { contains: q, mode } },
                   { description: { contains: q, mode } },
-                  { address: { name: { contains: q, mode } } },
+                  { department: { name: { contains: q, mode } } },
+                  { division: { name: { contains: q, mode } } },
                 ],
               },
             ],
@@ -289,7 +285,8 @@ export class GlobalSearchUseCase {
             name: true,
             description: true,
             status: true,
-            address: { select: { id: true, name: true } },
+            department: { select: { id: true, name: true } },
+            division: { select: { id: true, name: true } },
           },
         })
         : Promise.resolve(null),
@@ -301,8 +298,8 @@ export class GlobalSearchUseCase {
             AND: [
               { status: 'A' },
               ...(
-                !isPrivileged && userAddressId
-                  ? [{ warehouse: { addressId: userAddressId } }]
+                !isPrivileged && userDepartmentId
+                  ? [{ warehouse: { departmentId: userDepartmentId } }]
                   : []
               ),
               {
@@ -327,7 +324,8 @@ export class GlobalSearchUseCase {
               select: {
                 id: true,
                 name: true,
-                address: { select: { id: true, name: true } },
+                department: { select: { id: true, name: true } },
+                division: { select: { id: true, name: true } },
               },
             },
           },
@@ -341,8 +339,8 @@ export class GlobalSearchUseCase {
             AND: [
               { status: 'A' },
               ...(
-                !isPrivileged && userAddressId
-                  ? [{ locker: { warehouse: { addressId: userAddressId } } }]
+                !isPrivileged && userDepartmentId
+                  ? [{ locker: { warehouse: { departmentId: userDepartmentId } } }]
                   : []
               ),
               {
@@ -371,7 +369,8 @@ export class GlobalSearchUseCase {
                   select: {
                     id: true,
                     name: true,
-                    address: { select: { id: true, name: true } },
+                    department: { select: { id: true, name: true } },
+                    division: { select: { id: true, name: true } },
                   },
                 },
               },
@@ -412,41 +411,6 @@ export class GlobalSearchUseCase {
         })
         : Promise.resolve(null),
 
-      // ── Addresses ───────────────────────────────────────────────────────────
-      wants('addresses')
-        ? this.prisma.addressModel.findMany({
-          where: {
-            AND: [
-              { status: 'A' },
-              ...(
-                !isPrivileged && userDivisionIds && userDivisionIds.length > 0
-                  ? [{ OR: [{ divisionId: { in: userDivisionIds } }, { divisionId: null }] }]
-                  : !isPrivileged && userDepartmentId
-                    ? [{ departmentId: userDepartmentId }]
-                    : []
-              ),
-              {
-                OR: [
-                  { code: { contains: q, mode } },
-                  { name: { contains: q, mode } },
-                  { details: { contains: q, mode } },
-                ],
-              },
-            ],
-          },
-          skip,
-          take,
-          orderBy: { name: 'asc' },
-          select: {
-            id: true,
-            code: true,
-            name: true,
-            details: true,
-            division: { select: { id: true, name: true } },
-            department: { select: { id: true, name: true } },
-          },
-        })
-        : Promise.resolve(null),
 
       // ── Departments ─────────────────────────────────────────────────────────
       wants('departments')
@@ -553,7 +517,6 @@ export class GlobalSearchUseCase {
         // ── ข้อ 8: Matched fields ────────────────────────────────────────
         const matchedIn = detectMatchedFields(q, {
           docNo: doc.docNo,
-          subDocNo: doc.subDocNo ?? null,
           title: doc.title,
           shortName: doc.shortName ?? null,
           description: doc.description ?? null,
@@ -618,7 +581,7 @@ export class GlobalSearchUseCase {
       lockers: lockerRows !== null ? paginateResult(lockerRows, limit, page) : undefined,
       shelves: shelfRows !== null ? paginateResult(shelfRows, limit, page) : undefined,
       users: processedUsers !== null ? paginateResult(processedUsers, limit, page) : undefined,
-      addresses: addressRows !== null ? paginateResult(addressRows, limit, page) : undefined,
+      addresses: undefined,
       departments: departmentRows !== null ? paginateResult(departmentRows, limit, page) : undefined,
       divisions: divisionRows !== null ? paginateResult(divisionRows, limit, page) : undefined,
       'document-types': processedDocTypes !== null ? paginateResult(processedDocTypes, limit, page) : undefined,

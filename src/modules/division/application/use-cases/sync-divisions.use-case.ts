@@ -21,7 +21,7 @@ export class SyncDivisionUseCase {
     this.logger.log('ກຳລັງເລີ່ມຕົ້ນ Sync ຂໍ້ມູນ Division...');
 
     try {
-      const externalDivisions = await this.externalRepo.findAll();
+      const externalDivisions = await this.externalRepo.findAllExternal();
       let count = 0;
 
       // 🌟 ປ່ຽນມາໃຊ້ for...of ຄືກັນກັບໂມດູນ Unit ເພື່ອຄວາມປອດໄພ

@@ -11,13 +11,13 @@ import { GetDocumentByIdUseCase } from './application/use-cases/get-document-by-
 import { UpdateDocumentUseCase } from './application/use-cases/update-document.use-case';
 import { DeleteExpiredDocumentsUseCase } from './application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from './application/use-cases/get-expired-documents.use-case';
-
 import { FolderModule } from '../folder/folder.module';
 
 @Module({
   imports: [AuditModule, FolderModule],
   controllers: [DocumentController],
   providers: [
+    // ── Document use cases ─────────────────────────────────────────────────
     CreateDocumentUseCase,
     UploadAttachmentUseCase,
     GetAttachmentUseCase,
@@ -27,6 +27,7 @@ import { FolderModule } from '../folder/folder.module';
     DeleteExpiredDocumentsUseCase,
     GetExpiredDocumentsUseCase,
 
+    // ── Repository ─────────────────────────────────────────────────────────
     {
       provide: DOCUMENT_REPOSITORY,
       useClass: PrismaDocumentRepository,

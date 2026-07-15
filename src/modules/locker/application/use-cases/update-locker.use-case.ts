@@ -29,8 +29,8 @@ export class UpdateLockerUseCase {
 
     // 2. Branch admin check for existing locker
     if (user.role === Role.BRANCH_ADMIN) {
-      if (existingLocker.warehouse?.addressId !== user.addressId) {
-        throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂຕູ້ Locker ຂອງສາຂາອື່ນ');
+      if (existingLocker.warehouse?.departmentId !== user.departmentId) {
+        throw new ForbiddenException('ທ່ານບໍ່ມີສິດແກ້ໄຂຕູ້ Locker ຂອງພະແນກອື່ນ');
       }
     }
 
@@ -43,9 +43,9 @@ export class UpdateLockerUseCase {
         throw new NotFoundException('ບໍ່ພົບສາງເອກະສານໃໝ່ນີ້ໃນລະບົບ');
       }
       if (user.role === Role.BRANCH_ADMIN) {
-        if (targetWarehouse.addressId !== user.addressId) {
+        if (targetWarehouse.departmentId !== user.departmentId) {
           throw new ForbiddenException(
-            'ທ່ານບໍ່ມີສິດຍ້າຍຕູ້ Locker ໄປສາງຂອງສາຂາອື່ນ',
+            'ທ່ານບໍ່ມີສິດຍ້າຍຕູ້ Locker ໄປສາງຂອງພະແນກອື່ນ',
           );
         }
       }

@@ -21,8 +21,16 @@ export class HrmDepartmentRepository implements IDepartmentRepository {
     return DepartmentMapper.toDomain(model);
   }
 
-  // ─── ດຶງຈາກ HRM API ──────────────────────────────────────────────────────────
+  // ─── ດຶງຈາກລະບົບຂອງເຮົາເອງ ──────────────────────────────────────────────────
   async findAll(): Promise<Department[]> {
+    const models = await this.prisma.departmentModel.findMany({
+      orderBy: { id: 'asc' },
+    });
+    return models.map(DepartmentMapper.toDomain);
+  }
+
+  // ─── ດຶງຈາກ HRM API ──────────────────────────────────────────────────────────
+  async findAllExternal(): Promise<Department[]> {
     const hrmUrl = process.env.HRM_API_URL_DEPARTMENT;
     if (!hrmUrl) {
       this.logger.warn('HRM_API_URL_DEPARTMENT ບໍ່ໄດ້ຖືກຕັ້ງໃນ .env — ຂ້າມ sync');

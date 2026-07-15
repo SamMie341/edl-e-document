@@ -29,18 +29,16 @@ export class Folder {
           name: string;
           description: string | null;
           status: string;
-          address?: {
-            id: string;
+          department?: {
+            id: number;
             code: string;
             name: string;
-            details: string;
-            status: string;
-            division?: {
-              id: string;
-              code: string;
-              name: string;
-              status: string;
-            } | null;
+          } | null;
+          division?: {
+            id: number;
+            code: string;
+            name: string;
+            shortName: string;
           } | null;
         } | null;
       } | null;
@@ -50,8 +48,6 @@ export class Folder {
       docNo: string,
       shortName: string | null,
       docDate: Date,
-      subDocNo: string | null,
-      subDocDate: Date | null,
       title: string,
       description: string | null,
       docExpire: Date,

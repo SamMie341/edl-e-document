@@ -19,7 +19,6 @@ export class User {
     public departmentId: number | null,
     public officeId: number | null,
     public unitId: number | null,
-    public addressId: string | null,
 
     public readonly createdAt: Date,
     public updatedAt: Date,
@@ -40,7 +39,6 @@ export class User {
       role: this.role,
       gender: this.gender,
       status: this.status,
-      addressId: this.addressId || null,
       department: this.departmentId || null,
       office: this.officeId || null,
       unit: this.unitId || null,

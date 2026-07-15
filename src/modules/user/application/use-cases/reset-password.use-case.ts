@@ -21,9 +21,9 @@ export class ResetPasswordUseCase {
     if (!targetUser) throw new NotFoundException('ບໍ່ພົບບັນຊີຜູ້ໃຊ້');
 
     if (adminUser.role === Role.BRANCH_ADMIN) {
-      if (adminUser.addressId !== targetUser.addressId) {
+      if (adminUser.departmentId !== targetUser.departmentId) {
         throw new ForbiddenException(
-          'ທ່ານບໍ່ມີສິດຣີເຊັດລະຫັດຜ່ານພະນັກງານສາຂາອື່ນ...',
+          'ທ່ານບໍ່ມີສິດຣີເຊັດລະຫັດຜ່ານພະນັກງານພະແນກອື່ນ...',
         );
       }
     }

@@ -10,6 +10,7 @@ import {
 } from '../../domain/repositories/warehouse.repository.interface';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { WarehouseMapper } from '../mappers/warehouse.mapper';
+import { contains } from 'class-validator';
 
 @Injectable()
 export class PrismaWarehouseRepository implements IWarehouseRepository {
@@ -18,18 +19,15 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   async findAll(
     params: WarehouseFilterParams,
   ): Promise<{ data: Warehouse[]; total: number }> {
-    const { page = 1, limit = 10, search, status, addressId, departmentId, divisionId } = params;
+    const { page = 1, limit = 10, search, status, departmentId, divisionId, divisionIds } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (status) where.status = status;
-    if (addressId) where.addressId = addressId;
-
-    // ─── Department / Division filter (via address relation) ─────────────────
-    if (departmentId || divisionId) {
-      where.address = {};
-      if (departmentId) where.address.departmentId = departmentId;
-      if (divisionId) where.address.divisionId = divisionId;
+    if (departmentId) where.departmentId = departmentId;
+    if (divisionId) where.divisionId = divisionId;
+    if (divisionIds) {
+      where.divisionId = { in: divisionIds };
     }
 
     if (search) {
@@ -37,7 +35,9 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
         { code: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
-        { address: { name: { contains: search, mode: 'insensitive' } } },
+        { department: { name: { contains: search, mode: 'insensitive' } } },
+        { division: { name: { contains: search, mode: 'insensitive' } } },
+        // { locker: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -47,7 +47,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: { address: true },
+        include: { department: true, division: true, lockers: true },
       }),
       this.prisma.warehouseModel.count({ where }),
     ]);
@@ -58,22 +58,18 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   async findById(id: string): Promise<Warehouse | null> {
     const model = await this.prisma.warehouseModel.findUnique({
       where: { id },
-      include: { address: true },
+      include: { department: true, division: true },
     });
     if (!model) return null;
     return WarehouseMapper.toDomain(model);
   }
 
-  async getDropdown(filters?: { addressId?: string; departmentId?: number; divisionId?: number }): Promise<{ id: string; name: string }[]> {
+  async getDropdown(filters?: { departmentId?: number; divisionId?: number; divisionIds?: number[] }): Promise<{ id: string; name: string }[]> {
     const where: any = { status: 'A' };
-    if (filters?.addressId) {
-      where.addressId = filters.addressId;
-    }
-    // ─── Department / Division filter (via address relation) ─────────────────
-    if (filters?.departmentId || filters?.divisionId) {
-      where.address = {};
-      if (filters.departmentId) where.address.departmentId = filters.departmentId;
-      if (filters.divisionId) where.address.divisionId = filters.divisionId;
+    if (filters?.departmentId) where.departmentId = filters.departmentId;
+    if (filters?.divisionId) where.divisionId = filters.divisionId;
+    if (filters?.divisionIds) {
+      where.divisionId = { in: filters.divisionIds };
     }
     return this.prisma.warehouseModel.findMany({
       where,
@@ -86,49 +82,27 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   }
 
   async create(data: any): Promise<Warehouse> {
-    // let newCode = '0001';
-
-    // const lastWarehouse = await this.prisma.warehouseModel.findFirst({
-    //   where: { code: { startsWith: '' } },
-    //   orderBy: { createdAt: 'desc' },
-    // });
-
-    // if (lastWarehouse && lastWarehouse.code) {
-    //   const match = lastWarehouse.code.match(/(\d+)/);
-    //   if (match && match[1]) {
-    //     const nextNumber = parseInt(match[1], 10) + 1;
-    //     newCode = `${String(nextNumber).padStart(4, '0')}`;
-    //   }
-    // }
-
-    // let isUnique = false;
-    // let attemptNumber = parseInt(newCode, 10) || 1;
-
-    // while (!isUnique) {
-    //   const codeToCheck = `${String(attemptNumber).padStart(4, '0')}`;
-    //   const existing = await this.prisma.warehouseModel.findUnique({
-    //     where: { code: codeToCheck },
-    //   });
-    //   if (!existing) {
-    //     data.code = codeToCheck;
-    //     isUnique = true;
-    //   } else {
-    //     attemptNumber++;
-    //   }
-    // }
-
-    if (data.addressId) {
-      const address = await this.prisma.addressModel.findUnique({
-        where: { id: data.addressId },
+    if (data.departmentId) {
+      const dep = await this.prisma.departmentModel.findUnique({
+        where: { id: data.departmentId },
       });
-      if (!address) {
-        throw new NotFoundException('ບໍ່ພົບສະຖານທີ່ນີ້ໃນລະບົບ');
+      if (!dep) {
+        throw new NotFoundException('ບໍ່ພົບພະແນກນີ້ໃນລະບົບ');
+      }
+    }
+
+    if (data.divisionId) {
+      const div = await this.prisma.divisionModel.findUnique({
+        where: { id: data.divisionId },
+      });
+      if (!div) {
+        throw new NotFoundException('ບໍ່ພົບຂະແໜງນີ້ໃນລະບົບ');
       }
     }
 
     const model = await this.prisma.warehouseModel.create({
       data,
-      include: { address: true },
+      include: { department: true, division: true },
     });
     return WarehouseMapper.toDomain(model);
   }
@@ -141,19 +115,28 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
       throw new NotFoundException('ບໍ່ພົບສາງນີ້ໃນລະບົບ');
     }
 
-    if (data.addressId) {
-      const address = await this.prisma.addressModel.findUnique({
-        where: { id: data.addressId },
+    if (data.departmentId) {
+      const dep = await this.prisma.departmentModel.findUnique({
+        where: { id: data.departmentId },
       });
-      if (!address) {
-        throw new NotFoundException('ບໍ່ພົບສະຖານທີ່ນີ້ໃນລະບົບ');
+      if (!dep) {
+        throw new NotFoundException('ບໍ່ພົບພະແນກນີ້ໃນລະບົບ');
+      }
+    }
+
+    if (data.divisionId) {
+      const div = await this.prisma.divisionModel.findUnique({
+        where: { id: data.divisionId },
+      });
+      if (!div) {
+        throw new NotFoundException('ບໍ່ພົບຂະແໜງນີ້ໃນລະບົບ');
       }
     }
 
     const model = await this.prisma.warehouseModel.update({
       where: { id },
       data,
-      include: { address: true },
+      include: { department: true, division: true },
     });
     return WarehouseMapper.toDomain(model);
   }
