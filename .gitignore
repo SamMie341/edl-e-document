@@ -67,10 +67,11 @@ nginx/certs/*.crt
 !nginx/certs/.gitkeep
 
 # --- เพิ่มสำหรับ postgres backup ---
-*.sql
+/*.sql
 *.sql.gz
 *.dump
 backup/*.sql.gz
+
 
 # --- docker-compose local override (ถ้ามีใครสร้างไว้ debug เฉพาะเครื่อง) ---
 docker-compose.override.yml
