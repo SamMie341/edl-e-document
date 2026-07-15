@@ -1,39 +1,5 @@
 services:
   # ---------------------------------------------
-  # PostgreSQL Database
-  # ---------------------------------------------
-  postgres:
-    image: postgres:16-alpine
-    container_name: edl_edoc_db
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - '127.0.0.1:5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - edl_network
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d edl_edoc_db']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 2g
-        reservations:
-          cpus: '0.5'
-          memory: 512m
-    logging:
-      driver: json-file
-      options:
-        max-size: '10m'
-        max-file: '5'
-
-  # ---------------------------------------------
   # NestJS Application
   # ---------------------------------------------
   app:
@@ -43,15 +9,12 @@ services:
     container_name: edl_edoc_app
     restart: unless-stopped
     ports:
-      - '127.0.0.1:5000:5000'
+      - '5000:5000'
     env_file:
       - .env
     volumes:
       # Bind mount → ชี้ไปยังโฟลเดอร์นอกโปรเจกต์ กำหนดใน .env ด้วย UPLOAD_HOST_PATH
       - ${UPLOAD_HOST_PATH:-/opt/edl-uploads}:/app/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - edl_network
     deploy:
@@ -82,7 +45,7 @@ services:
     env_file:
       - .env
     environment:
-      PGHOST: postgres
+      PGHOST: ${DB_HOST:-192.168.20.236}
       PGPORT: 5432
       PGUSER: ${POSTGRES_USER:-postgres}
       PGPASSWORD: ${POSTGRES_PASSWORD}
@@ -97,9 +60,6 @@ services:
       AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-}
     volumes:
       - backup_data:/backups
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - edl_network
     deploy:
@@ -117,8 +77,6 @@ services:
 # Named Volumes
 # ---------------------------------------------
 volumes:
-  postgres_data:
-    driver: local
   backup_data:
     driver: local
   # uploads_data ถูกเปลี่ยนเป็น bind mount แล้ว (ดู UPLOAD_HOST_PATH ใน .env)
@@ -129,3 +87,4 @@ volumes:
 networks:
   edl_network:
     driver: bridge
+
