@@ -5,20 +5,12 @@ import { User } from '../../domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 
 const USER_INCLUDE = {
-  department: {
-    include: {
-      addresses: true,
-    },
-  },
+  department: true,
   office: true,
   unit: true,
   userDivisions: {
     include: {
-      division: {
-        include: {
-          addresses: true,
-        },
-      },
+      division: true,
     },
     orderBy: { isPrimary: 'desc' as const },
   },
@@ -50,7 +42,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async update(id: string, data: any): Promise<User> {
-    const { divisionIds, addressId, ...rest } = data;
+    const { divisionIds, ...rest } = data;
 
     if (divisionIds !== undefined) {
       // Replace all divisions

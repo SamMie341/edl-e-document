@@ -27,4 +27,7 @@ export interface DocumentFilterParams {
   divisionId?: number;
   divisionIds?: number[];
   retentionStatus?: string;
+  warehouseId?: string;
+  lockerId?: string;
+  shelfId?: string;
 }

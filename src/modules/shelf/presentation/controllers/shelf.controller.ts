@@ -19,7 +19,7 @@ import { GetAllShelvesUseCase } from '../../application/use-cases/get-all-shelve
 import { UpdateShelfUseCase } from '../../application/use-cases/update-shelf.use-case';
 import { DeleteShelfUseCase } from '../../application/use-cases/delete-shelf.use-case';
 import { GetShelfByIdUseCase } from '../../application/use-cases/get-shelf-by-id.use-case';
-import { CreateShelfDto } from '../../application/dtos/create-shelf.dto';
+import { CreateShelfDto, CreateShelvesDto } from '../../application/dtos/create-shelf.dto';
 import { UpdateShelfDto } from '../../application/dtos/update-shelf.dto';
 
 @Controller('shelves')
@@ -35,9 +35,9 @@ export class ShelfController {
 
   @Post()
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async create(@Body() dto: CreateShelfDto, @Req() req: any) {
-    const shelf = await this.createShelfUseCase.execute(dto, req.user);
-    return { message: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', data: shelf };
+  async create(@Body() dto: CreateShelvesDto, @Req() req: any) {
+    const shelves = await this.createShelfUseCase.execute(dto, req.user);
+    return { message: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', data: shelves };
   }
 
   @Get()
@@ -52,8 +52,14 @@ export class ShelfController {
     @Query('status') status?: string,
   ) {
     const user = req.user;
-    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    const addressId = isHQ ? undefined : (user.addressId || 'none');
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    }
 
     const result = await this.getAllShelvesUseCase.execute({
       page: parseInt(page, 10) || 1,
@@ -61,7 +67,8 @@ export class ShelfController {
       search,
       lockerId,
       warehouseId,
-      addressId,
+      departmentId,
+      divisionId,
       status,
     });
     return { message: 'Success', ...result };

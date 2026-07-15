@@ -52,7 +52,8 @@ export class PrismaFolderRepository implements IFolderRepository {
                                 include: {
                                     warehouse: {
                                         include: {
-                                            address: true
+                                            department: true,
+                                            division: true,
                                         }
                                     }
                                 }
@@ -68,62 +69,87 @@ export class PrismaFolderRepository implements IFolderRepository {
     }
 
     async create(data: any): Promise<Folder> {
-        let code = data.code?.trim();
-
-        if (!code) {
-            // Auto generate folder code (starts at '0001' and increments)
-            let newCode = '0001';
-            const lastFolder = await this.prisma.folderModel.findFirst({
-                where: { code: { startsWith: '' } },
-                orderBy: { createdAt: 'desc' },
-            });
-
-            if (lastFolder && lastFolder.code) {
-                const match = lastFolder.code.match(/(\d+)/);
-                if (match && match[1]) {
-                    const nextNumber = parseInt(match[1], 10) + 1;
-                    newCode = `${String(nextNumber).padStart(4, '0')}`;
-                }
-            }
-
-            // Ensure uniqueness
-            let isUnique = false;
-            let attemptNumber = parseInt(newCode, 10) || 1;
-            while (!isUnique) {
-                const codeToCheck = `${String(attemptNumber).padStart(4, '0')}`;
-                const existing = await this.prisma.folderModel.findUnique({
-                    where: { code: codeToCheck },
-                });
-                if (!existing) {
-                    code = codeToCheck;
-                    isUnique = true;
-                } else {
-                    attemptNumber++;
-                }
-            }
-        } else {
-            // Check duplicate if manually supplied
-            const existing = await this.prisma.folderModel.findUnique({
-                where: { code },
-            });
-            if (existing) {
-                throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວ`);
-            }
-        }
-
-        // ─── ดึง shelf เพื่อสร้าง locationRef ───────────────────────────────
+        // ─── ดึง shelf เพื่อตรวจสอบความสัมพันธ์และตู้ Locker ────────────────
         const shelf = await this.prisma.shelfModel.findUnique({
             where: { id: data.shelfId },
             include: {
                 locker: {
-                    include: { warehouse: { include: { address: true } } }
+                    include: {
+                        warehouse: {
+                            include: {
+                                department: true,
+                                division: true,
+                            },
+                        },
+                    },
                 },
             },
         });
 
         if (!shelf) throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
 
-        const locationRef = `${shelf.locker.warehouse?.address?.code ?? ''}/${shelf.locker?.warehouse?.code ?? ''}/${shelf.locker?.code ?? ''}`;
+        let code = data.code?.trim();
+
+        if (!code) {
+            // Auto generate folder code using the last 2 digits of the year (YY.NNN format), scoped per locker
+            const currentYear = new Date().getFullYear();
+            const yearSuffix = String(currentYear).slice(-2); // e.g. "26"
+
+            // ค้นหาโฟลเดอร์ล่าสุดในตู้ Locker เดียวกันที่ขึ้นต้นด้วย YY.
+            const lastFolder = await this.prisma.folderModel.findFirst({
+                where: {
+                    shelf: { lockerId: shelf.lockerId },
+                    code: { startsWith: `${yearSuffix}.` },
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+
+            let nextSeq = 1;
+            if (lastFolder && lastFolder.code) {
+                const parts = lastFolder.code.split('.');
+                if (parts.length === 2) {
+                    const seqNum = parseInt(parts[1], 10);
+                    if (!isNaN(seqNum)) {
+                        nextSeq = seqNum + 1;
+                    }
+                }
+            }
+
+            // Ensure uniqueness inside the same locker
+            let isUnique = false;
+            let attemptSeq = nextSeq;
+            while (!isUnique) {
+                const codeToCheck = `${yearSuffix}.${String(attemptSeq).padStart(3, '0')}`;
+                const existing = await this.prisma.folderModel.findFirst({
+                    where: {
+                        shelf: { lockerId: shelf.lockerId },
+                        code: codeToCheck,
+                    },
+                });
+                if (!existing) {
+                    code = codeToCheck;
+                    isUnique = true;
+                } else {
+                    attemptSeq++;
+                }
+            }
+        } else {
+            // Check duplicate if manually supplied (scoped to the same locker)
+            const existing = await this.prisma.folderModel.findFirst({
+                where: {
+                    shelf: { lockerId: shelf.lockerId },
+                    code,
+                },
+            });
+            if (existing) {
+                throw new ConflictException(`ລະຫັດໂກໂນ '${code}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`);
+            }
+        }
+
+        const deptCode = shelf.locker.warehouse?.department?.code ?? '';
+        const divCode = shelf.locker.warehouse?.division?.shortName ?? '';
+        const prefix = deptCode || divCode || 'LOC';
+        const locationRef = `${prefix}/${shelf.locker?.warehouse?.code ?? ''}/${shelf.locker?.code ?? ''}`;
         const qrCode = data.qrCode?.trim() || `${locationRef}`;
 
         const model = await this.prisma.folderModel.create({
@@ -147,15 +173,8 @@ export class PrismaFolderRepository implements IFolderRepository {
                             include: {
                                 warehouse: {
                                     include: {
-                                        address: {
-                                            include: {
-                                                division: {
-                                                    include: {
-                                                        department: true
-                                                    }
-                                                }
-                                            }
-                                        }
+                                        department: true,
+                                        division: true,
                                     }
                                 }
                             }
@@ -180,11 +199,21 @@ export class PrismaFolderRepository implements IFolderRepository {
 
         // ตรวจ code ซ้ำ (ถ้าเปลี่ยน code)
         if (data.code && data.code !== existing.code) {
-            const codeExists = await this.prisma.folderModel.findUnique({
-                where: { code: data.code },
+            const shelfId = data.shelfId || existing.shelfId;
+            const shelf = await this.prisma.shelfModel.findUnique({
+                where: { id: shelfId },
             });
-            if (codeExists) {
-                throw new ConflictException(`ລະຫັດໂກໂນ '${data.code}' ຖືກໃຊ້ງານແລ້ວ`);
+            if (shelf) {
+                const codeExists = await this.prisma.folderModel.findFirst({
+                    where: {
+                        shelf: { lockerId: shelf.lockerId },
+                        code: data.code,
+                        NOT: { id },
+                    },
+                });
+                if (codeExists) {
+                    throw new ConflictException(`ລະຫັດໂກໂນ '${data.code}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`);
+                }
             }
         }
 

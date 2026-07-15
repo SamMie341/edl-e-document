@@ -10,7 +10,8 @@ export class GetDropdownLockersUseCase {
 
   async execute(params: {
     warehouseId?: string;
-    addressId?: string;
+    departmentId?: number;
+    divisionId?: number;
     status?: string;
   }) {
     return this.lockerRepository.getDropdown(params);

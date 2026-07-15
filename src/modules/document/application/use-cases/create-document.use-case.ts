@@ -63,14 +63,19 @@ export class CreateDocumentUseCase {
     });
     const primaryDivisionId = creator?.userDivisions?.[0]?.divisionId ?? null;
 
+    const { subDocuments, ...documentDto } = dto;
+
     const dataToSave = {
-      ...dto,
+      ...documentDto,
       id: generatedId,
       userId,
       qrCode,
       departmentId: dto.departmentId ?? creator?.departmentId ?? null,
       divisionId: dto.divisionId ?? primaryDivisionId ?? null,
       attachments: attachmentsData,
+      subDocuments: subDocuments && subDocuments.length > 0
+        ? { create: subDocuments }
+        : undefined,
     };
 
     return await this.documentRepository.create(dataToSave);

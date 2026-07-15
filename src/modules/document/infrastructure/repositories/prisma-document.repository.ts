@@ -47,32 +47,18 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             );
         }
 
-        // ─── ເຊັກ subDocNo ຊ້ຳຕາມ docNo ──────────────────────────────────────────────────────
-        if (data.subDocNo) {
-            const existingSubDocNo = await this.prisma.documentModel.findFirst({
-                where: {
-                    docNo: data.docNo,
-                    subDocNo: data.subDocNo,
-                },
-            });
-            if (existingSubDocNo) {
-                throw new ConflictException(
-                    `ເລກທີ່ເອກະສານຍ່ອຍ '${data.subDocNo}' ມີຢູ່ແລ້ວພາຍໃຕ້ເລກທີ '${data.docNo}'`,
-                );
-            }
-        }
-
-        const { attachments, ...documentData } = data;
+        const { attachments, subDocuments, ...documentData } = data;
 
         const model = await this.prisma.documentModel.create({
             data: {
                 ...documentData,
                 attachments:
                     attachments && attachments.length > 0
-                        ? {
-                            create: attachments,
-                        }
+                        ? { create: attachments }
                         : undefined,
+                subDocuments: subDocuments
+                    ? subDocuments
+                    : undefined,
             },
             include: {
                 attachments: true,
@@ -80,6 +66,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 documentType: true,
                 department: true,
                 division: true,
+                subDocuments: true,
             },
         });
         return DocumentMapper.toDomain(model);
@@ -101,6 +88,9 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             divisionId,
             divisionIds,
             retentionStatus,
+            warehouseId,
+            lockerId,
+            shelfId,
         } = params;
         const skip = (page - 1) * limit;
         const whereCondition: any = {};
@@ -108,6 +98,22 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         if (folderId) whereCondition.folderId = folderId;
         if (userId) whereCondition.userId = userId;
         if (departmentId) whereCondition.departmentId = departmentId;
+
+        if (shelfId || lockerId || warehouseId) {
+            const folderWhere: any = {};
+            if (shelfId) {
+                folderWhere.shelfId = shelfId;
+            }
+            if (lockerId || warehouseId) {
+                const shelfWhere: any = {};
+                if (lockerId) shelfWhere.lockerId = lockerId;
+                if (warehouseId) {
+                    shelfWhere.locker = { warehouseId };
+                }
+                folderWhere.shelf = shelfWhere;
+            }
+            whereCondition.folder = folderWhere;
+        }
 
         if (divisionIds && divisionIds.length > 0) {
             whereCondition.divisionId = { in: divisionIds };
@@ -240,7 +246,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                                     locker: {
                                         include: {
                                             warehouse: {
-                                                include: { address: true },
+                                                include: {
+                                                    department: true,
+                                                    division: true,
+                                                },
                                             },
                                         },
                                     },
@@ -248,6 +257,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                             },
                         },
                     },
+                    subDocuments: { orderBy: { createdAt: 'asc' } },
                 },
             }),
             this.prisma.documentModel.count({ where: whereCondition }),
@@ -285,7 +295,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                                 locker: {
                                     include: {
                                         warehouse: {
-                                            include: { address: true },
+                                            include: {
+                                                department: true,
+                                                division: true,
+                                            },
                                         },
                                     },
                                 },
@@ -293,6 +306,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                         },
                     },
                 },
+                subDocuments: { orderBy: { createdAt: 'asc' } },
             },
         });
         if (!model) return null;
@@ -343,24 +357,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             }
         }
 
-        // ─── ເຊັກ subDocNo ຊ້ຳຕາມ docNo (ຖ້າ subDocNo ຖືກປ່ຽນ) ──────────────────────────
-        const effectiveDocNo = data.docNo || existing.docNo;
-        const effectiveSubDocNo = data.subDocNo !== undefined ? data.subDocNo : existing.subDocNo;
-        if (effectiveSubDocNo) {
-            const subDocNoExists = await this.prisma.documentModel.findFirst({
-                where: {
-                    docNo: effectiveDocNo,
-                    subDocNo: effectiveSubDocNo,
-                    id: { not: id },
-                },
-            });
-            if (subDocNoExists) {
-                throw new ConflictException(
-                    `ເລກທີ່ເອກະສານຍ່ອຍ '${effectiveSubDocNo}' ມີຢູ່ແລ້ວພາຍໃຕ້ເລກທີ '${effectiveDocNo}'`,
-                );
-            }
-        }
-
         const { attachments, ...documentData } = data;
 
         const model = await this.prisma.documentModel.update({
@@ -369,9 +365,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 ...documentData,
                 attachments:
                     attachments && attachments.length > 0
-                        ? {
-                            create: attachments,
-                        }
+                        ? { create: attachments }
                         : undefined,
             },
             include: {
@@ -380,6 +374,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 documentType: true,
                 department: true,
                 division: true,
+                subDocuments: { orderBy: { createdAt: 'asc' } },
             },
         });
         return DocumentMapper.toDomain(model);
@@ -399,7 +394,27 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             include: {
                 attachments: true,
                 documentType: true,
-                folder: true,
+                user: true,
+                department: true,
+                division: true,
+                folder: {
+                    include: {
+                        shelf: {
+                            include: {
+                                locker: {
+                                    include: {
+                                        warehouse: {
+                                            include: {
+                                                department: true,
+                                                division: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
             orderBy: { docExpire: 'asc' },
         });

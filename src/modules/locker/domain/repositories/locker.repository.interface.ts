@@ -7,7 +7,8 @@ export interface LockerFilterParams {
   limit?: number;
   search?: string;
   warehouseId?: string;
-  addressId?: string;
+  departmentId?: number;
+  divisionId?: number;
   status?: string;
 }
 
@@ -21,7 +22,8 @@ export interface ILockerRepository {
   delete(id: string): Promise<void>;
   getDropdown(params?: {
     warehouseId?: string;
-    addressId?: string;
+    departmentId?: number;
+    divisionId?: number;
     status?: string;
   }): Promise<any[]>;
 }

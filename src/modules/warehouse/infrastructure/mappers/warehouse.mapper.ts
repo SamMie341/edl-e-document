@@ -1,12 +1,14 @@
 import { WarehouseModel } from '@prisma/client';
 import {
-  Address,
+  Department,
+  Division,
+  Locker,
   Warehouse,
 } from '../../domain/entities/warehouse.entity';
 
 export class WarehouseMapper {
   static toDomain(
-    model: WarehouseModel & { division?: any; address?: any },
+    model: WarehouseModel & { department?: any; division?: any, locker?: any },
   ): Warehouse {
     return new Warehouse(
       model.id,
@@ -14,19 +16,29 @@ export class WarehouseMapper {
       model.name,
       model.description,
       model.status,
-      model.addressId,
+      model.departmentId,
+      model.divisionId,
       model.createdAt,
       model.updatedAt,
-      model.address
-        ? new Address(
-          model.address.id,
-          model.address.code,
-          model.address.name,
-          model.address.details,
-          model.address.status,
-          model.address.departmentId,
-          model.address.divisionId,
+      model.department
+        ? new Department(
+          model.department.id,
+          model.department.code,
+          model.department.name,
         ) : null,
+      model.division
+        ? new Division(
+          model.division.id,
+          model.division.code,
+          model.division.name,
+          model.division.shortName,
+        ) : null,
+      model.locker ? new Locker(
+        model.locker.id,
+        model.locker.code,
+        model.locker.name,
+        model.locker.description
+      ) : null,
     );
   }
 }

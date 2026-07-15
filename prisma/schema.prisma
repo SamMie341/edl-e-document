@@ -71,13 +71,12 @@ model DepartmentModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     UserModel[]
-  divisions DivisionModel[]
-  offices   OfficeModel[]
-  units     UnitModel[]
-  documents DocumentModel[]
-  // warehouses WarehouseModel[]
-  addresses AddressModel[]
+  users      UserModel[]
+  divisions  DivisionModel[]
+  offices    OfficeModel[]
+  units      UnitModel[]
+  documents  DocumentModel[]
+  warehouses WarehouseModel[]
 
   @@map("departments")
 }
@@ -100,7 +99,7 @@ model DivisionModel {
   units           UnitModel[]
   documentBorrows DocumentBorrowModel[]
   documents       DocumentModel[]
-  addresses       AddressModel[]
+  warehouses      WarehouseModel[]
 
   @@map("divisions")
 }
@@ -147,26 +146,6 @@ model UnitModel {
   @@map("units")
 }
 
-model AddressModel {
-  id      String @id @default(uuid())
-  code    String @unique
-  name    String
-  details String
-  status  String @default("A")
-
-  departmentId Int?
-  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
-  divisionId   Int?
-  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
-
-  warehouses WarehouseModel[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("addresses")
-}
-
 model WarehouseModel {
   id          String  @id @default(uuid())
   code        String  @unique
@@ -174,8 +153,10 @@ model WarehouseModel {
   description String?
   status      String  @default("A")
 
-  addressId String?
-  address   AddressModel? @relation(fields: [addressId], references: [id])
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id])
+  divisionId   Int?
+  division     DivisionModel?   @relation(fields: [divisionId], references: [id])
 
   lockers LockerModel[]
 
@@ -223,7 +204,7 @@ model ShelfModel {
 
 model FolderModel {
   id          String  @id @default(uuid())
-  code        String  @unique
+  code        String
   name        String
   status      String  @default("A")
   qrCode      String
@@ -239,6 +220,7 @@ model FolderModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([shelfId, code])
   @@map("folders")
 }
 
@@ -260,8 +242,6 @@ model DocumentModel {
   docNo           String
   shortName       String?
   docDate         DateTime
-  subDocNo        String?
-  subDocDate      DateTime?
   title           String
   description     String?
   docExpire       DateTime
@@ -283,13 +263,29 @@ model DocumentModel {
   divisionId Int?
   division   DivisionModel? @relation(fields: [divisionId], references: [id])
 
-  attachments AttachmentModel[]
-  borrows     DocumentBorrowModel[]
+  attachments  AttachmentModel[]
+  borrows      DocumentBorrowModel[]
+  subDocuments SubDocumentModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("documents")
+}
+
+model SubDocumentModel {
+  id         String   @id @default(uuid())
+  subDocNo   String
+  subDocDate DateTime
+
+  documentId String
+  document   DocumentModel @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([documentId, subDocNo])
+  @@map("sub_documents")
 }
 
 model AuditLogModel {

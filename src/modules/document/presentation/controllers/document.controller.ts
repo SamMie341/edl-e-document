@@ -66,6 +66,9 @@ export class DocumentController {
     @Query('departmentId') departmentId?: string,
     @Query('divisionId') divisionId?: string,
     @Query('retentionStatus') retentionStatus?: string,
+    @Query('warehouseId') warehouseId?: string,
+    @Query('lockerId') lockerId?: string,
+    @Query('shelfId') shelfId?: string,
   ) {
     const user = req.user;
     let targetUserId: string | undefined = undefined;
@@ -115,6 +118,9 @@ export class DocumentController {
       departmentId: targetDepartmentId,
       divisionIds: targetDivisionIds,
       retentionStatus,
+      warehouseId: warehouseId ?? undefined,
+      lockerId: lockerId ?? undefined,
+      shelfId: shelfId ?? undefined,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {

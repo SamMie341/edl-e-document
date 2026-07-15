@@ -1,14 +1,28 @@
 
 
-export class Address {
+export class Department {
   constructor(
-    public readonly id: string,
+    public readonly id: number,
     public code: string,
     public name: string,
-    public details: string,
-    public status: string,
-    public departmentId: number,
-    public divisionId: number,
+  ) { }
+}
+
+export class Division {
+  constructor(
+    public readonly id: number,
+    public code: string,
+    public name: string,
+    public shortName: string,
+  ) { }
+}
+
+export class Locker {
+  constructor(
+    public readonly id: number,
+    public code: string,
+    public name: string,
+    public desription: string,
   ) { }
 }
 
@@ -19,9 +33,12 @@ export class Warehouse {
     public name: string,
     public description: string | null,
     public status: string,
-    public addressId: string | null,
+    public departmentId: number | null,
+    public divisionId: number | null,
     public readonly createdAt: Date,
     public updatedAt: Date,
-    public address?: Address | null,
+    public department?: Department | null,
+    public division?: Division | null,
+    public locker?: Locker | null,
   ) { }
 }

@@ -1,4 +1,5 @@
 import { DocumentRetentionStatus } from '../value-objects/document-retention-status.enum';
+import { SubDocumentEntity } from '../../../sub-document/domain/entities/sub-document.entity';
 
 export class DocumentType {
     constructor(
@@ -73,17 +74,6 @@ export class Warehouse {
     ) { }
 }
 
-export class Address {
-    constructor(
-        public readonly id: string,
-        public code: string,
-        public name: string,
-        public details: string,
-        public status: string,
-        public readonly createdAt: Date,
-        public updatedAt: Date,
-    ) { }
-}
 
 export class User {
     constructor(
@@ -132,8 +122,6 @@ export class DocumentEntity {
         public docNo: string,
         public shortName: string | null,
         public docDate: Date,
-        public subDocNo: string | null,
-        public subDocDate: Date | null,
         public title: string,
         public description: string,
         public docExpire: Date,
@@ -145,18 +133,17 @@ export class DocumentEntity {
         public documentTypeId: string | null,
         public readonly createdAt: Date,
         public updatedAt: Date,
-        public isContractBound?: boolean, // ຕິດພັນກັບສັນຍາ
+        public isContractBound?: boolean,
         public department?: Department | null,
         public division?: Division | null,
         public user?: User | null,
-        public address?: Address | null,
         public warehouse?: Warehouse | null,
         public locker?: Locker | null,
         public shelf?: Shelf | null,
         public folder?: Folder | null,
         public documentType?: DocumentType | null,
-        public attachments?: Attachment | null,
-
+        public attachments?: Attachment[] | null,
+        public subDocuments?: SubDocumentEntity[],
     ) { }
 
     /**

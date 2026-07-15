@@ -14,7 +14,7 @@ export class SyncDepartmentUseCase {
 
   async execute(): Promise<{ imported: number; updated: number }> {
     this.logger.log('Start Sync Data from HRMS...');
-    const externalDepartments = await this.externalRepo.findAll();
+    const externalDepartments = await this.externalRepo.findAllExternal();
 
     let count = 0;
 

@@ -15,8 +15,16 @@ export class HrmDivisionRepository implements IDivisionRepository {
     private readonly httpService: HttpService,
   ) {}
 
-  // ─── ດຶງຈາກ HRM API ──────────────────────────────────────────────────────────
+  // ─── ດຶງຈາກລະບົບຂອງເຮົາເเอง ──────────────────────────────────────────────────
   async findAll(): Promise<Division[]> {
+    const models = await this.prisma.divisionModel.findMany({
+      orderBy: { name: 'asc' },
+    });
+    return models.map(DivisionMapper.toDomain);
+  }
+
+  // ─── ດຶງຈາກ HRM API ──────────────────────────────────────────────────────────
+  async findAllExternal(): Promise<Division[]> {
     const hrmUrl = process.env.HRM_DIVISION_API_URL;
     if (!hrmUrl) {
       this.logger.warn('HRM_DIVISION_API_URL ບໍ່ໄດ້ຖືກຕັ້ງໃນ .env — ຂ້າມ sync');

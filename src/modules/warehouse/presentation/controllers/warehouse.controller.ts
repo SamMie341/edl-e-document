@@ -22,6 +22,7 @@ import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { CreateWarehouseDto } from '../../application/dtos/create-warehouse.dto';
 import { UpdateWarehouseDto } from '../../application/dtos/update-warehouse.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('warehouses')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,6 +34,7 @@ export class WarehouseController {
     private readonly deleteWarehouseUseCase: DeleteWarehouseUseCase,
     private readonly getWarehouseByIdUseCase: GetWarehouseByIdUseCase,
     private readonly getWarehouseDropdownUseCase: GetWarehouseDropdownUseCase,
+    private readonly prisma: PrismaService,
   ) { }
 
   // ─── GET ALL ─────────────────────────────────────────────────────────────────
@@ -44,19 +46,26 @@ export class WarehouseController {
     @Query('limit') limit: string = '10',
     @Query('search') search?: string,
     @Query('status') status?: string,
-    @Query('addressId') addressId?: string,
   ) {
     const user = req.user;
 
     // ─── Role-based department / division scoping ──────────────────────────
     // SUPER_ADMIN & HQ_ADMIN: ເຫັນທັງໝົດ (no extra filter)
-    // BRANCH_ADMIN          : ເຫັນສະເພາະ warehouse ໃນ department ຂອງຕົວເອງ
+    // BRANCH_ADMIN          : ເຫັນສະເພາະ warehouse ໃນ divisions ທີ່ຕົວເອງຮັບຜິດຊອບ
     // USER                  : ເຫັນສະເພາະ warehouse ໃນ division ຂອງຕົວເອງ
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
       divisionId = user.divisionId || -1;
     }
@@ -66,9 +75,9 @@ export class WarehouseController {
       limit: parseInt(limit) || 10,
       search,
       status,
-      addressId,
       departmentId,
       divisionId,
+      divisionIds,
     });
     return { message: 'Success', ...result };
   }
@@ -78,24 +87,31 @@ export class WarehouseController {
   @Get('dropdown')
   async getDropdown(
     @Req() req: any,
-    @Query('addressId') addressId?: string,
   ) {
     const user = req.user;
 
     // ─── Role-based department / division scoping ──────────────────────────
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
       divisionId = user.divisionId || -1;
     }
 
     const data = await this.getWarehouseDropdownUseCase.execute({
-      addressId,
       departmentId,
       divisionId,
+      divisionIds,
     });
     return { message: 'Success', data };
   }

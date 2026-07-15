@@ -128,7 +128,6 @@ export class SearchController {
       userId: user.userId,
       userRole: user.role,
       userDivisionIds,
-      userAddressId: user.addressId,
       userDepartmentId: user.departmentId,
     });
 
@@ -193,7 +192,8 @@ export class SearchController {
                     id: true,
                     code: true,
                     name: true,
-                    address: { select: { id: true, name: true } },
+                    department: { select: { id: true, name: true } },
+                    division: { select: { id: true, name: true } },
                   },
                 },
               },
@@ -213,7 +213,6 @@ export class SearchController {
       select: {
         id: true,
         docNo: true,
-        subDocNo: true,
         title: true,
         shortName: true,
         docDate: true,
@@ -222,6 +221,7 @@ export class SearchController {
         qrCode: true,
         createdAt: true,
         updatedAt: true,
+        subDocuments: { select: { id: true, subDocNo: true, subDocDate: true }, orderBy: { createdAt: 'asc' } },
         documentType: { select: { id: true, name: true } },
         department: { select: { id: true, name: true } },
         division: { select: { id: true, name: true } },
@@ -250,7 +250,8 @@ export class SearchController {
                       select: {
                         id: true,
                         name: true,
-                        address: { select: { id: true, name: true } },
+                        department: { select: { id: true, name: true } },
+                        division: { select: { id: true, name: true } },
                       },
                     },
                   },

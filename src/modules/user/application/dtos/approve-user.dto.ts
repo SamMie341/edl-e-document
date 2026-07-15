@@ -7,10 +7,6 @@ export class ApproveUserDto {
   role: Role;
 
   @IsOptional()
-  @IsString()
-  addressId?: string;
-
-  @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
   divisionIds?: number[];
