@@ -9,14 +9,13 @@
 #   crontab -e
 #   0 3 * * *  /opt/edl-e-document/scripts/backup-host.sh >> /var/log/edl-backup.log 2>&1
 #
-# Requires: docker CLI on the host, and optionally aws CLI for S3 upload.
+# Requires: pg_dump installed directly on host OS, and optionally aws CLI for S3 upload.
 
 set -euo pipefail
 
 # ---- Configuration ---------------------------------------------------
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${PROJECT_DIR}/.env"
-CONTAINER_NAME="edl_edoc_db"
 BACKUP_DIR="${HOST_BACKUP_DIR:-/opt/edl-backups}"
 RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-7}"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
@@ -33,17 +32,21 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
 mkdir -p "${BACKUP_DIR}"
 
-log "Starting host-side backup of '${PGDATABASE}' via container ${CONTAINER_NAME}"
+log "Starting host-side backup of '${PGDATABASE}' directly on Host"
 
-if docker exec -e PGPASSWORD="${POSTGRES_PASSWORD}" "${CONTAINER_NAME}" \
-    pg_dump --username="${PGUSER}" --dbname="${PGDATABASE}" --format=plain \
-            --no-owner --no-privileges \
+if PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
+    --host="127.0.0.1" \
+    --username="${PGUSER}" \
+    --dbname="${PGDATABASE}" \
+    --format=plain \
+    --no-owner \
+    --no-privileges \
     | gzip -9 > "${FILEPATH}.tmp"; then
     mv "${FILEPATH}.tmp" "${FILEPATH}"
     log "Backup created: ${FILEPATH} ($(du -h "${FILEPATH}" | cut -f1))"
 else
     rm -f "${FILEPATH}.tmp"
-    log "ERROR: docker exec pg_dump failed"
+    log "ERROR: pg_dump failed"
     exit 1
 fi
 
