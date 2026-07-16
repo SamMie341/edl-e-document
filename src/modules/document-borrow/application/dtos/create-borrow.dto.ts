@@ -17,6 +17,10 @@ export class CreateBorrowDto {
 
   @IsString()
   @IsOptional()
+  phone?: string; // ເບີໂທ
+
+  @IsString()
+  @IsOptional()
   purpose?: string; // ຈຸດປະສົງ
 
   @IsNumber()
@@ -31,4 +35,8 @@ export class CreateBorrowDto {
   @IsString()
   @IsOptional()
   note?: string;
+
+  @IsString()
+  @IsOptional()
+  dueDate?: string; // ວັນທີກຳນົດສົ່ງ
 }

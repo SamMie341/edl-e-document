@@ -181,7 +181,7 @@ Manages document categories.
 Tracks the physical borrowing and return of documents and folders.
 * **Create (Borrow):** `POST /document-borrows`
   * Authorized roles: All roles.
-  * **[Updated]** Fields: `documentIds` (optional array), `folderIds` (optional array), `borrower` (required), `purpose`, `toDivisionId`, `toLocation`, `note`.
+  * **[Updated]** Fields: `documentIds` (optional array), `folderIds` (optional array), `borrower` (required), `phone` (optional), `purpose` (optional), `toDivisionId` (optional), `toLocation` (optional), `note` (optional), `dueDate` (optional).
   * At least one of `documentIds` or `folderIds` must be provided.
 * **Update (Return):** `PUT /document-borrows/:id/return`
   * Authorized roles: All roles.
@@ -306,6 +306,13 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-07-16
+
+#### 🔄 Updated
+| Item | Detail |
+|---|---|
+| **Borrow request body** | Added `phone` and `dueDate` optional fields in `POST /document-borrows` request body and matching DTO. |
 
 ### Version 2026-07-15
 

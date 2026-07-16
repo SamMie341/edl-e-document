@@ -312,21 +312,25 @@ model DocumentBorrowModel {
 
   // ຄົນທີ່ຢືມ
   borrower String
+  phone    String? // ເບີໂທ
 
   borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
   returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
+  dueDate    DateTime? // ກຳນົດສົ່ງ
 
   purpose String? // ຈຸດປະສົງ
 
   // ພາກສ່ວນໃດ
   toDivisionId Int?
   toDivision   DivisionModel? @relation(fields: [toDivisionId], references: [id])
-  toLocation   String? // free text ເສີມ (ຫ້ອງ, ຊັ້ນ, ...)
+  toLocation   String? // free text ເસີມ (ຫ້ອງ, ຊັ້ນ, ...)
   // ຄົນທີ່ບັນທຶກ
   createdById  String
   createdBy    UserModel      @relation("RecordedBy", fields: [createdById], references: [id])
 
   note String?
+
+  status String @default("BORROWED") // ສະຖານະ (e.g. BORROWED, RETURNED)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
