@@ -53,11 +53,13 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
         documentId: data.documentId,
         folderId: data.folderId,
         borrower: data.borrower,
+        phone: data.phone,
         purpose: data.purpose,
         toDivisionId: data.toDivisionId,
         toLocation: data.toLocation,
         createdById: data.createdById,
         note: data.note,
+        dueDate: data.dueDate,
       },
       include: BORROW_INCLUDE,
     });
@@ -72,11 +74,13 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
             documentId: item.documentId,
             folderId: item.folderId,
             borrower: item.borrower,
+            phone: item.phone,
             purpose: item.purpose,
             toDivisionId: item.toDivisionId,
             toLocation: item.toLocation,
             createdById: item.createdById,
             note: item.note,
+            dueDate: item.dueDate,
           },
           include: BORROW_INCLUDE,
         })
@@ -86,7 +90,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   }
 
   async findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }> {
-    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly, borrowedAt, returnedAt } = params;
+    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly, borrowedAt, returnedAt, status } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -95,6 +99,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     if (documentId) where.documentId = documentId;
     if (folderId) where.folderId = folderId;
     if (activeOnly) where.returnedAt = null;
+    if (status) where.status = status;
 
     if (borrowedAt) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(borrowedAt)) {
@@ -242,7 +247,10 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   async return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity> {
     const model = await this.prisma.documentBorrowModel.update({
       where: { id },
-      data: { returnedAt },
+      data: { 
+        returnedAt,
+        status: 'RETURNED',
+      },
       include: BORROW_INCLUDE,
     });
     return DocumentBorrowMapper.toDomain(model);

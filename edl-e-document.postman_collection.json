@@ -525,8 +525,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -549,6 +549,90 @@
                   "type": "string"
                 }
               ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "docNo",
+                  "value": "DOC-001",
+                  "type": "text",
+                  "description": "Required"
+                },
+                {
+                  "key": "docDate",
+                  "value": "2026-01-01",
+                  "type": "text",
+                  "description": "Required (ISO date)"
+                },
+                {
+                  "key": "title",
+                  "value": "ຫົວຂໍ້ເອກະສານ",
+                  "type": "text",
+                  "description": "Required"
+                },
+                {
+                  "key": "docExpire",
+                  "value": "2036-01-01",
+                  "type": "text",
+                  "description": "Required (ISO date)"
+                },
+                {
+                  "key": "folderId",
+                  "value": "uuid-here",
+                  "type": "text",
+                  "description": "Required (UUID)"
+                },
+                {
+                  "key": "documentTypeId",
+                  "value": "uuid-here",
+                  "type": "text",
+                  "description": "Required (UUID)"
+                },
+                {
+                  "key": "shortName",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "qrCode",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "isContractBound",
+                  "value": "false",
+                  "type": "text",
+                  "description": "Optional (true/false)"
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (integer)"
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (integer)"
+                },
+                {
+                  "key": "files",
+                  "value": null,
+                  "type": "file",
+                  "description": "PDF files (max 10, PDF only)",
+                  "src": null
+                }
+              ]
             }
           },
           "response": []
@@ -559,8 +643,8 @@
             "method": "PUT",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -590,6 +674,90 @@
                   "type": "string"
                 }
               ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "docNo",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "docDate",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (ISO date)"
+                },
+                {
+                  "key": "title",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "docExpire",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (ISO date)"
+                },
+                {
+                  "key": "folderId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (UUID)"
+                },
+                {
+                  "key": "documentTypeId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (UUID)"
+                },
+                {
+                  "key": "shortName",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "qrCode",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional"
+                },
+                {
+                  "key": "isContractBound",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (true/false)"
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (integer)"
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "type": "text",
+                  "description": "Optional (integer)"
+                },
+                {
+                  "key": "files",
+                  "value": null,
+                  "type": "file",
+                  "description": "Optional: replacement PDF files",
+                  "src": null
+                }
+              ]
             }
           },
           "response": []
@@ -600,8 +768,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -630,6 +798,18 @@
                   "key": "accessToken",
                   "value": "{{accessToken}}",
                   "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": null,
+                  "type": "file",
+                  "description": "PDF file (required, PDF only)",
+                  "src": null
                 }
               ]
             }
@@ -727,8 +907,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
             ],
             "url": {
@@ -750,6 +930,18 @@
                   "key": "accessToken",
                   "value": "{{accessToken}}",
                   "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": null,
+                  "type": "file",
+                  "description": "Destruction approval PDF (required)",
+                  "src": null
                 }
               ]
             }
@@ -794,7 +986,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"documentIds\": \"1\",\n  \"folderIds\": \"1\",\n  \"borrower\": \"borrower_val\",\n  \"purpose\": \"purpose_val\",\n  \"toDivisionId\": 1,\n  \"toLocation\": \"toLocation_val\",\n  \"note\": \"note_val\"\n}"
+              "raw": "{\n  \"documentIds\": [\n    \"uuid-here\"\n  ],\n  \"folderIds\": [],\n  \"borrower\": \"borrower_val\",\n  \"phone\": \"phone_val\",\n  \"purpose\": \"purpose_val\",\n  \"toDivisionId\": 1,\n  \"toLocation\": \"toLocation_val\",\n  \"note\": \"note_val\",\n  \"dueDate\": \"2026-07-16T15:28:27Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []
@@ -924,6 +1121,16 @@
                   "key": "activeOnly",
                   "value": "",
                   "description": "Query parameter: activeOnly"
+                },
+                {
+                  "key": "borrowedAt",
+                  "value": "",
+                  "description": "Query parameter: borrowedAt (ISO 8601)"
+                },
+                {
+                  "key": "returnedAt",
+                  "value": "",
+                  "description": "Query parameter: returnedAt (ISO 8601)"
                 }
               ],
               "variable": []

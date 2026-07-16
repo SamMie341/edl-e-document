@@ -173,7 +173,7 @@
 ຄຸ້ມຄອງການຢືມ ແລະ ຄືນ ເອກະສານ ຫຼື ແຟ້ມເອກະສານ.
 * **Create (ສ້າງ/ຢືມ):** `POST /document-borrows`
   * ທຸກລະດັບສິດ.
-  * **[ອັບເດດ]** Fields: `documentIds` (array ທາງເລືອກ), `folderIds` (array ທາງເລືອກ), `borrower` (ຕ້ອງມີ), `purpose`, `toDivisionId`, `toLocation`, `note`.
+  * **[ອັບເດດ]** Fields: `documentIds` (array ທາງເລືອກ), `folderIds` (array ທາງເລືອກ), `borrower` (ຕ້ອງມີ), `phone` (ທາງເລືອກ), `purpose` (ທາງເລືອກ), `toDivisionId` (ທາງເລືอก), `toLocation` (ທາງເລືອກ), `note` (ທາງເລືອກ), `dueDate` (ທາງເລືອກ).
   * ຕ້ອງລະບຸ `documentIds` ຫຼື `folderIds` ຢ່າງໜ້ອຍ 1 ອັນ.
 * **Update (ແກ້ໄຂ/ຄືນ):** `PUT /document-borrows/:id/return` — ທຸກລະດັບສິດ.
 * **Read (ອ່ານ):**
@@ -246,6 +246,13 @@
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-07-16
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **Borrow request body** | ເພີ່ມ field `phone` ແລະ `dueDate` (ທາງເລືອກ) ໃສ່ໃນ body ຂອງ `POST /document-borrows` ແລະ CreateBorrowDto. |
 
 ### ເວີຊັ່ນ 2026-07-15
 

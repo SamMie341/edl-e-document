@@ -12,17 +12,20 @@ export class BorrowDocumentUseCase {
 
   async execute(dto: CreateBorrowDto, actorId: string): Promise<DocumentBorrowEntity[]> {
     const items: documentBorrowRepositoryInterface.CreateDocumentBorrowData[] = [];
+    const parsedDueDate = dto.dueDate ? new Date(dto.dueDate) : undefined;
 
     if (dto.documentIds && dto.documentIds.length > 0) {
       for (const docId of dto.documentIds) {
         items.push({
           documentId: docId,
           borrower: dto.borrower,
+          phone: dto.phone,
           purpose: dto.purpose,
           toDivisionId: dto.toDivisionId,
           toLocation: dto.toLocation,
           createdById: actorId,
           note: dto.note,
+          dueDate: parsedDueDate,
         });
       }
     }
@@ -32,11 +35,13 @@ export class BorrowDocumentUseCase {
         items.push({
           folderId: fId,
           borrower: dto.borrower,
+          phone: dto.phone,
           purpose: dto.purpose,
           toDivisionId: dto.toDivisionId,
           toLocation: dto.toLocation,
           createdById: actorId,
           note: dto.note,
+          dueDate: parsedDueDate,
         });
       }
     }

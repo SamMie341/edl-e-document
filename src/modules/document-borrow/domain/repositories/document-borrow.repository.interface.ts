@@ -13,6 +13,7 @@ export interface DocumentBorrowFilterParams {
   activeOnly?: boolean;   // true = ສະເພາະທີ່ຍັງຢືມຢູ່
   borrowedAt?: string;
   returnedAt?: string;
+  status?: string;
 }
 
 export interface IDocumentBorrowRepository {
@@ -32,9 +33,11 @@ export interface CreateDocumentBorrowData {
   documentId?: string;
   folderId?: string;
   borrower: string;
+  phone?: string;
   purpose?: string;
   toDivisionId?: number;
   toLocation?: string;
   createdById: string;
   note?: string;
+  dueDate?: Date;
 }

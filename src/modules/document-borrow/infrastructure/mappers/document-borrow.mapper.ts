@@ -7,13 +7,16 @@ export class DocumentBorrowMapper {
       model.documentId,
       model.folderId,
       model.borrower,       // scalar String
+      model.phone,          // scalar String?
       model.borrowedAt,
       model.returnedAt,
+      model.dueDate,        // DateTime?
       model.purpose,
       model.toDivisionId,
       model.toLocation,
       model.createdById,
       model.note,
+      model.status,         // scalar String
       model.createdAt,
       model.updatedAt,
       model.document,
