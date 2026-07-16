@@ -19,10 +19,10 @@ export class Division {
 
 export class Locker {
   constructor(
-    public readonly id: number,
+    public readonly id: string,
     public code: string,
-    public name: string,
-    public desription: string,
+    public name: string | null,
+    public description: string | null,
   ) { }
 }
 
@@ -39,6 +39,6 @@ export class Warehouse {
     public updatedAt: Date,
     public department?: Department | null,
     public division?: Division | null,
-    public locker?: Locker | null,
+    public lockers?: Locker[] | null,
   ) { }
 }

@@ -170,27 +170,27 @@ export class PrismaLockerRepository implements ILockerRepository {
       where,
       select: {
         id: true,
-        name: true,
         code: true,
+        name: true,
         status: true,
-        warehouse: {
-          select: {
-            id: true,
-            name: true,
-            department: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            division: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
+        // warehouse: {
+        //   select: {
+        //     id: true,
+        //     name: true,
+        //     department: {
+        //       select: {
+        //         id: true,
+        //         name: true,
+        //       },
+        //     },
+        //     division: {
+        //       select: {
+        //         id: true,
+        //         name: true,
+        //       },
+        //     },
+        //   },
+        // },
       },
       orderBy: { createdAt: 'desc' },
     });

@@ -11,10 +11,13 @@ export interface DocumentBorrowFilterParams {
   divisionId?: number;    // ກອງຕາມ division ທີ່ຮັບໄປ
   departmentId?: number;  // ກອງຕາມ department (ສຳລັບ BRANCH_ADMIN)
   activeOnly?: boolean;   // true = ສະເພາະທີ່ຍັງຢືມຢູ່
+  borrowedAt?: string;
+  returnedAt?: string;
 }
 
 export interface IDocumentBorrowRepository {
   create(data: CreateDocumentBorrowData): Promise<DocumentBorrowEntity>;
+  createMany(data: CreateDocumentBorrowData[]): Promise<DocumentBorrowEntity[]>;
   findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }>;
   findById(id: string): Promise<DocumentBorrowEntity | null>;
   findByDocumentId(documentId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;

@@ -93,6 +93,8 @@ export class DocumentBorrowController {
     @Query('borrowerId') borrowerId?: string,
     @Query('divisionId') divisionId?: string,
     @Query('activeOnly') activeOnly?: string,
+    @Query('borrowedAt') borrowedAt?: string,
+    @Query('returnedAt') returnedAt?: string,
   ) {
     const { forcedDepartmentId, forcedDivisionId } = this.buildScopeFilter(req.user);
 
@@ -105,6 +107,8 @@ export class DocumentBorrowController {
       divisionId: forcedDivisionId ?? (divisionId ? parseInt(divisionId) : undefined),
       departmentId: forcedDepartmentId,
       activeOnly: activeOnly === 'true',
+      borrowedAt,
+      returnedAt,
     });
     return { message: 'Success', ...result };
   }

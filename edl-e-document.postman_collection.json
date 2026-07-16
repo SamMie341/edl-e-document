@@ -33,277 +33,6 @@
       ]
     },
     {
-      "name": "Address",
-      "item": [
-        {
-          "name": "GET /addresses (getAll)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses"
-              ],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1",
-                  "description": "Query parameter: page"
-                },
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Query parameter: limit"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "description": "Query parameter: search"
-                },
-                {
-                  "key": "status",
-                  "value": "",
-                  "description": "Query parameter: status"
-                }
-              ],
-              "variable": []
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /addresses/dropdown (getDropdown)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses/dropdown",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                "dropdown"
-              ],
-              "query": [
-                {
-                  "key": "departmentId",
-                  "value": "",
-                  "description": "Query parameter: departmentId"
-                },
-                {
-                  "key": "divisionId",
-                  "value": "",
-                  "description": "Query parameter: divisionId"
-                }
-              ],
-              "variable": []
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /addresses/:id (getById)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                ":id"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1",
-                  "description": "Path variable: id"
-                }
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /addresses (create)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "PUT /addresses/:id (update)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                ":id"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1",
-                  "description": "Path variable: id"
-                }
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"details\": \"details_val\",\n  \"status\": \"A\",\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "DELETE /addresses/:id (delete)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/addresses/:id",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "addresses",
-                ":id"
-              ],
-              "query": [],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "1",
-                  "description": "Path variable: id"
-                }
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "accessToken",
-                  "value": "{{accessToken}}",
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Department",
       "item": [
         {
@@ -635,9 +364,106 @@
                   "key": "divisionId",
                   "value": "",
                   "description": "Query parameter: divisionId"
+                },
+                {
+                  "key": "retentionStatus",
+                  "value": "",
+                  "description": "Query parameter: retentionStatus"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "",
+                  "description": "Query parameter: warehouseId"
+                },
+                {
+                  "key": "lockerId",
+                  "value": "",
+                  "description": "Query parameter: lockerId"
+                },
+                {
+                  "key": "shelfId",
+                  "value": "",
+                  "description": "Query parameter: shelfId"
                 }
               ],
               "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /documents/expired (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/expired",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "expired"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /documents/:id/destruction-approval (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:id/destruction-approval",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":id",
+                "destruction-approval"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -723,10 +549,6 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"id\": \"1\",\n  \"docNo\": \"docNo_val\",\n  \"docDate\": \"2026-07-01T02:35:19.856Z\",\n  \"shortName\": \"shortName_val\",\n  \"subDocNo\": \"subDocNo_val\",\n  \"subDocDate\": \"2026-07-01T02:35:19.856Z\",\n  \"title\": \"title_val\",\n  \"description\": \"description_val\",\n  \"docExpire\": \"2026-07-01T02:35:19.856Z\",\n  \"qrCode\": \"qrCode_val\",\n  \"userId\": \"1\",\n  \"folderId\": \"1\",\n  \"documentTypeId\": \"1\",\n  \"isContractBound\": false,\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
             }
           },
           "response": []
@@ -768,10 +590,6 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"docNo\": \"docNo_val\",\n  \"docDate\": \"2026-07-01T02:35:19.857Z\",\n  \"subDocNo\": \"subDocNo_val\",\n  \"subDocDate\": \"2026-07-01T02:35:19.857Z\",\n  \"title\": \"title_val\",\n  \"description\": \"description_val\",\n  \"docExpire\": \"2026-07-01T02:35:19.857Z\",\n  \"qrCode\": \"qrCode_val\",\n  \"folderId\": \"1\",\n  \"documentTypeId\": \"1\",\n  \"isContractBound\": false,\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
             }
           },
           "response": []
@@ -861,7 +679,7 @@
           "response": []
         },
         {
-          "name": "GET /documents/expired (Roles)",
+          "name": "GET /documents/attachments/:attachmentId/download (Roles)",
           "request": {
             "method": "GET",
             "header": [
@@ -871,16 +689,24 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/documents/expired",
+              "raw": "{{baseUrl}}/documents/attachments/:attachmentId/download",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "documents",
-                "expired"
+                "attachments",
+                ":attachmentId",
+                "download"
               ],
               "query": [],
-              "variable": []
+              "variable": [
+                {
+                  "key": "attachmentId",
+                  "value": "1",
+                  "description": "Path variable: attachmentId"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -968,7 +794,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"documentId\": \"1\",\n  \"folderId\": \"1\",\n  \"borrower\": \"borrower_val\",\n  \"purpose\": \"purpose_val\",\n  \"toDivisionId\": 1,\n  \"toLocation\": \"toLocation_val\",\n  \"note\": \"note_val\"\n}"
+              "raw": "{\n  \"documentIds\": \"1\",\n  \"folderIds\": \"1\",\n  \"borrower\": \"borrower_val\",\n  \"purpose\": \"purpose_val\",\n  \"toDivisionId\": 1,\n  \"toLocation\": \"toLocation_val\",\n  \"note\": \"note_val\"\n}"
             }
           },
           "response": []
@@ -2279,7 +2105,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"maxQty\": 1,\n  \"lockerId\": \"1\"\n}"
+              "raw": "{\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"maxQty\": 1,\n  \"lockerId\": \"1\",\n  \"shelves\": []\n}"
             }
           },
           "response": []
@@ -2456,6 +2282,199 @@
               ],
               "query": [],
               "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "SubDocument",
+      "item": [
+        {
+          "name": "GET /documents/:documentId/sub-documents (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:documentId/sub-documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":documentId",
+                "sub-documents"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "Path variable: documentId"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /documents/:documentId/sub-documents (Roles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:documentId/sub-documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":documentId",
+                "sub-documents"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "Path variable: documentId"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subDocNo\": \"subDocNo_val\",\n  \"subDocDate\": \"2026-07-15T08:51:10.666Z\",\n  \"subDocuments\": []\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /documents/:documentId/sub-documents/:id (Roles)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:documentId/sub-documents/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":documentId",
+                "sub-documents",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "Path variable: documentId"
+                },
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subDocNo\": \"subDocNo_val\",\n  \"subDocDate\": \"2026-07-15T08:51:10.667Z\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /documents/:documentId/sub-documents/:id (Roles)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:documentId/sub-documents/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":documentId",
+                "sub-documents",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "documentId",
+                  "value": "1",
+                  "description": "Path variable: documentId"
+                },
                 {
                   "key": "id",
                   "value": "1",
@@ -2876,7 +2895,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"role\": {},\n  \"addressId\": \"1\",\n  \"divisionIds\": 1\n}"
+              "raw": "{\n  \"role\": {},\n  \"divisionIds\": 1\n}"
             }
           },
           "response": []
@@ -2970,11 +2989,6 @@
                   "key": "status",
                   "value": "",
                   "description": "Query parameter: status"
-                },
-                {
-                  "key": "addressId",
-                  "value": "",
-                  "description": "Query parameter: addressId"
                 }
               ],
               "variable": []
@@ -3011,13 +3025,7 @@
                 "warehouses",
                 "dropdown"
               ],
-              "query": [
-                {
-                  "key": "addressId",
-                  "value": "",
-                  "description": "Query parameter: addressId"
-                }
-              ],
+              "query": [],
               "variable": []
             },
             "auth": {
@@ -3107,7 +3115,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"addressId\": \"1\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"departmentId\": 1,\n  \"divisionId\": 1\n}"
             }
           },
           "response": []
@@ -3152,7 +3160,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"addressId\": \"1\",\n  \"status\": \"A\"\n}"
+              "raw": "{\n  \"code\": \"code_val\",\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"departmentId\": 1,\n  \"divisionId\": 1,\n  \"status\": \"A\"\n}"
             }
           },
           "response": []

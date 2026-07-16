@@ -37,7 +37,6 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
         { description: { contains: search, mode: 'insensitive' } },
         { department: { name: { contains: search, mode: 'insensitive' } } },
         { division: { name: { contains: search, mode: 'insensitive' } } },
-        // { locker: { name: { contains: search, mode: 'insensitive' } } },
       ];
     }
 
@@ -58,7 +57,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
   async findById(id: string): Promise<Warehouse | null> {
     const model = await this.prisma.warehouseModel.findUnique({
       where: { id },
-      include: { department: true, division: true },
+      include: { department: true, division: true, lockers: true },
     });
     if (!model) return null;
     return WarehouseMapper.toDomain(model);
@@ -102,7 +101,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
 
     const model = await this.prisma.warehouseModel.create({
       data,
-      include: { department: true, division: true },
+      include: { department: true, division: true, lockers: true },
     });
     return WarehouseMapper.toDomain(model);
   }
@@ -136,7 +135,7 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
     const model = await this.prisma.warehouseModel.update({
       where: { id },
       data,
-      include: { department: true, division: true },
+      include: { department: true, division: true, lockers: true },
     });
     return WarehouseMapper.toDomain(model);
   }

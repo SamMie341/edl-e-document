@@ -16,10 +16,11 @@ export class PrismaFolderRepository implements IFolderRepository {
         skip?: number;
         take?: number;
         shelfId?: string;
-        addressId?: string;
+        departmentId?: number;
+        divisionId?: number;
         search?: string;
     }): Promise<{ data: Folder[]; total: number }> {
-        const { skip, take, shelfId, addressId, search } = params || {};
+        const { skip, take, shelfId, departmentId, divisionId, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
@@ -33,9 +34,12 @@ export class PrismaFolderRepository implements IFolderRepository {
             ];
         }
 
-        if (addressId) {
+        if (departmentId || divisionId) {
+            const warehouseFilter: any = {};
+            if (departmentId) warehouseFilter.departmentId = departmentId;
+            if (divisionId) warehouseFilter.divisionId = divisionId;
             where.shelf = {
-                is: { locker: { is: { warehouse: { is: { addressId } } } } },
+                is: { locker: { is: { warehouse: { is: warehouseFilter } } } },
             };
         }
 

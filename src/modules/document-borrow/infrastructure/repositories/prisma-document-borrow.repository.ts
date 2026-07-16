@@ -64,8 +64,29 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     return DocumentBorrowMapper.toDomain(model);
   }
 
+  async createMany(data: CreateDocumentBorrowData[]): Promise<DocumentBorrowEntity[]> {
+    const models = await this.prisma.$transaction(
+      data.map((item) =>
+        this.prisma.documentBorrowModel.create({
+          data: {
+            documentId: item.documentId,
+            folderId: item.folderId,
+            borrower: item.borrower,
+            purpose: item.purpose,
+            toDivisionId: item.toDivisionId,
+            toLocation: item.toLocation,
+            createdById: item.createdById,
+            note: item.note,
+          },
+          include: BORROW_INCLUDE,
+        })
+      )
+    );
+    return models.map((m) => DocumentBorrowMapper.toDomain(m));
+  }
+
   async findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }> {
-    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly } = params;
+    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly, borrowedAt, returnedAt } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -74,6 +95,46 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     if (documentId) where.documentId = documentId;
     if (folderId) where.folderId = folderId;
     if (activeOnly) where.returnedAt = null;
+
+    if (borrowedAt) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(borrowedAt)) {
+        where.borrowedAt = {
+          gte: new Date(`${borrowedAt}T00:00:00.000Z`),
+          lte: new Date(`${borrowedAt}T23:59:59.999Z`),
+        };
+      } else {
+        const date = new Date(borrowedAt);
+        if (!isNaN(date.getTime())) {
+          const yyyy = date.getUTCFullYear();
+          const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(date.getUTCDate()).padStart(2, '0');
+          where.borrowedAt = {
+            gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
+            lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
+          };
+        }
+      }
+    }
+
+    if (returnedAt) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(returnedAt)) {
+        where.returnedAt = {
+          gte: new Date(`${returnedAt}T00:00:00.000Z`),
+          lte: new Date(`${returnedAt}T23:59:59.999Z`),
+        };
+      } else {
+        const date = new Date(returnedAt);
+        if (!isNaN(date.getTime())) {
+          const yyyy = date.getUTCFullYear();
+          const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const dd = String(date.getUTCDate()).padStart(2, '0');
+          where.returnedAt = {
+            gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
+            lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
+          };
+        }
+      }
+    }
 
     const [models, total] = await Promise.all([
       this.prisma.documentBorrowModel.findMany({

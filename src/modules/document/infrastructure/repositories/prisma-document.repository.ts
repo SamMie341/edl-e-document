@@ -133,13 +133,24 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         }
 
         // ─── retentionStatus filter ───────────────────────────────────────────────
-        // retentionStatus เป็น computed property (จาก docDate + isContractBound)
+        // retentionStatus เป็น computed property (จาก docExpire + isContractBound)
         // ต้องแปลงเป็น Prisma date-range conditions โดยอ้างอิง logic เดียวกับ entity getter
         if (retentionStatus) {
             const now = new Date();
-            // d10End: วันสุดท้ายของวันเดียวกันเมื่อ 10 ปีที่แล้ว (local time)
-            const d10End = new Date(
-                now.getFullYear() - 10,
+            // todayStart: วันเริ่มต้นของวันนี้ 00:00:00.000 (local time)
+            const todayStart = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate(),
+                0,
+                0,
+                0,
+                0,
+            );
+
+            // todayEnd: วันสุดท้ายของวันนี้ 23:59:59.999 (local time)
+            const todayEnd = new Date(
+                now.getFullYear(),
                 now.getMonth(),
                 now.getDate(),
                 23,
@@ -148,31 +159,20 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 999,
             );
 
-            // d11End: วันสุดท้ายของวันเดียวกันเมื่อ 11 ปีที่แล้ว (local time)
-            const d11End = new Date(
-                now.getFullYear() - 11,
-                now.getMonth(),
-                now.getDate(),
-                23,
-                59,
-                59,
-                999,
-            );
-
-            let retentionDocDate: any = {};
+            let retentionDocExpire: any = {};
 
             switch (retentionStatus) {
                 case 'ACTIVE':
-                    // อายุ < 10 ปี: docDate > d10End AND ไม่ติดพันสัญญา
-                    retentionDocDate = { gt: d10End };
+                    // ยังไม่หมดอายุ: docExpire > todayEnd AND ไม่ติดพันสัญญา
+                    retentionDocExpire = { gt: todayEnd };
                     whereCondition.isContractBound = false;
                     break;
 
                 case 'DESTROYABLE':
-                    // อายุ === 10 ปีพอดี: docDate ระหว่าง (d11End, d10End] AND ไม่ติดพันสัญญา
-                    retentionDocDate = {
-                        gt: d11End,
-                        lte: d10End,
+                    // หมดอายุวันนี้พอดี: docExpire ระหว่าง [todayStart, todayEnd] AND ไม่ติดพันสัญญา
+                    retentionDocExpire = {
+                        gte: todayStart,
+                        lte: todayEnd,
                     };
                     whereCondition.isContractBound = false;
                     break;
@@ -183,21 +183,14 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                     break;
 
                 case 'EXPIRED':
-                    // อายุ > 10 ปี (11 ปีขึ้นไป): docDate <= d11End AND ไม่ติดพันสัญญา
-                    retentionDocDate = { lte: d11End };
+                    // หมดอายุก่อนวันนี้: docExpire < todayStart AND ไม่ติดพันสัญญา
+                    retentionDocExpire = { lt: todayStart };
                     whereCondition.isContractBound = false;
                     break;
             }
 
-            if (Object.keys(retentionDocDate).length > 0) {
-                if (whereCondition.docDate) {
-                    whereCondition.docDate = {
-                        ...whereCondition.docDate,
-                        ...retentionDocDate,
-                    };
-                } else {
-                    whereCondition.docDate = retentionDocDate;
-                }
+            if (Object.keys(retentionDocExpire).length > 0) {
+                whereCondition.docExpire = retentionDocExpire;
             }
         }
         if (search) {
@@ -421,7 +414,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         return models.map((m) => DocumentMapper.toDomain(m));
     }
 
-    async deleteExpired(): Promise<number> {
+    async deleteExpired(approvalFilePath: string): Promise<number> {
         // ດຶງ IDs + attachments ເຉพาะທີ່ຫົມດອາຍຸ ແລະ ບໍ່ໄດ້ຕິດພັນສັນຍາ
         const expiredDocs = await this.prisma.documentModel.findMany({
             where: this.expiredNonContractWhere,
@@ -447,13 +440,16 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             }
         }
 
-        // ລົບ attachments + documents ໃນ transaction
+        // ລົບ attachments ແລະ ອັບເດດເອກະสารໃນ transaction
         await this.prisma.$transaction([
             this.prisma.attachmentModel.deleteMany({
                 where: { documentId: { in: expiredIds } },
             }),
-            this.prisma.documentModel.deleteMany({
+            this.prisma.documentModel.updateMany({
                 where: { id: { in: expiredIds } },
+                data: {
+                    destructionApprovalPath: approvalFilePath,
+                },
             }),
         ]);
 

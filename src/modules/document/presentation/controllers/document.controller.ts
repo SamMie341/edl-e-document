@@ -16,6 +16,7 @@ import {
   Put,
   Delete,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateDocumentUseCase } from '../../application/use-cases/create-document.use-case';
 import { CreateDocumentDto } from '../../application/dtos/create-document.dto';
@@ -135,6 +136,53 @@ export class DocumentController {
   async getExpiredDocuments() {
     const result = await this.getExpiredDocumentsUseCase.execute();
     return { message: 'Success', ...result };
+  }
+
+  // ─── GET DESTRUCTION APPROVAL (stream file) ─────────────────────────────────
+  @Get(':id/destruction-approval')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async getDestructionApproval(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const user = req.user;
+    const document = await this.getDocumentByIdUseCase.execute(id);
+
+    if (user.role === Role.USER) {
+      const primaryDiv = await this.prisma.userDivisionModel.findFirst({
+        where: { userId: user.userId, isPrimary: true },
+        select: { divisionId: true },
+      });
+      if (!document.divisionId || !primaryDiv || document.divisionId !== primaryDiv.divisionId) {
+        throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
+      }
+    } else if (user.role === Role.BRANCH_ADMIN) {
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      const allowedDivisionIds = userDivs.map((ud) => ud.divisionId);
+      if (!document.divisionId || !allowedDivisionIds.includes(document.divisionId)) {
+        throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
+      }
+    }
+
+    if (!document.destructionApprovalPath) {
+      throw new BadRequestException('ເອກະສານນີ້ຍັງບໍ່ທັນຖືກທຳລາຍ ຫຼື ບໍ່ມີໄຟລ໌ອະນຸມັດ');
+    }
+
+    const fs = require('fs');
+    if (!fs.existsSync(document.destructionApprovalPath)) {
+      throw new NotFoundException('ບໍ່ພົບໄຟລ໌ອະນຸມັດການທຳລາຍໃນລະບົບ');
+    }
+
+    const fileStream = createReadStream(document.destructionApprovalPath);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="destruction-approval-${id}.pdf"`,
+    });
+    return new StreamableFile(fileStream);
   }
 
   // ─── GET BY ID ────────────────────────────────────────────────────────────────
@@ -296,8 +344,20 @@ export class DocumentController {
   // ─── DELETE EXPIRED (bulk delete after review) ────────────────────────────
   @Delete('expired')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async deleteExpiredDocuments() {
-    const result = await this.deleteExpiredDocumentsUseCase.execute();
+  @UseInterceptors(FileInterceptor('file', {
+    storage: require('multer').memoryStorage(),
+    fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
+      if (file.mimetype !== 'application/pdf') {
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບ "${file.mimetype}"`), false);
+      }
+      cb(null, true);
+    },
+  }))
+  async deleteExpiredDocuments(@UploadedFile() file?: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('ກະລຸນາແນບໄຟລ໌ອະນຸມັດການທຳລາຍ (PDF) ມາດ້ວຍ');
+    }
+    const result = await this.deleteExpiredDocumentsUseCase.execute(file);
     return { message: result.message, deleted: result.deleted };
   }
 }

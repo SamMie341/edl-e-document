@@ -57,21 +57,19 @@ function paginateResult<T>(rows: T[], limit: number, page: number): PaginatedRes
  * (logic เดียวกับ DocumentEntity.retentionStatus getter)
  */
 function calcRetentionStatus(
-  docDate: Date,
+  docExpire: Date,
   isContractBound: boolean,
 ): string {
   if (isContractBound) return 'DESTROYABLE_HOLD';
 
   const now = new Date();
-  const d = new Date(docDate);
-  let age = now.getFullYear() - d.getFullYear();
-  const monthDiff = now.getMonth() - d.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < d.getDate())) {
-    age--;
-  }
+  const d = new Date(docExpire);
 
-  if (age < 10) return 'ACTIVE';
-  if (age === 10) return 'DESTROYABLE';
+  const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const expireDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  if (expireDate > nowDate) return 'ACTIVE';
+  if (expireDate.getTime() === nowDate.getTime()) return 'DESTROYABLE';
   return 'EXPIRED';
 }
 
@@ -512,7 +510,7 @@ export class GlobalSearchUseCase {
           : { isBorrowed: false, borrowedBy: null, borrowedAt: null, purpose: null, toDivision: null };
 
         // ── ข้อ 6 (ส่วนหนึ่ง): Retention status ─────────────────────────
-        const retentionStatus = calcRetentionStatus(doc.docDate, doc.isContractBound);
+        const retentionStatus = calcRetentionStatus(doc.docExpire, doc.isContractBound);
 
         // ── ข้อ 8: Matched fields ────────────────────────────────────────
         const matchedIn = detectMatchedFields(q, {
