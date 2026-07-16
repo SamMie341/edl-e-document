@@ -246,7 +246,8 @@ model DocumentModel {
   description     String?
   docExpire       DateTime
   qrCode          String
-  isContractBound Boolean   @default(false)
+  isContractBound         Boolean   @default(false)
+  destructionApprovalPath String?
 
   userId String
   user   UserModel @relation(fields: [userId], references: [id])

@@ -53,15 +53,22 @@ export class FolderController {
     @Query('search') search?: string,
   ) {
     const user = req.user;
-    const isHQ = user.role === Role.HQ_ADMIN || user.role === Role.SUPER_ADMIN;
-    const addressId = isHQ ? undefined : (user.addressId || 'none');
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    }
 
     const result = await this.getAllFolderUseCase.execute({
       page: parseInt(page, 10) || 1,
       limit: parseInt(limit, 10) || 10,
       shelfId,
       search,
-      addressId,
+      departmentId,
+      divisionId,
     });
     return {
       message: 'Success',

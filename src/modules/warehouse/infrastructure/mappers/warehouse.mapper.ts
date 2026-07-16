@@ -8,7 +8,7 @@ import {
 
 export class WarehouseMapper {
   static toDomain(
-    model: WarehouseModel & { department?: any; division?: any, locker?: any },
+    model: WarehouseModel & { department?: any; division?: any; lockers?: any[] },
   ): Warehouse {
     return new Warehouse(
       model.id,
@@ -33,12 +33,17 @@ export class WarehouseMapper {
           model.division.name,
           model.division.shortName,
         ) : null,
-      model.locker ? new Locker(
-        model.locker.id,
-        model.locker.code,
-        model.locker.name,
-        model.locker.description
-      ) : null,
+      model.lockers
+        ? model.lockers.map(
+          (locker) =>
+            new Locker(
+              locker.id,
+              locker.code,
+              locker.name,
+              locker.description,
+            ),
+        )
+        : [],
     );
   }
 }

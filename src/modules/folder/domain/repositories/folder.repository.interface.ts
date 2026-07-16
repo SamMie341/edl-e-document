@@ -6,7 +6,8 @@ export interface FolderFilterParams {
   page?: number;
   limit?: number;
   shelfId?: string;
-  addressId?: string;
+  departmentId?: number;
+  divisionId?: number;
   search?: string;
 }
 

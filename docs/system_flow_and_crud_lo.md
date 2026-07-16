@@ -6,16 +6,16 @@
 
 ## 1. ພາບລວມ ແລະ ຂັ້ນຕອນການເຮັດວຽກຂອງລະບົບ (System Workflows)
 
-ລະບົບ EDL E-Document ຖືກອອກແບບມາເພື່ອຄຸ້ມຄອງທັງ **ເອກະສານດິຈິຕອນ (Digital Attachments)** ແລະ **ການກວດສອບສະຖານທີ່ຈັດເກັບເອກະສານຕົວຈິງ (Physical Storage Tracking)** ໂດຍມີຂັ້ນຕອນການເຮັດວຽກຫຼັກ 3 ພາກສ່ວນຄື:
+ລະບົບ EDL E-Document ຖືກອອກແບບມາເພື່ອຄຸ້ມຄອງທັງ **ເອກະສານດິຈິຕອນ (Digital Attachments)** ແລະ **ການກວດສອບສະຖານທີ່ຈັດເກັບເອກະສານຕົວຈິງ (Physical Storage Tracking)** ໂດຍມີຂັ້ນຕອນການເຮັດວຽກຫຼັກ 4 ພາກສ່ວນຄື:
 
 ### A. ຂັ້ນຕອນການກວດສອບສິດ ແລະ ຊິງຄ໌ຂໍ້ມູນພະນັກງານ (Authentication & HRM Sync Flow)
 1. **ການຊິງຄ໌ຂໍ້ມູນຈາກ HRM:** ລະບົບມີລະບົບເຊື່ອມຕໍ່ກັບຖານຂໍ້ມູນ HRM ພາຍນອກ ໂດຍໃຊ້ລະຫັດພະນັກງານ (`empCode`) ເພື່ອດຶງຂໍ້ມູນສ່ວນຕົວ ແລະ ຂໍ້ມູນການສັງກັດເຊັ່ນ: ພະແນກ (`Department`), ຝ່າຍ (`Division`), ຫ້ອງການ (`Office`), ແລະ ໜ່ວຍງານ (`Unit`).
 2. **ການເຂົ້າສູ່ລະບົບ (Authentication):** ລະບົບໃຊ້ລະຫັດຜ່ານທີ່ຖືກແຮຊ (Hashed) ດ້ວຍ bcrypt ແລະ ອອກ Token ຜ່ານ JWT Strategy ສໍາລັບການຢືນຢັນຕົວຕົນ.
 3. **ການກວດສອບບົດບາດ (Role-Based Access Control - RBAC):** ລະບົບແບ່ງຜູ້ໃຊ້ອອກເປັນ 4 ບົດບາດຫຼັກ:
-   * **`SUPER_ADMIN`**: ມີສິດເຕັມທຸກການດຳເນີນງານໃນລະບົບ — ຄຸ້ມຄອງຜູ້ໃຊ້, ສິດ, ຊິງຄ໌ HRM ແລະ ສາມາດຈັດການສະຖານທີ່ຈັດເກັບ, ສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ເອກະສານທັງໝົດ.
-   * **`HQ_ADMIN`**: ຜູ້ດູແລລະບົບສ່ວນກາງ (ສຳນັກງານໃຫຍ່). ສາມາດຈັດການ ແລະ ເບິ່ງສະຖານທີ່ຈັດເກັບ, ສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ປະເພດເອກະສານທັງໝົດທົ່ວປະເທດ.
-   * **`BRANCH_ADMIN`**: ຜູ້ດູແລລະບົບປະຈໍາສາຂາ. ສາມາດຈັດການສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ຄຸ້ມຄອງເອກະສານສະເພາະພາຍໃນສະຖານທີ່ (`addressId`) ຂອງຕົນເອງ.
-   * **`USER`**: ພະນັກງານທົ່ວໄປ. ສາມາດສ້າງເອກະສານ, ອັບໂຫລດໄຟລ໌ແນບ, ຄົ້ນຫາເອກະສານຂອງຕົນເອງ ແລະ ເບິ່ງສະຖານທີ່ຈັດເກັບໄດ້ (ເບິ່ງໄຟລ໌ແນບໄດ້ສະເພາະເອກະສານທີ່ຕົນເອງສ້າງ).
+   * **`SUPER_ADMIN`**: ມີສິດເຕັມທຸກການດຳເນີນງານໃນລະບົບ — ຄຸ້ມຄອງຜູ້ໃຊ້, ສິດ, ຊິງຄ໌ HRM ແລະ ສາມາດຈັດການສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ເອກະສານທັງໝົດ.
+   * **`HQ_ADMIN`**: ຜູ້ດູແລລະບົບສ່ວນກາງ (ສຳນັກງານໃຫຍ່). ສາມາດຈັດການ ແລະ ເບິ່ງສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ປະເພດເອກະສານທັງໝົດທົ່ວປະເທດ.
+   * **`BRANCH_ADMIN`**: ຜູ້ດູແລລະບົບປະຈໍາສາຂາ. ສາມາດຈັດການສາງ, ຕູ້, ຊັ້ນວາງ, ແຟ້ມເອກະສານ ແລະ ຄຸ້ມຄອງເອກະສານສະເພາະພາຍໃນ `departmentId` ຂອງຕົນເອງ (ຈາກ JWT).
+   * **`USER`**: ພະນັກງານທົ່ວໄປ. ສາມາດສ້າງເອກະສານ, ອັບໂຫລດໄຟລ໌ແນບ, ຄົ້ນຫາເອກະສານຂອງຕົນເອງ ແລະ ເບິ່ງສະຖານທີ່ຈັດເກັບໄດ້ (ເຂົ້າເຖິງໄດ້ສະເພາະ division ທີ່ຕົນຖືກ assign ໃນ `UserDivisionModel`).
 
 ---
 
@@ -23,19 +23,19 @@
 ເພື່ອຄວາມສະດວກໃນການຄົ້ນຫາເອກະສານຕົວຈິງ, ລະບົບໄດ້ຈັດລຽງໂຄງສ້າງການເກັບຮັກສາຕາມລໍາດັບດັ່ງນີ້:
 
 ```
-[Address] (ສະຖານທີ່ຈັດເກັບ / ຕຶກອາຄານ)
-   └── [Warehouse] (ສາງເກັບເອກະສານ)
-          └── [Locker] (ຕູ້ເກັບເອກະສານ)
-                 └── [Shelf] (ຊັ້ນວາງເອກະສານ)
-                        └── [Folder / Kono] (ແຟ້ມເອກະສານທີ່ມີ QR Code)
-                               └── [Document] (ເອກະສານຕົວຈິງ)
+[Warehouse] (ສາງເກັບເອກະສານ — ຜູກກັບ departmentId & divisionId)
+       └── [Locker] (ຕູ້ເກັບເອກະສານ)
+              └── [Shelf] (ຊັ້ນວາງເອກະສານ)
+                     └── [Folder / Kono] (ແຟ້ມເອກະສານທີ່ມີ QR Code)
+                            └── [Document] (ເອກະສານຕົວຈິງ ທີ່ມີ QR Code)
+                                   └── [SubDocument] (ເອກະສານຍ່ອຍ)
 ```
 
-> **ການຕັດສິນໃຈດ້ານໂຄງສ້າງ:** `Address` ເປັນ "ຂໍ້ມູນຕ້ົນທາງ" ດ້ານທີ່ຕັ້ງ. ສະເພາະ `Warehouse` ເທົ່ານັ້ນທີ່ເກັບ `addressId` ໂດຍກົງ. ທຸກ entity ທີ່ຢູ່ດ້ານລຸ່ມ (Locker → Shelf → Folder → Document) ສືບທອດສະຖານທີ່ຜ່ານ chain ໂດຍ **ບໍ່ມີ** `branchId` ຫຼື `divisionId` ໃນ model ການຈັດເກັບທາງກາຍະພາບ.
+> **ການປ່ຽນແປງໂຄງສ້າງ (v2026-07-15):** Module `Address` ຖືກລຶບອອກຈາກ API ແລ້ວ. ປັດຈຸບັນ `Warehouse` ເກັບ `departmentId` ແລະ `divisionId` ໂດຍກົງ ແທນ `addressId`. ທຸກ entity ທີ່ຢູ່ດ້ານລຸ່ມ ສືບທອດຂອບເຂດຜ່ານ chain ຂຶ້ນໄປ.
 
-* **Address (ສະຖານທີ່ຈັດເກັບ):** ລະບຸສະຖານທີ່ຕັ້ງທາງກາຍະພາບ (ເຊັ່ນ: ຕຶກ, ຫ້ອງ) ທີ່ເປັນບ່ອນຕັ້ງຂອງສາງເກັບເອກະສານ. ການຈໍາກັດການເຂົ້າເຖິງຂໍ້ມູນທາງກາຍະພາບທັງໝົດດໍາເນີນການຜ່ານ `Address`.
-* **Folder (ແຟ້ມ / ໂກໂນ):** ແຟ້ມເກັບເອກະສານຈະມີ QR Code ສະເພາະຕົວ. `locationRef` ຈະຖືກສ້າງໂດຍອັດຕະໂນມັດໃນຮູບແບບ `address.code / warehouse.code / locker.code`.
+* **Folder (ແຟ້ມ / ໂກໂນ):** ແຟ້ມເກັບເອກະສານຈະມີ QR Code ສະເພາະຕົວ. `locationRef` ຈະຖືກສ້າງໂດຍອັດຕະໂນມັດໃນຮູບແບບ `warehouse.code / locker.code / shelf.name`.
 * **Shelf (ຊັ້ນວາງ):** ຈະມີການກຳນົດຄວາມຈຸສູງສຸດ (`maxQty`) ເພື່ອບໍ່ໃຫ້ເກັບເອກະສານເກີນກຳນົດ.
+* **Document:** ມີ field `qrCode` ສຳລັບລະບຸເອກະສານຕົວຈິງ.
 
 ---
 
@@ -45,7 +45,25 @@
 1. **ກວດສອບເອກະສານຕົ້ນສະບັບ:** ຜູ້ໃຊ້ຈະຕ້ອງກວດສອບຄວາມຖືກຕ້ອງຂອງເອກະສານຕົ້ນສະບັບກ່ອນ ແລ້ວຈຶ່ງນຳເຂົ້າລະບົບ.
 2. **ການສ້າງເອກະສານ:** ຜູ້ໃຊ້ (`USER` ຫຼື Admin) ສ້າງເອກະສານໂດຍການປ້ອນຂໍ້ມູນຫົວຂໍ້, ເລກທີເອກະສານ, ປະເພດເອກະສານ, ເລືອກແຟ້ມຈັດເກັບຕົວຈິງ (`Folder`) ແລະ ອັບໂຫລດໄຟລ໌ແນບ.
 3. **ການບີບອັດ ແລະ ຈັດເກັບໄຟລ໌:** ໄຟລ໌ທີ່ອັບໂຫລດຈະຖືກກວດສອບ, ບີບອັດ (Compress) ເພື່ອປະຢັດພື້ນທີ່ ແລະ ບັນທຶກລົງໃນລະບົບຈັດເກັບ.
-4. **ການບັນທຶກປະຫວັດ (Audit Log):** ລະບົບຈະບັນທຶກປະຫວັດການກະທຳ, ວັນເວລາ ແລະ ຜູ້ເຮັດທຸລະກຳລົງໃນຕາຕະລາງ `audit_logs` ໂດຍອັດຕະໂນມັດ.
+4. **ສະຖານະການຮັກສາເອກະສານ (Retention Status):** ທຸກເອກະສານມີ field `docExpire` ແລະ `isContractBound`. ລະບົບຄຳນວນສະຖານະໂດຍອັດຕະໂນມັດ:
+   * `ACTIVE` — ອາຍຸເອກະສານ < 10 ປີ
+   * `DESTROYABLE` — ອາຍຸເອກະສານ = 10 ປີ
+   * `EXPIRED` — ອາຍຸເອກະສານ > 10 ປີ
+   * `DESTROYABLE_HOLD` — ເອກະສານຜູກກັບສັນຍາ (ຫ້າມທຳລາຍ)
+5. **ການບັນທຶກປະຫວັດ (Audit Log):** ລະບົບຈະບັນທຶກປະຫວັດການກະທຳ, ວັນເວລາ ແລະ ຜູ້ເຮັດທຸລະກຳລົງໃນຕາຕະລາງ `audit_logs` ໂດຍອັດຕະໂນມັດ.
+
+---
+
+### D. ຂັ້ນຕອນການຢືມ-ຄືນເອກະສານ (Document Borrow Flow)
+ລະບົບຕິດຕາມການຢືມ ແລະ ຄືນ ເອກະສານ ຫຼື ແຟ້ມເອກະສານທາງກາຍະພາບ:
+
+1. **ຄຳຂໍຢືມ:** ຜູ້ໃຊ້ທຸກລະດັບສາມາດສ້າງຄຳຂໍຢືມ ໂດຍລະບຸ `documentIds` ຫຼື `folderIds` (ຮູບແບບ array), ຊື່ຜູ້ຢືມ, ຈຸດປະສົງ ແລະ ຝ່າຍທີ່ຈະສົ່ງໄປ (`toDivisionId`).
+2. **ການຕິດຕາມ:** ຂໍ້ມູນການຢືມຈະຖືກຕິດຕາມດ້ວຍ `returnedAt`. ຂໍ້ມູນທີ່ຍັງບໍ່ມີ `returnedAt` ຈະຖືກຈັດເປັນ **ການຢືມທີ່ຍັງເຄື່ອນໄຫວ**.
+3. **ການຄືນ:** `PUT /document-borrows/:id/return` ສຳລັບການຄືນເອກະສານ.
+4. **ຂອບເຂດຕາມສິດ (Scope):**
+   * `SUPER_ADMIN` / `HQ_ADMIN` → ເຫັນທຸກຂໍ້ມູນ.
+   * `BRANCH_ADMIN` → ຈຳກັດຕາມ `departmentId` ຂອງຕົນ.
+   * `USER` → ຈຳກັດຕາມ `divisionId` ຂອງຕົນ.
 
 ---
 
@@ -53,205 +71,222 @@
 
 ### 1. ໂມດູນເອກະສານ (Document Module)
 ໂມດູນຫຼັກໃນການຈັດການເອກະສານດິຈິຕອນ ແລະ ເອກະສານຕົວຈິງ.
-* **Create (ສ້າງ):**
+* **Create (ສ້າງ):** `POST /documents`
   * ຜູ້ໃຊ້ (`SUPER_ADMIN`, `USER`, `HQ_ADMIN`, `BRANCH_ADMIN`) ສາມາດສ້າງເອກະສານໃໝ່.
   * ສາມາດແນບໄຟລ໌ເອກະສານໄດ້ພ້ອມກັນສູງສຸດ 10 ໄຟລ໌ ໂດຍລະບົບຈະທຳການບີບອັດ ແລະ ບັນທຶກໄຟລ໌ອັດຕະໂນມັດ.
-* **Read (ອ່ານ/ຄົ້ນຫາ):**
-  * ຄົ້ນຫາ ແລະ ດຶງຂໍ້ມູນເອກະສານທັງໝົດແບບແບ່ງໜ້າ (Pagination) ພ້ອມທັງສາມາດກັ່ນຕອງ (Filter) ຕາມປະເພດເອກະສານ, ວັນທີ, ຫົວຂໍ້ ແລະ `folderId`.
-  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນເອກະສານທັງໝົດ. `BRANCH_ADMIN` ແລະ `USER` ເຫັນສະເພາະເອກະສານຂອງຕົນເອງ (ກຳນົດຂອບເຂດດ້ວຍ `userId`).
-  * ດຶງຂໍ້ມູນລະອຽດຂອງເອກະສານແບບລາຍຕົວ (`GetById`).
-  * ເປີດອ່ານ ຫຼື ດາວໂຫລດໄຟລ໌ແນບ (`GetAttachment`) ໂດຍລະບົບຈະມີການກວດສອບສິດ.
-* **Update (ແກ້ໄຂ):**
-  * `USER` ແລະ `BRANCH_ADMIN` ແກ້ໄຂໄດ້ສະເພາະເອກະສານທີ່ຕົນເອງສ້າງ (ກວດສອບຄວາມເປັນເຈົ້າຂອງດ້ວຍ `userId`).
-  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ສາມາດແກ້ໄຂເອກະສານໄດ້ທັງໝົດ.
+* **Read (ອ່ານ/ຄົ້ນຫາ):** `GET /documents`
+  * ຄົ້ນຫາ ແລະ ດຶງຂໍ້ມູນເອກະສານທັງໝົດແບບແບ່ງໜ້າ (Pagination) ພ້ອມທັງສາມາດກັ່ນຕອງ (Filter):
+    * `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`
+    * **[ໃໝ່]** `retentionStatus` — ກອງຕາມສະຖານະ (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
+    * **[ໃໝ່]** `warehouseId`, `lockerId`, `shelfId` — ກອງຕາມສະຖານທີ່ຈັດເກັບ
+  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນເອກະສານທັງໝົດ. `BRANCH_ADMIN` ແລະ `USER` ເຫັນສະເພາະ division ຂອງຕົນ.
+  * `GET /documents/:id` — ດຶງຂໍ້ມູນລະອຽດຂອງເອກະສານ; ກວດສອບສິດຕາມ division.
+  * `GET /documents/attachments/:attachmentId` — ເປີດ/ສະຕຣີມໄຟລ໌ແນບ.
+  * **[ໃໝ່]** `GET /documents/attachments/:attachmentId/download` — ດາວໂຫລດໄຟລ໌ (Force download).
+  * `GET /documents/expired` — ລາຍການເອກະສານທີ່ໝົດອາຍຸ ຫຼື ຄວນທຳລາຍ.
+  * **[ໃໝ່]** `GET /documents/:id/destruction-approval` — ດຶງສະຖານະການອະນຸມັດທຳລາຍຂອງເອກະສານ.
+* **Update (ແກ້ໄຂ):** `PUT /documents/:id`
+  * ທຸກລະດັບສິດສາມາດແກ້ໄຂໄດ້ (ກວດສອບຂອບເຂດໃນ use case layer). ຮອງຮັບການໃສ່ໄຟລ໌ແນບໃໝ່.
 * **Delete (ລົບ):**
-  * ບໍ່ອະນຸຍາດໃຫ້ລົບເອກະສານໂດຍກົງຈາກ API ເພື່ອປ້ອງກັນການສູນຫາຍຂອງຂໍ້ມູນ ແລະ ຄວາມປອດໄພ.
+  * ບໍ່ອະນຸຍາດໃຫ້ລົບເອກະສານໂດຍກົງ.
+  * **ເອກະສານໝົດອາຍຸ:** `DELETE /documents/expired` — ລົບຈຳນວນຫຼາຍ (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`).
 
 ---
 
-### 2. ໂມດູນແຟ້ມເອກະສານ (Folder / Kono Module)
+### 2. ໂມດູນເອກະສານຍ່ອຍ (Sub-Document Module) *(ໃໝ່)*
+ຄຸ້ມຄອງ Sub-Document ທີ່ຜູກກັບເອກະສານຫຼັກ (ເຊັ່ນ: ສະບັບແກ້ໄຂ, ເອກະສານທີ່ກ່ຽວຂ້ອງ).
+* **Create (ສ້າງ):** `POST /documents/:documentId/sub-documents`
+  * ທຸກລະດັບສິດ. Fields: `subDocNo` (ຕ້ອງມີ), `subDocDate` (ຕ້ອງມີ), `subDocuments` (array ເພີ່ມເຕີມ).
+* **Read (ອ່ານ):** `GET /documents/:documentId/sub-documents`
+  * ດຶງ sub-document ທັງໝົດຂອງເອກະສານຫຼັກ.
+* **Update (ແກ້ໄຂ):** `PUT /documents/:documentId/sub-documents/:id`
+  * Fields: `subDocNo`, `subDocDate`.
+* **Delete (ລົບ):** `DELETE /documents/:documentId/sub-documents/:id`
+
+---
+
+### 3. ໂມດູນແຟ້ມເອກະສານ (Folder / Kono Module)
 ຄຸ້ມຄອງແຟ້ມເອກະສານທາງກາຍະພາບທີ່ວາງຢູ່ເທິງຊັ້ນວາງ.
-* **Create (ສ້າງ):** `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` ສາມາດສ້າງແຟ້ມເອກະສານໃໝ່ ໂດຍຕ້ອງລະບຸຊັ້ນວາງ (`shelfId`). ລະບົບຈະສ້າງ QR Code ແລະ `locationRef` ໃຫ້ໂດຍອັດຕະໂນມັດ.
+* **Create (ສ້າງ):** `POST /folders` — `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` ສາມາດສ້າງແຟ້ມ ໂດຍຕ້ອງລະບຸ `shelfId`. ລະບົບຈະສ້າງ QR Code ແລະ `locationRef` ໂດຍອັດຕະໂນມັດ.
 * **Read (ອ່ານ):**
-  * `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເຫັນທຸກແຟ້ມ. `BRANCH_ADMIN` ແລະ `USER` ຖືກຈໍາກັດຕາມ `addressId` ຂອງຕົນ (ຜ່ານ Folder → Shelf → Locker → Warehouse → addressId).
-  * ເບິ່ງລາຍການແຟ້ມເອກະສານທັງໝົດທີ່ຢູ່ເທິງຊັ້ນວາງໃດໜຶ່ງ (`getByShelf`).
-  * ດຶງຂໍ້ມູນລະອຽດຂອງແຟ້ມເອກະສານຕາມ ID (`getById`).
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນແຟ້ມ. `BRANCH_ADMIN` ຈໍາກັດສະເພາະແຟ້ມໃນ `address` ຂອງຕົນ.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ. `BRANCH_ADMIN` ສາມາດລົບໄດ້ສະເພາະແຟ້ມໃນ `address` ຂອງຕົນ.
+  * `GET /folders` — ລາຍການໜ້າ ດ້ວຍ filter: `shelfId`, `search`.
+  * `GET /folders/:id` — ລາຍລະອຽດແຟ້ມ.
+  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກແຟ້ມ. `BRANCH_ADMIN` ແລະ `USER` ຖືກຈຳກັດຕາມ warehouse ຂອງຕົນ.
+* **Update (ແກ້ໄຂ):** `PUT /folders/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+* **Delete (ລົບ):** `DELETE /folders/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
 
 ---
 
-### 3. ໂມດູນຊັ້ນວາງເອກະສານ (Shelf Module)
+### 4. ໂມດູນຊັ້ນວາງເອກະສານ (Shelf Module)
 ຄຸ້ມຄອງຊັ້ນວາງເອກະສານພາຍໃນຕູ້ເກັບ.
-* **Create (ສ້າງ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດເພີ່ມຊັ້ນວາງໃໝ່ ໂດຍຕ້ອງລະບຸຕູ້ເກັບ (`lockerId`) ແລະ ກໍານົດຄວາມຈຸສູງສຸດ (`maxQty`). `BRANCH_ADMIN` ຈະຖືກກວດສອບ `addressId` ຂອງ locker ນັ້ນ.
+* **Create (ສ້າງ):** `POST /shelves` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` ໂດຍລະບຸ `lockerId` ແລະ `maxQty`. **[ໃໝ່]** ຮອງຮັບການສ້າງຊັ້ນວາງຫຼາຍອັນໃນຄັ້ງດຽວ ຜ່ານ array `shelves`.
 * **Read (ອ່ານ):**
-  * `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເຫັນທຸກຊັ້ນວາງ. `BRANCH_ADMIN` ຖືກຈໍາກັດຕາມ `addressId` (ຜ່ານ Shelf → Locker → Warehouse → addressId).
-  * ເບິ່ງລາຍການຊັ້ນວາງທັງໝົດທີ່ສັງກັດໃນຕູ້ເກັບໃດໜຶ່ງ (`getByLocker`).
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນຊັ້ນວາງ ແລະ ສະຖານະການນຳໃຊ້ໄດ້.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
+  * `GET /shelves` — ລາຍການໜ້າ ດ້ວຍ filter: `lockerId`, `warehouseId`, `search`, `status`.
+  * `GET /shelves/:id` — ລາຍລະອຽດຊັ້ນວາງ.
+  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກຊັ້ນວາງ. `BRANCH_ADMIN` ຖືກຈຳກັດຕາມ warehouse.
+* **Update (ແກ້ໄຂ):** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+* **Delete (ລົບ):** `DELETE /shelves/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
 
 ---
 
-### 4. ໂມດູນຕູ້ເອກະສານ (Locker Module)
+### 5. ໂມດູນຕູ້ເອກະສານ (Locker Module)
 ຄຸ້ມຄອງຕູ້ຈັດເກັບເອກະສານພາຍໃນສາງ.
-* **Create (ສ້າງ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດສ້າງຕູ້ເກັບເອກະສານໃໝ່ພາຍໃນສາງ (`warehouseId`). `BRANCH_ADMIN` ຈະຖືກກວດສອບວ່າ `addressId` ຂອງສາງຕ້ອງກົງກັບ `addressId` ຂອງຕົນ.
+* **Create (ສ້າງ):** `POST /lockers` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` ໂດຍລະບຸ `warehouseId`.
 * **Read (ອ່ານ):**
-  * `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເຫັນທຸກຕູ້. `BRANCH_ADMIN` ຖືກຈໍາກັດຕາມ `addressId` (ຜ່ານ Locker → Warehouse → addressId).
-  * ດຶງຂໍ້ມູນຕູ້ເອກະສານທັງໝົດທີ່ຢູ່ໃນສາງໃດໜຶ່ງ (`getByWarehouse`).
-  * **[ໃໝ່] ດຶງຂໍ້ມູນ Dropdown** (`GET /lockers/dropdown`): ດຶງລາຍຊື່ຕູ້ທີ່ຖືກຫຍໍ້ ສຳລັບການຕື່ມຂໍ້ມູນໃນ Dropdown ໃນ Frontend / Mobile App. ຜົນລັບຈະລວມ `id`, `name`, `code`, `status` ພ້ອມຂໍ້ມູນສາງ (`warehouse.id`, `warehouse.name`) ແລະ ສະຖານທີ່ (`address.id`, `address.name`).
-    * ສາມາດກອງຜ່ານ query parameter:
-      * `warehouseId` — ດຶງສະເພາະຕູ້ໃນສາງນັ້ນ
-      * `status` — ດຶງສະເພາະຕູ້ທີ່ມີສະຖານະທີ່ລະບຸ (ເຊັ່ນ `A`)
-    * `BRANCH_ADMIN` / `USER` ຈະໄດ້ຮັບສະເພາະຕູ້ພາຍໃນ `addressId` ຂອງຕົນ (`addressId` ຖືກ inject ຈາກ JWT payload ໂດຍອັດຕະໂນມັດ ຜ່ານ `req.user.addressId`).
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນຕູ້. `BRANCH_ADMIN` ຖືກກວດສອບ `addressId`.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ. ບໍ່ສາມາດລົບຕູ້ທີ່ຍັງມີຊັ້ນວາງຢູ່ພາຍໃນໄດ້ (ລະບົບຈະ throw `ConflictException`).
+  * `GET /lockers` — ລາຍການໜ້າ ດ້ວຍ filter: `warehouseId`, `search`, `status`.
+  * `GET /lockers/:id` — ລາຍລະອຽດຕູ້.
+  * `GET /lockers/dropdown` — Dropdown ຫຍໍ້, filter: `warehouseId`, `status`. ສົ່ງຄືນ `id`, `name`, `code`, `status` + ຂໍ້ມູນສາງ.
+  * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກຕູ້. `BRANCH_ADMIN` ຖືກຈຳກັດຕາມ warehouse ຂອງຕົນ.
+* **Update (ແກ້ໄຂ):** `PUT /lockers/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`. Fields: `code`, `name`, `description`, `warehouseId`, `status`.
+* **Delete (ລົບ):** `DELETE /lockers/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ. ບໍ່ສາມາດລົບຕູ້ທີ່ຍັງມີຊັ້ນວາງ (`ConflictException`).
 
 ---
 
-### 5. ໂມດູນສາງເອກະສານ (Warehouse Module)
-ຄຸ້ມຄອງຫ້ອງ ຫຼື ສາງເກັບເອກະສານທີ່ຜູກກັບສະຖານທີ່ (`Address`).
-* **Create (ສ້າງ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດສ້າງສາງໄດ້ ໂດຍຕ້ອງລະບຸ `addressId` ເທົ່ານັ້ນ (ບໍ່ຕ້ອງລະບຸ `branchId` ຫຼື `divisionId`).
+### 6. ໂມດູນສາງເອກະສານ (Warehouse Module)
+ຄຸ້ມຄອງສາງເກັບເອກະສານ.
+* **Create (ສ້າງ):** `POST /warehouses` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * **[ອັບເດດ]** Fields: `code`, `name`, `description`, `departmentId`, `divisionId` (ແທນ `addressId` ເດີມ).
 * **Read (ອ່ານ):**
-  * ເບິ່ງລາຍການສາງທັງໝົດ ພ້ອມຕົວກັ່ນຕອງ `search` ແລະ `status`.
-  * ຜູ້ໃຊ້ທຸກລະດັບສາມາດດຶງຂໍ້ມູນລາຍການສາງໄດ້.
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN`, `HQ_ADMIN` ແລະ `BRANCH_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນສາງ (ຊື່, ລະຫັດສາງ, ຄໍາອະທິບາຍ, ສະຖານະ).
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
+  * `GET /warehouses` — ລາຍການໜ້າ ດ້ວຍ filter: `search`, `status`.
+  * `GET /warehouses/dropdown` — Dropdown ຫຍໍ້.
+  * `GET /warehouses/:id` — ລາຍລະອຽດສາງ.
+* **Update (ແກ້ໄຂ):** `PUT /warehouses/:id` — Fields: `code`, `name`, `description`, `departmentId`, `divisionId`, `status`.
+* **Delete (ລົບ):** `DELETE /warehouses/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
 
-> **ໝາຍເຫດ:** Endpoint `GET branches/dropdown` ຖືກລຶບອອກແລ້ວ. ສາງເອກະສານ **ບໍ່ມີ** `branchId` ຫຼື `divisionId` ອີກຕໍ່ໄປ — ໃຊ້ `addressId` ເທົ່ານັ້ນ.
-
----
-
-### 6. ໂມດູນສະຖານທີ່ຈັດເກັບ (Address Module)
-ຄຸ້ມຄອງສະຖານທີ່ ຫຼື ຕຶກອາຄານທາງກາຍະພາບທີ່ໃຊ້ຕັ້ງສາງເກັບເອກະສານ.
-* **Create (ສ້າງ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ສາມາດເພີ່ມສະຖານທີ່ຈັດເກັບໃໝ່ໄດ້.
-* **Read (ອ່ານ):**
-  * ເບິ່ງລາຍການສະຖານທີ່ຈັດເກັບທັງໝົດ (`SUPER_ADMIN` ແລະ `HQ_ADMIN`).
-  * ດຶງຂໍ້ມູນ Dropdown ຂອງສະຖານທີ່ຈັດເກັບ (ສິດ `HQ_ADMIN` ແລະ `BRANCH_ADMIN`).
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ສາມາດແກ້ໄຂຂໍ້ມູນສະຖານທີ່ຈັດເກັບ.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
+> **ໝາຍເຫດ:** Module `Address` ຖືກລຶບອອກຈາກ API ແລ້ວ. ສາງເອກະສານຕອນນີ້ໃຊ້ `departmentId` ແລະ `divisionId` ໂດຍກົງ ແທນ `addressId`.
 
 ---
 
 ### 7. ໂມດູນປະເພດເອກະສານ (Document Type Module)
 ຄຸ້ມຄອງໝວດໝູ່ ຫຼື ປະເພດຂອງເອກະສານ.
-* **Create (ສ້າງ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ສາມາດເພີ່ມປະເພດເອກະສານໃໝ່ໄດ້.
-* **Read (ອ່ານ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດເບິ່ງລາຍການປະເພດເອກະສານທັງໝົດ, ຄົ້ນຫາຕາມຊື່, ຫຼື ດຶງຂໍ້ມູນຕາມ ID.
-* **Update (ແກ້ໄຂ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ສາມາດແກ້ໄຂຊື່ ແລະ ລາຍລະອຽດ.
-* **Delete (ລົບ):** `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ (ຕ້ອງບໍ່ມີເອກະສານໃດໆ ໃຊ້ປະເພດນີ້ຢູ່).
+* **Create (ສ້າງ):** `POST /document-types` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code`, `name`, `description`.
+* **Read (ອ່ານ):**
+  * `GET /document-types` — ລາຍການໜ້າ ດ້ວຍ filter: `search`, `status`.
+  * `GET /document-types/name/:name` — ຊອກຫາຕາມຊື່.
+  * `GET /document-types/:id` — ລາຍລະອຽດ.
+* **Update (ແກ້ໄຂ):** `PUT /document-types/:id` — Fields: `code`, `name`, `description`, `isActive`.
+* **Delete (ລົບ):** `DELETE /document-types/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
 
 ---
 
 ### 8. ໂມດູນການຢືມ-ຄືນເອກະສານ (Document Borrow Module)
 ຄຸ້ມຄອງການຢືມ ແລະ ຄືນ ເອກະສານ ຫຼື ແຟ້ມເອກະສານ.
-* **Create (ສ້າງ/ຢືມ):** ຜູ້ໃຊ້ທຸກລະດັບ (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`, `USER`) ສາມາດບັນທຶກການຢືມເອກະສານ/ແຟ້ມໄດ້.
-* **Read (ອ່ານ):** 
-  * ດຶງຂໍ້ມູນການຢືມທັງໝົດ, ການຢືມທີ່ຍັງເຄື່ອນໄຫວ (ຍັງບໍ່ທັນຄືນ).
-  * ດຶງຂໍ້ມູນປະຫວັດການຢືມຕາມເອກະສານ (`getByDocument`), ຕາມແຟ້ມ (`getByFolder`), ຫຼື ຕາມຝ່າຍ (`getByDivision`).
-* **Update (ແກ້ໄຂ/ຄືນ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດບັນທຶກການຄືນເອກະສານ (`Return`) ໄດ້.
+* **Create (ສ້າງ/ຢືມ):** `POST /document-borrows`
+  * ທຸກລະດັບສິດ.
+  * **[ອັບເດດ]** Fields: `documentIds` (array ທາງເລືອກ), `folderIds` (array ທາງເລືອກ), `borrower` (ຕ້ອງມີ), `purpose`, `toDivisionId`, `toLocation`, `note`.
+  * ຕ້ອງລະບຸ `documentIds` ຫຼື `folderIds` ຢ່າງໜ້ອຍ 1 ອັນ.
+* **Update (ແກ້ໄຂ/ຄືນ):** `PUT /document-borrows/:id/return` — ທຸກລະດັບສິດ.
+* **Read (ອ່ານ):**
+  * `GET /document-borrows` — ລາຍການໜ້າ. Filters: `documentId`, `borrowerId`, `divisionId`, `activeOnly`. Scope ຕາມສິດ.
+  * `GET /document-borrows/active` — ລາຍການທີ່ຍັງຢືມຢູ່.
+  * `GET /document-borrows/:id` — ລາຍລະອຽດ.
+  * `GET /document-borrows/document/:documentId` — ປະຫວັດຕາມເອກະສານ.
+  * `GET /document-borrows/folder/:folderId` — ປະຫວັດຕາມແຟ້ມ.
+  * `GET /document-borrows/division/:divisionId` — ປະຫວັດຕາມຝ່າຍ, filter `activeOnly`.
 * **Delete (ລົບ):** ບໍ່ມີ.
 
 ---
 
 ### 9. ໂມດູນຄົ້ນຫາລວມ (Search Module)
 ຄຸ້ມຄອງການຄົ້ນຫາຂໍ້ມູນທົ່ວລະບົບ (Global Search).
-* **Read (ອ່ານ):**
-  * `GET /search`: ຄົ້ນຫາຂໍ້ມູນທຸກປະເພດ (ເອກະສານ, ແຟ້ມ, ແລະອື່ນໆ) ແບບ Global (Full-text) ພ້ອມກອງຂໍ້ມູນຕາມປະເພດ ແລະ ວັນທີ ໂດຍອ້າງອີງສິດຂອງຜູ້ໃຊ້.
-  * `GET /search/qr`: ຄົ້ນຫາແຟ້ມ ຫຼື ເອກະສານຈາກລະຫັດ QR Code ໂດຍກົງ (ສຳລັບການສະແກນຜ່ານ Mobile App).
+* `GET /search` — ຄົ້ນຫາ Full-text. Query params: `q`, `limit` (default 5), `page`, `type`, `dateFrom`, `dateTo`. Entity types: `documents`, `folders`, `warehouses`, `lockers`, `shelves`, `users`, `departments`, `divisions`.
+* `GET /search/qr?code=` — ຄົ້ນຫາຈາກ QR Code ໂດຍກົງ. ສົ່ງຄືນ `{ type: 'folder' | 'document', data: ... }`. ຖ້າບໍ່ພົບຈະ throw `404 NotFoundException`.
 
 ---
 
 ### 10. ໂມດູນພະແນກ (Department Module)
-* **Read (ອ່ານ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດເບິ່ງລາຍຊື່ພະແນກທັງໝົດໄດ້.
-* **Sync (ຊິງຄ໌):** ຊິງຄ໌ຂໍ້ມູນພະແນກຈາກຖານຂໍ້ມູນ HRM ພາຍນອກ (ສະເພາະສິດ `SUPER_ADMIN`).
+* `GET /departments` — ທຸກລະດັບສິດ.
+* `GET /departments/dropdown` — Dropdown ຫຍໍ້.
+* `POST /departments/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
 ### 11. ໂມດູນຝ່າຍ (Division Module)
-* **Read (ອ່ານ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດເບິ່ງລາຍຊື່ຝ່າຍທັງໝົດໄດ້.
-* **Sync (ຊິງຄ໌):** ຊິງຄ໌ຂໍ້ມູນຝ່າຍຈາກຖານຂໍ້ມູນ HRM ພາຍນອກ (ສະເພາະສິດ `SUPER_ADMIN`).
+* `GET /divisions` — ທຸກລະດັບສິດ.
+* `GET /divisions/dropdown?departmentId=` — Dropdown ຕາມພະແນກ.
+* `GET /divisions/department/:departmentId` — ທຸກຝ່າຍໃນພະແນກ.
+* `POST /divisions/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
 ### 12. ໂມດູນຫ້ອງການ (Office Module)
-* **Read (ອ່ານ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດເບິ່ງລາຍຊື່ຫ້ອງການທັງໝົດໄດ້.
-* **Sync (ຊິງຄ໌):** ຊິງຄ໌ຂໍ້ມູນຫ້ອງການຈາກຖານຂໍ້ມູນ HRM ພາຍນອກ (ສະເພາະສິດ `SUPER_ADMIN`).
+* `GET /offices` — ທຸກລະດັບສິດ.
+* `POST /offices/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
 ### 13. ໂມດູນໜ່ວຍງານ (Unit Module)
-* **Read (ອ່ານ):** ຜູ້ໃຊ້ທຸກລະດັບສາມາດເບິ່ງລາຍຊື່ໜ່ວຍງານທັງໝົດໄດ້.
-* **Sync (ຊິງຄ໌):** ຊິງຄ໌ຂໍ້ມູນໜ່ວຍງານຈາກຖານຂໍ້ມູນ HRM ພາຍນອກ (ສະເພາະສິດ `SUPER_ADMIN`).
+* `GET /units` — ທຸກລະດັບສິດ.
+* `POST /units/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
 ### 14. ໂມດູນຜູ້ໃຊ້ ແລະ ລະບົບຄວາມປອດໄພ (User & Auth Module)
 ຄຸ້ມຄອງບັນຊີຜູ້ໃຊ້, ສິດການເຂົ້າເຖິງ ແລະ ການເຊື່ອມໂຍງຂໍ້ມູນພະນັກງານ.
-* **Create (ສ້າງ/ລົງທະບຽນ):**
-  * ລົງທະບຽນຜູ້ໃຊ້ໃໝ່ (`register`).
-  * ຊິງຄ໌ຂໍ້ມູນພະນັກງານຈາກລະບົບ HRM ໂດຍໃຊ້ `empCode` ເພື່ອສ້າງບັນຊີຜູ້ໃຊ້ໃນລະບົບອັດຕະໂນມັດ.
+* **Create / Auth:**
+  * `POST /auth/register` — ລົງທະບຽນດ້ວຍ `empCode` ແລະ `password`.
+  * `POST /auth/login` — ເຂົ້າສູ່ລະບົບ.
 * **Read (ອ່ານ):**
-  * ເບິ່ງຂໍ້ມູນສ່ວນຕົວຂອງຜູ້ໃຊ້ທີ່ກໍາລັງເຂົ້າສູ່ລະບົບ (`getProfile`).
-  * ເບິ່ງລາຍຊື່ຜູ້ໃຊ້ທັງໝົດໃນລະບົບ (ສະເພາະສິດ `SUPER_ADMIN`).
+  * `GET /users/profile` — ຂໍ້ມູນຕົນເອງ.
+  * `GET /users` — ລາຍຊື່ຜູ້ໃຊ້ (ສະເພາະ `SUPER_ADMIN`), filter: `page`, `limit`, `status`, `search`.
 * **Update (ແກ້ໄຂ):**
-  * ປ່ຽນແປງລະຫັດຜ່ານຂອງຕົນເອງ (`changePassword`).
-  * ຣີເຊັດລະຫັດຜ່ານຂອງຜູ້ໃຊ້ອື່ນ (ສິດຂອງ `BRANCH_ADMIN`, `HQ_ADMIN` ຫຼື `SUPER_ADMIN`).
-  * ອັບເດດສິດ/ບົດບາດຂອງຜູ້ໃຊ້ (Role) (ສະເພາະສິດ `SUPER_ADMIN`).
-  * ອະນຸມັດເປີດນຳໃຊ້ບັນຊີຜູ້ໃຊ້ໃໝ່ (`ApproveUser`) (ສະເພາະສິດ `SUPER_ADMIN`).
-* **Delete (ລົບ):** ບໍ່ມີຟັງຊັນລົບຜູ້ໃຊ້ ແຕ່ຈະໃຊ້ການປ່ຽນສະຖານະບັນຊີເປັນປິດການນຳໃຊ້ (Inactive) ແທນ.
+  * `PUT /users/change-password` — ປ່ຽນລະຫັດຜ່ານຕົນເອງ.
+  * `PUT /users/:id/reset-password` — ຣີເຊັດລະຫັດຜ່ານ (`BRANCH_ADMIN`, `HQ_ADMIN`, `SUPER_ADMIN`).
+  * `PUT /users/:id/role` — ອັບເດດ Role (ສະເພາະ `SUPER_ADMIN`).
+  * `PATCH /users/:id/approve` — ອະນຸມັດຜູ້ໃຊ້ (ສະເພາະ `SUPER_ADMIN`). **[ອັບເດດ]** Fields: `role`, `divisionIds` (ລຶບ `addressId` ອອກ).
+  * `PUT /users/:id/divisions` — ອັບເດດ divisions ຂອງຜູ້ໃຊ້. Field: `divisionIds`.
+* **Delete (ລົບ):** ບໍ່ມີຟັງຊັນລົບ ໃຊ້ການປ່ຽນສະຖານະ Inactive ແທນ.
 
 ---
 
 ### 15. ໂມດູນບັນທຶກປະຫວັດ (Audit Log Module)
-* **Create (ສ້າງ):** ລະບົບຈະບັນທຶກປະຫວັດການເຄື່ອນໄຫວ (ເຊັ່ນ: ການສ້າງເອກະສານ, ການແກ້ໄຂ, ການເບິ່ງເອກະສານ) ໂດຍອັດຕະໂນມັດຜ່ານ Repository ພາຍໃນ.
-* **Read / Update / Delete:** ບໍ່ມີ API ໃຫ້ເປີດເຜີຍເພື່ອແກ້ໄຂ ຫຼື ລົບປະຫວັດ ເພື່ອຮັກສາຄວາມຖືກຕ້ອງ ແລະ ຄວາມໂປ່ງໃສຂອງຂໍ້ມູນການກວດສອບ.
+* **Create (ສ້າງ):** ລະບົບຈະບັນທຶກປະຫວັດໂດຍອັດຕະໂນມັດ.
+* **Read / Update / Delete:** ບໍ່ມີ API ເປີດເຜີຍ.
 
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
 
+### ເວີຊັ່ນ 2026-07-15
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **ໂມດູນ Sub-Document ໃໝ່** | Full CRUD `GET/POST /documents/:documentId/sub-documents` ແລະ `PUT/DELETE /documents/:documentId/sub-documents/:id` |
+| **Document filter: `retentionStatus`** | ກອງເອກະສານຕາມ `ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD` |
+| **Document filter: `warehouseId`, `lockerId`, `shelfId`** | ກອງເອກະສານຕາມສະຖານທີ່ຈັດເກັບ |
+| **`GET /documents/attachments/:attachmentId/download`** | ດາວໂຫລດໄຟລ໌ (Force download, ແຍກຈາກ stream) |
+| **`GET /documents/:id/destruction-approval`** | ດຶງສະຖານະການອະນຸມັດທຳລາຍ |
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+
+| ລາຍການ | ກ່ອນໜ້ານີ້ | ຫຼັງຈາກນີ້ |
+|--------|-----------|----------|
+| **Warehouse schema** | ໃຊ້ `addressId` | ໃຊ້ `departmentId` + `divisionId` ແທນ |
+| **Document Borrow fields** | `documentId` (single), `folderId` (single) | `documentIds` (array), `folderIds` (array) |
+| **User approve fields** | `role`, `addressId`, `divisionIds` | `role`, `divisionIds` (ລຶບ `addressId` ອອກ) |
+| **Physical storage hierarchy** | Address → Warehouse → Locker → Shelf → Folder → Document | Warehouse → Locker → Shelf → Folder → Document → SubDocument |
+
+#### ❌ ສິ່ງທີ່ລຶບອອກ (Removed)
+
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **Address Module** | ລຶບທັງ Module ອອກຈາກ API. Warehouse ໃຊ້ `departmentId`/`divisionId` ໂດຍກົງ. |
+
+---
+
 ### ເວີຊັ່ນ 2026-07-02
 
 #### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
 
-**ໂມດູນຕູ້ເອກະສານ (Locker Module)**
-
 | ລາຍການ | ລາຍລະອຽດ |
 |--------|-----------|
-| **Endpoint ໃໝ່:** `GET /lockers/dropdown` | ເພີ່ມ endpoint ສຳລັບດຶງລາຍຊື່ຕູ້ (Locker) ໃນຮູບແບບ Dropdown ທີ່ຫຍໍ້ (Lightweight) ສຳລັບ Frontend ແລະ Mobile App |
-| **Use Case ໃໝ່:** `GetDropdownLockersUseCase` | ເພີ່ມ Use Case ທີ່ເຮັດໜ້າທີ່ query ຂໍ້ມູນ Dropdown ຈາກ Repository |
-| **Method ໃໝ່:** `getDropdown()` ໃນ `ILockerRepository` | ເພີ່ມ contract ໃໝ່ໃນ Interface ແລະ ນຳໄປຕັ້ງຄ່າໃນ `PrismaLockerRepository` |
-| **Postman Collection:** `GET /lockers/dropdown` | ເພີ່ມ request entry ໃໝ່ໃນ Locker section ຂອງ `edl-e-document.postman_collection.json` |
+| **`GET /lockers/dropdown`** | Endpoint Dropdown ສຳລັບ Locker |
+| **`getDropdown()` ໃນ `ILockerRepository`** | Contract ໃໝ່ໃນ Interface |
 
 #### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
 
-**ໂມດູນຕູ້ເອກະສານ (Locker Module)**
-
-| ລາຍການ | ກ່ອນໜ້ານີ້ | ຫຼັງຈາກນີ້ |
-|--------|-----------|----------|
-| **Delete ຕູ້** | ລົບໄດ້ (HQ+SUPER ເທົ່ານັ້ນ) — ບໍ່ໄດ້ຕ້ອງການເງື່ອນໄຂ | ລົບໄດ້ (HQ+SUPER ເທົ່ານັ້ນ) — ລະບົບຈະ **throw `ConflictException`** ຖ້າຕູ້ຍັງມີຊັ້ນວາງ (`Shelf`) ຢູ່ພາຍໃນ |
-| **ເອກະສານ (Docs)** | ໂມດູນ Locker ອະທິບາຍ Read ສຽງ 2 ຈຸດ | ເພີ່ມຄຳອະທິບາຍ Dropdown endpoint ລວມ query params ແລະ RBAC scoping |
-
-#### 📌 ລາຍລະອຽດ Dropdown Response Shape
-
-`GET /lockers/dropdown` ສົ່ງຄືນ array ຂອງ object ທີ່ມີ fields ດັ່ງນີ້:
-
-```json
-[
-  {
-    "id": "uuid",
-    "name": "ຊື່ຕູ້",
-    "code": "ລະຫັດຕູ້",
-    "status": "A",
-    "warehouse": {
-      "id": "uuid",
-      "name": "ຊື່ສາງ",
-      "address": {
-        "id": 1,
-        "name": "ຊື່ສະຖານທີ່"
-      }
-    }
-  }
-]
-```
-
-> **ໝາຍເຫດ RBAC:** `BRANCH_ADMIN` ແລະ `USER` ທີ່ຮ້ອງຂໍ endpoint ນີ້ຈະຖືກ inject `addressId` ຈາກ `req.user.addressId` ໂດຍອັດຕະໂນມັດ — ຜ່ານໂຄງສ້າງ Locker → Warehouse → Address — ດັ່ງນັ້ນຈຶ່ງຈະໄດ້ຮັບສະເພາະຕູ້ທີ່ຢູ່ໃນ branch ຂອງຕົນ.
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **Delete Locker** | ເພີ່ມການ block ດ້ວຍ `ConflictException` ຖ້າຕູ້ຍັງມີ Shelf ຢູ່ |

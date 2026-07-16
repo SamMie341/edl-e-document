@@ -10,7 +10,7 @@ export interface IDocumentRepository {
   findById(id: string): Promise<DocumentEntity | null>;
   update(id: string, data: any): Promise<DocumentEntity>;
   findExpired(): Promise<DocumentEntity[]>;       // หมดอายุ + ไม่ติดพันสัญญา
-  deleteExpired(): Promise<number>;               // ลบทั้งหมดที่ findExpired คืน
+  deleteExpired(approvalFilePath: string): Promise<number>;               // ลบไฟล์แนบของทั้งหมดที่ findExpired คืน และบันทึกไฟล์อนุมัติ
 }
 
 export interface DocumentFilterParams {

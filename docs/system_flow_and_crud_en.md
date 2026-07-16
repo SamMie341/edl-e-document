@@ -13,7 +13,7 @@ The EDL E-Document system is designed to manage both **Digital Attachments** and
 2. **Authentication:** Standard authentication using passwords hashed with bcrypt and JWT Strategy for token verification.
 3. **Role-Based Access Control (RBAC):** The system defines 4 main roles:
    * **`SUPER_ADMIN`**: Has full access to all operations across the entire system — manages users, roles, HRM sync, and all physical storage and document operations.
-   * **`HQ_ADMIN`**: Headquarters Administrator. Can manage and view physical addresses, warehouses, lockers, shelves, folders, and document types nationwide. Also has full read/manage access to documents across all addresses.
+   * **`HQ_ADMIN`**: Headquarters Administrator. Can manage and view physical warehouses, lockers, shelves, folders, and document types nationwide. Also has full read/manage access to documents across all divisions.
    * **`BRANCH_ADMIN`**: Branch Administrator. Can manage physical warehouses, lockers, shelves, folders, and documents specifically within their own department (`departmentId` from JWT). Document visibility is scoped to divisions they are associated with.
    * **`USER`**: General employee. Can create documents, upload attachments, search documents, and view physical storage locations. Document visibility is scoped only to divisions they are assigned to (`userDivisionIds` resolved from `UserDivisionModel`).
 
@@ -23,18 +23,17 @@ The EDL E-Document system is designed to manage both **Digital Attachments** and
 To facilitate easy tracking of physical documents, the system organizes storage locations in the following hierarchy:
 
 ```
-[Address] (Storage Location / Building)
-   └── [Warehouse] (Document Warehouse)
-          └── [Locker] (Document Locker)
-                 └── [Shelf] (Document Shelf)
-                        └── [Folder / Kono] (Folder with QR Code)
-                               └── [Document] (Physical Document with QR Code)
+[Warehouse] (Document Warehouse — linked to departmentId & divisionId)
+       └── [Locker] (Document Locker)
+              └── [Shelf] (Document Shelf)
+                     └── [Folder / Kono] (Folder with QR Code)
+                            └── [Document] (Physical Document with QR Code)
+                                   └── [SubDocument] (Sub-document entries)
 ```
 
-> **Key Design Decision:** `Address` is the single source of truth for physical location. Only `Warehouse` stores `addressId` directly. All downstream entities (Locker → Shelf → Folder → Document) inherit location by traversing the chain upward. There is **no** `branchId` or `divisionId` on any physical storage model.
+> **Key Design Change (v2026-07-15):** The `Address` entity has been removed from the API. `Warehouse` now stores `departmentId` and `divisionId` directly for organizational scoping. All downstream entities (Locker → Shelf → Folder → Document) inherit location by traversing the chain upward.
 
-* **Address:** Identifies physical locations or buildings where warehouses are situated. Linked to a `departmentId` and `divisionId` for organizational scoping.
-* **Folder (Folder / Kono):** Storage folders have unique QR Codes for location scanning. The `locationRef` is auto-generated as `address.code / warehouse.code / locker.code`.
+* **Folder (Folder / Kono):** Storage folders have unique QR Codes for location scanning. The `locationRef` is auto-generated as `warehouse.code / locker.code / shelf.name`.
 * **Shelf:** Has a defined maximum capacity (`maxQty`) to prevent overloading documents.
 * **Document:** Has its own `qrCode` field for direct physical document tracking.
 
@@ -58,7 +57,7 @@ To facilitate easy tracking of physical documents, the system organizes storage 
 ### D. Document Borrow Flow
 The system tracks the physical borrowing and return of documents or folders:
 
-1. **Borrow Request:** Any authenticated user submits a borrow request specifying `documentId` or `folderId`, borrower name, purpose, and destination division (`toDivisionId`).
+1. **Borrow Request:** Any authenticated user submits a borrow request specifying `documentIds` or `folderIds` (plural arrays), borrower name, purpose, and destination division (`toDivisionId`).
 2. **Active Tracking:** Borrow records are tracked with a `returnedAt` timestamp. Records without `returnedAt` are considered **active borrows**.
 3. **Return:** Any authenticated user can mark a borrow record as returned via `PUT /document-borrows/:id/return`.
 4. **Scope-Based Visibility:** Borrow history is scoped by role:
@@ -72,103 +71,128 @@ The system tracks the physical borrowing and return of documents or folders:
 
 ### 1. Document Module
 Manages digital attachments and physical document metadata.
-* **Create:**
+* **Create:** `POST /documents`
   * Authorized roles: `SUPER_ADMIN`, `USER`, `HQ_ADMIN`, `BRANCH_ADMIN`.
   * Allows uploading up to 10 files simultaneously (compressed automatically).
   * Required fields: `docNo`, `docDate`, `title`, `docExpire`, `folderId`, `documentTypeId`.
   * Optional fields: `shortName`, `subDocNo`, `subDocDate`, `description`, `qrCode`, `isContractBound`, `departmentId`, `divisionId`.
 * **Read:**
-  * Retrieve a paginated list of documents with filters: `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`.
+  * `GET /documents` — Retrieve a paginated list of documents with filters:
+    * `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`
+    * **[New]** `retentionStatus` — filter by retention status (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
+    * **[New]** `warehouseId`, `lockerId`, `shelfId` — filter by physical storage location
   * `SUPER_ADMIN` and `HQ_ADMIN` see all documents.
   * `BRANCH_ADMIN` and `USER` see only documents within their assigned divisions (`userDivisionIds` from `UserDivisionModel`).
-  * Retrieve document details by ID (`GET /documents/:id`) — also enforces division-based access for `BRANCH_ADMIN` and `USER`.
-  * Stream or download file attachments (`GET /documents/attachments/:attachmentId`) with role-based permission checks.
-* **Update:**
-  * All roles (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`, `USER`) can update documents. Ownership/scope checks are applied via the use case layer.
+  * `GET /documents/:id` — Retrieve document details by ID; also enforces division-based access for `BRANCH_ADMIN` and `USER`.
+  * `GET /documents/attachments/:attachmentId` — Stream/view a file attachment with role-based permission checks.
+  * **[New]** `GET /documents/attachments/:attachmentId/download` — Force-download a file attachment.
+  * `GET /documents/expired` — List documents that are expired or destroyable (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`).
+  * **[New]** `GET /documents/:id/destruction-approval` — Get the destruction approval status for a specific document.
+* **Update:** `PUT /documents/:id`
+  * All roles can update documents. Ownership/scope checks are applied via the use case layer.
   * Supports replacing file attachments (up to 10 files).
 * **Delete:**
   * Direct document deletion via API is prohibited to prevent data loss and ensure audit security.
-  * **Expired Documents:** `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` can:
-    * List expired documents: `GET /documents/expired`
-    * Bulk delete expired documents after review: `DELETE /documents/expired`
+  * **Expired Documents:** `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` can bulk delete expired documents: `DELETE /documents/expired`.
 
 ---
 
-### 2. Folder / Kono Module
+### 2. Sub-Document Module *(New)*
+Manages sub-document entries linked to a parent document (e.g., revisions, related documents).
+* **Create:** `POST /documents/:documentId/sub-documents`
+  * Authorized roles: All roles.
+  * Fields: `subDocNo` (required), `subDocDate` (required), `subDocuments` (optional array of additional entries).
+* **Read:** `GET /documents/:documentId/sub-documents`
+  * Authorized roles: All roles.
+  * Returns all sub-documents linked to the specified parent document ID.
+* **Update:** `PUT /documents/:documentId/sub-documents/:id`
+  * Authorized roles: All roles.
+  * Fields: `subDocNo`, `subDocDate`.
+* **Delete:** `DELETE /documents/:documentId/sub-documents/:id`
+  * Authorized roles: All roles.
+
+---
+
+### 3. Folder / Kono Module
 Manages physical folders placed on shelves.
 * **Create:** `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` can create folders under a specific shelf (`shelfId`). A QR code and `locationRef` are generated automatically.
 * **Read:**
-  * `SUPER_ADMIN` and `HQ_ADMIN` see all folders. `BRANCH_ADMIN` and `USER` are scoped to their `addressId` (traversed via Folder → Shelf → Locker → Warehouse → addressId).
-  * View all folders residing on a specific shelf (`getByShelf`).
-  * Get folder details by ID (`getById`).
-* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update folder details. `BRANCH_ADMIN` is restricted to folders within their own address.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only. `BRANCH_ADMIN` can delete folders within their own address.
-
-### 3. Shelf Module
-Manages physical shelves within lockers.
-* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create shelves under a locker (`lockerId`) and define `maxQty`. `BRANCH_ADMIN` is validated against their `addressId`.
-* **Read:**
-  * `SUPER_ADMIN` and `HQ_ADMIN` see all shelves. `BRANCH_ADMIN` is scoped to their `addressId` (via Shelf → Locker → Warehouse → addressId).
-  * View shelves under a specific locker (`getByLocker`).
-* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update shelf information and status.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
-
-### 4. Locker Module
-Manages physical lockers within warehouses.
-* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create lockers under a warehouse (`warehouseId`). `BRANCH_ADMIN` is validated that the target warehouse's `addressId` matches their own.
-* **Read:**
-  * `SUPER_ADMIN` and `HQ_ADMIN` see all lockers. `BRANCH_ADMIN` is scoped to their `addressId` (via Locker → Warehouse → addressId).
-  * Supports filters: `warehouseId`, `addressId`, `status`, `search`.
-  * Retrieve lockers under a specific warehouse (`getByWarehouse`).
-  * Dropdown list endpoint supports filtering by `warehouseId`, `addressId`, `status`.
-* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update locker details. `BRANCH_ADMIN` validated against their `addressId`.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only. Delete is blocked if the locker still has shelves inside.
-
-### 5. Warehouse Module
-Manages physical document warehouses associated with an address.
-* **Create:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create warehouses. Only `addressId` is required (no `branchId` or `divisionId`).
-* **Read:**
-  * View warehouse list with optional `search` and `status` filters.
-  * `SUPER_ADMIN` and `HQ_ADMIN` see all warehouses. All roles can list warehouses.
-* **Update:** `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update warehouse name, code, description, and status.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
-
-> **Note:** The previous `GET branches/dropdown` endpoint has been removed. Warehouse no longer has `branchId` or `divisionId` — it is associated only with `Address`.
-
-### 6. Address Module
-Manages physical storage locations/buildings holding warehouses.
-* **Create:** `SUPER_ADMIN` and `HQ_ADMIN` can create storage locations. Requires `code`, `name`, `departmentId`, and `divisionId`.
-* **Read:**
-  * View address lists (`HQ_ADMIN` and `SUPER_ADMIN`).
-  * Fetch dropdown options of storage addresses (`HQ_ADMIN` and `BRANCH_ADMIN`).
-* **Update:** `SUPER_ADMIN` and `HQ_ADMIN` can update address details.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only.
-
-### 7. Document Type Module
-Manages document categories.
-* **Create:** `SUPER_ADMIN` and `HQ_ADMIN` can create document types.
-* **Read:** All roles can view and search document types.
-* **Update:** `SUPER_ADMIN` and `HQ_ADMIN` can update document types.
-* **Delete:** `SUPER_ADMIN` and `HQ_ADMIN` only (provided no documents are currently using it).
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all folders. `BRANCH_ADMIN` and `USER` are scoped to their warehouse's `departmentId` / `divisionId` (traversed via Folder → Shelf → Locker → Warehouse).
+  * `GET /folders` — Paginated list with filters: `shelfId`, `search`.
+  * `GET /folders/:id` — Get folder details by ID.
+* **Update:** `PUT /folders/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update folder details.
+* **Delete:** `DELETE /folders/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
 
 ---
 
-### 8. Document Borrow Module *(New)*
+### 4. Shelf Module
+Manages physical shelves within lockers.
+* **Create:** `POST /shelves` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create shelves under a locker (`lockerId`) and define `maxQty`. Supports batch creation via `shelves` array.
+* **Read:**
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all shelves. `BRANCH_ADMIN` is scoped via Shelf → Locker → Warehouse.
+  * `GET /shelves` — Paginated list with filters: `lockerId`, `warehouseId`, `search`, `status`.
+  * `GET /shelves/:id` — Get shelf details by ID.
+* **Update:** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update shelf information and status.
+* **Delete:** `DELETE /shelves/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
+
+---
+
+### 5. Locker Module
+Manages physical lockers within warehouses.
+* **Create:** `POST /lockers` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create lockers under a warehouse (`warehouseId`).
+* **Read:**
+  * `SUPER_ADMIN` and `HQ_ADMIN` see all lockers. `BRANCH_ADMIN` is scoped via Locker → Warehouse.
+  * `GET /lockers` — Paginated list with filters: `warehouseId`, `search`, `status`.
+  * `GET /lockers/:id` — Get locker details by ID.
+  * `GET /lockers/dropdown` — Lightweight dropdown list, filters: `warehouseId`, `status`. Returns `id`, `name`, `code`, `status`, and parent warehouse info.
+* **Update:** `PUT /lockers/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN`. Update fields: `code`, `name`, `description`, `warehouseId`, `status`.
+* **Delete:** `DELETE /lockers/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only. Blocked if the locker still has shelves inside (`ConflictException`).
+
+---
+
+### 6. Warehouse Module
+Manages physical document warehouses associated with a department/division.
+* **Create:** `POST /warehouses` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create warehouses.
+  * **[Updated]** Required/optional fields: `code`, `name`, `description`, `departmentId`, `divisionId` (replaces old `addressId`).
+* **Read:**
+  * `GET /warehouses` — Paginated list with filters: `search`, `status`.
+  * `GET /warehouses/dropdown` — Lightweight dropdown list.
+  * `GET /warehouses/:id` — Get warehouse details by ID.
+* **Update:** `PUT /warehouses/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN`. Update fields: `code`, `name`, `description`, `departmentId`, `divisionId`, `status`.
+* **Delete:** `DELETE /warehouses/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
+
+> **Note:** The `Address` module has been **removed** from the API. Warehouse is now scoped by `departmentId` and `divisionId` instead of `addressId`.
+
+---
+
+### 7. Document Type Module
+Manages document categories.
+* **Create:** `POST /document-types` — `SUPER_ADMIN` and `HQ_ADMIN`. Fields: `code`, `name`, `description`.
+* **Read:**
+  * `GET /document-types` — Paginated list with filters: `search`, `status`.
+  * `GET /document-types/name/:name` — Find by name.
+  * `GET /document-types/:id` — Find by ID.
+* **Update:** `PUT /document-types/:id` — Fields: `code`, `name`, `description`, `isActive`.
+* **Delete:** `DELETE /document-types/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only (provided no documents are currently using it).
+
+---
+
+### 8. Document Borrow Module
 Tracks the physical borrowing and return of documents and folders.
 * **Create (Borrow):** `POST /document-borrows`
-  * Authorized roles: All roles (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`, `USER`).
-  * Fields: `documentId` (optional UUID), `folderId` (optional UUID), `borrower` (required), `purpose`, `toDivisionId`, `toLocation`, `note`.
-  * Either `documentId` or `folderId` must be provided.
+  * Authorized roles: All roles.
+  * **[Updated]** Fields: `documentIds` (optional array), `folderIds` (optional array), `borrower` (required), `purpose`, `toDivisionId`, `toLocation`, `note`.
+  * At least one of `documentIds` or `folderIds` must be provided.
 * **Update (Return):** `PUT /document-borrows/:id/return`
   * Authorized roles: All roles.
   * Marks the borrow record as returned by setting `returnedAt` timestamp.
 * **Read:**
-  * `GET /document-borrows` — Paginated list of all borrow records. Supports filters: `documentId`, `borrowerId`, `divisionId`, `activeOnly`. Scope is enforced by role.
-  * `GET /document-borrows/active` — List of currently borrowed (unreturned) records. Scoped by role.
+  * `GET /document-borrows` — Paginated list. Filters: `documentId`, `borrowerId`, `divisionId`, `activeOnly`. Scope enforced by role.
+  * `GET /document-borrows/active` — Currently unreturned borrow records. Scoped by role.
   * `GET /document-borrows/:id` — Single borrow record by ID.
-  * `GET /document-borrows/document/:documentId` — Borrow history for a specific document. Scoped by role.
-  * `GET /document-borrows/folder/:folderId` — All borrow records for documents in a specific folder. Scoped by role.
-  * `GET /document-borrows/division/:divisionId` — All borrows destined to a specific division (`toDivisionId`). Supports `activeOnly` query. `USER` is forced to see only their own division.
+  * `GET /document-borrows/document/:documentId` — Borrow history for a specific document.
+  * `GET /document-borrows/folder/:folderId` — All borrow records for a specific folder.
+  * `GET /document-borrows/division/:divisionId` — All borrows for a specific division. Supports `activeOnly` query.
 * **Delete:** No delete endpoint. Borrow records are permanent for audit purposes.
 
 > **Scope Rules:**
@@ -178,7 +202,7 @@ Tracks the physical borrowing and return of documents and folders.
 
 ---
 
-### 9. Global Search Module *(New)*
+### 9. Global Search Module
 Provides a unified full-text search across multiple entity types with role-based scoping.
 * **Global Search:** `GET /search`
   * Authorized roles: All roles.
@@ -188,7 +212,7 @@ Provides a unified full-text search across multiple entity types with role-based
     * `page` (default: 1)
     * `type` (optional, comma-separated) — filter to specific entity types; e.g. `documents,folders`
     * `dateFrom` / `dateTo` (optional, ISO 8601) — date range filter applied to `documents` only
-  * Supported entity types: `documents`, `folders`, `warehouses`, `lockers`, `shelves`, `users`, `addresses`, `departments`, `divisions`.
+  * Supported entity types: `documents`, `folders`, `warehouses`, `lockers`, `shelves`, `users`, `departments`, `divisions`.
   * **Scope:**
     * `SUPER_ADMIN` and `HQ_ADMIN` search across all data.
     * `BRANCH_ADMIN` and `USER` are scoped to their assigned divisions (`userDivisionIds`).
@@ -198,59 +222,57 @@ Provides a unified full-text search across multiple entity types with role-based
   * Authorized roles: All roles.
   * Query params: `code` (required) — exact QR code string.
   * Searches in order: Folder → Document.
-  * Returns `{ type: 'folder' | 'document', data: { ... } }` with full location hierarchy (Shelf → Locker → Warehouse → Address).
+  * Returns `{ type: 'folder' | 'document', data: { ... } }` with full location hierarchy (Shelf → Locker → Warehouse).
   * Returns `404 NotFoundException` if the QR code is not found.
 
 ---
 
-### 10. Branch Module
-* **Read:** All authenticated users can view branches.
-* **Sync:** Branch data is synced automatically via Division sync.
+### 10. Department Module
+* **Read:** `GET /departments` — All authenticated users can view departments.
+* **Dropdown:** `GET /departments/dropdown` — Lightweight dropdown list.
+* **Sync:** `POST /departments/sync` — Only `SUPER_ADMIN` can trigger sync from external HRM database.
 
 ---
 
-### 11. Department Module
-* **Read:** All authenticated users can view departments.
-* **Sync:** Only `SUPER_ADMIN` can trigger sync from external HRM database.
+### 11. Division Module
+* **Read:** `GET /divisions` — All authenticated users can view divisions.
+* **Dropdown:** `GET /divisions/dropdown?departmentId=` — Filter by department.
+* **By Department:** `GET /divisions/department/:departmentId` — All divisions under a specific department.
+* **Sync:** `POST /divisions/sync` — Only `SUPER_ADMIN` can trigger sync from HRM.
 
 ---
 
-### 12. Division Module
-* **Read:** All authenticated users can view divisions.
-* **Sync:** Only `SUPER_ADMIN` can trigger sync from HRM (which also updates branch data).
+### 12. Office Module
+* **Read:** `GET /offices` — All authenticated users can view offices.
+* **Sync:** `POST /offices/sync` — Only `SUPER_ADMIN` can trigger sync.
 
 ---
 
-### 13. Office Module
-* **Read:** All authenticated users can view offices.
-* **Sync:** Only `SUPER_ADMIN` can trigger sync.
+### 13. Unit Module
+* **Read:** `GET /units` — All authenticated users can view units.
+* **Sync:** `POST /units/sync` — Only `SUPER_ADMIN` can trigger sync.
 
 ---
 
-### 14. Unit Module
-* **Read:** All authenticated users can view units.
-* **Sync:** Only `SUPER_ADMIN` can trigger sync.
-
----
-
-### 15. User & Auth Module
+### 14. User & Auth Module
 Manages user accounts, permissions, and HRM integration.
-* **Create:**
-  * Register new user (`register`).
-  * Auto-register employee via HRM sync using `empCode`.
+* **Create / Auth:**
+  * `POST /auth/register` — Register new user with `empCode` and `password`.
+  * `POST /auth/login` — Login with `empCode` and `password`.
 * **Read:**
-  * View current logged-in profile (`getProfile`).
-  * View user list (only `SUPER_ADMIN`).
+  * `GET /users/profile` — View current logged-in user profile.
+  * `GET /users` — View user list with filters: `page`, `limit`, `status`, `search` (only `SUPER_ADMIN`).
 * **Update:**
-  * Change own password (`changePassword`).
-  * Reset password for other users (roles: `BRANCH_ADMIN`, `HQ_ADMIN`, `SUPER_ADMIN`).
-  * Update user role (only `SUPER_ADMIN`).
-  * Approve user registrations (only `SUPER_ADMIN`).
+  * `PUT /users/change-password` — Change own password (`oldPassword`, `newPassword`).
+  * `PUT /users/:id/reset-password` — Reset another user's password (`BRANCH_ADMIN`, `HQ_ADMIN`, `SUPER_ADMIN`).
+  * `PUT /users/:id/role` — Update user role (only `SUPER_ADMIN`). Field: `role`.
+  * `PATCH /users/:id/approve` — Approve user registration (only `SUPER_ADMIN`). **[Updated]** Fields: `role`, `divisionIds` (removed `addressId`).
+  * `PUT /users/:id/divisions` — Update a user's assigned divisions. Field: `divisionIds`.
 * **Delete:** Accounts cannot be deleted; status is set to Inactive.
 
 ---
 
-### 16. Audit Log Module
+### 15. Audit Log Module
 * **Create:** Automatically logged on creation/update/view actions.
 * **Read / Update / Delete:** No exposed APIs to preserve audit integrity.
 
@@ -280,3 +302,35 @@ Both **Folders** and **Documents** have unique QR codes:
 - **Folder QR Code** — auto-generated on creation; used to identify the physical storage location.
 - **Document QR Code** — optionally provided on creation or set manually; used to identify individual physical documents.
 - The `GET /search/qr?code=` endpoint resolves any QR code to either a folder or a document, returning the full location hierarchy.
+
+---
+
+## 📋 Changelog
+
+### Version 2026-07-15
+
+#### ✅ Added
+| Item | Detail |
+|---|---|
+| **New Module: Sub-Document** | Full CRUD under `GET/POST /documents/:documentId/sub-documents` and `PUT/DELETE /documents/:documentId/sub-documents/:id` |
+| **Document filter: `retentionStatus`** | Filter documents by `ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD` |
+| **Document filter: `warehouseId`, `lockerId`, `shelfId`** | Filter documents by physical storage location |
+| **New endpoint: `GET /documents/attachments/:attachmentId/download`** | Force-download attachment (separate from stream/view) |
+| **New endpoint: `GET /documents/:id/destruction-approval`** | Get destruction approval status for a document |
+
+#### 🔄 Updated
+| Item | Before | After |
+|---|---|---|
+| **Warehouse schema** | Required `addressId` | Now uses `departmentId` + `divisionId` instead |
+| **Borrow request fields** | `documentId` (single), `folderId` (single) | `documentIds` (array), `folderIds` (array) |
+| **User approve endpoint** | Fields: `role`, `addressId`, `divisionIds` | Fields: `role`, `divisionIds` (removed `addressId`) |
+| **Physical storage hierarchy** | Address → Warehouse → Locker → Shelf → Folder → Document | Warehouse → Locker → Shelf → Folder → Document → SubDocument |
+
+#### ❌ Removed
+| Item | Detail |
+|---|---|
+| **Address Module** | Removed from API entirely. Warehouse now directly stores `departmentId` and `divisionId`. |
+
+### Version 2026-07-02
+- Added `GET /lockers/dropdown` endpoint to Locker Module.
+- Added `ConflictException` guard on Locker delete when shelves exist inside.

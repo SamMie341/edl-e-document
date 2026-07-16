@@ -1,14 +1,15 @@
+
 import { IsString, IsOptional, IsNumber, IsUUID, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateBorrowDto {
-  @IsUUID()
+  @IsUUID('all', { each: true })
   @IsOptional()
-  documentId?: string; // ຢືມເອກະສານສະເພາະ
+  documentIds?: string[]; // ຢືມເອກະສານສະເພາະ (ຫຼາຍລາຍການ)
 
-  @IsUUID()
+  @IsUUID('all', { each: true })
   @IsOptional()
-  folderId?: string; // ຢືມທັງ folder
+  folderIds?: string[]; // ຢືມທັງ folder (ຫຼາຍລາຍການ)
 
   @IsNotEmpty()
   @IsString()

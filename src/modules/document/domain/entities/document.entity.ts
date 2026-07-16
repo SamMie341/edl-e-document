@@ -144,14 +144,15 @@ export class DocumentEntity {
         public documentType?: DocumentType | null,
         public attachments?: Attachment[] | null,
         public subDocuments?: SubDocumentEntity[],
+        public destructionApprovalPath?: string | null,
     ) { }
 
     /**
-     * ຄຳນວນສະຖານະການທຳລາຍເອກະສານຕາມອາຍຸ 10 ປີ ໂດຍຄິດໄລ່ຈາກ docDate
-     * - ACTIVE           : ອາຍຸເອກະສານຕ່ຳກວ່າ 10 ປີ (ທຳລາຍບໍ່ໄດ້)
-     * - DESTROYABLE      : ອາຍຸເອກະສານຄົບ 10 ປີພໍດີ ແລະ ບໍ່ຕິດພັນສັນຍາ (ສາມາດທຳລາຍໄດ້)
+     * ຄຳນວນສະຖານະການທຳລາຍເອກະສານໂດຍອີງໃສ່ docExpire ທີ່ຜູ້ໃຊ້ກຳນົດ
+     * - ACTIVE           : ຍັງບໍ່ຮອດກຳນົດໝົດອາຍຸ ( docExpire > ມື້ນີ້ )
+     * - DESTROYABLE      : ຮອດກຳນົດໝົດອາຍຸມື້ນີ້ພໍດີ ( docExpire === ມື້ນີ້ ) ແລະ ບໍ່ຕິດພັນສັນຍາ
      * - DESTROYABLE_HOLD : ຕິດພັນກັບສັນຍາ (ທຳລາຍບໍ່ໄດ້)
-     * - EXPIRED          : ອາຍຸເອກະສານເກີນ 10 ປີຂຶ້ນໄປ (ທຳລາຍຖິ້ມໄດ້)
+     * - EXPIRED          : ກາຍກຳນົດໝົດອາຍຸແລ້ວ ( docExpire < ມື້ນີ້ ) ແລະ ບໍ່ຕິດພັນສັນຍາ
      */
     get retentionStatus(): DocumentRetentionStatus {
         if (this.isContractBound) {
@@ -159,20 +160,17 @@ export class DocumentEntity {
         }
 
         const now = new Date();
-        const docDate = new Date(this.docDate);
+        const docExpire = new Date(this.docExpire);
 
-        // ຄິດໄລ່ອາຍຸເປັນປີ (Age in years)
-        let ageInYears = now.getFullYear() - docDate.getFullYear();
-        const monthDiff = now.getMonth() - docDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < docDate.getDate())) {
-            ageInYears--;
-        }
+        // ທຽບສະເພາະ ວັນ/ເດືອນ/ປີ (ບໍ່ຄິດໄລ່ເວລາ)
+        const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const expireDate = new Date(docExpire.getFullYear(), docExpire.getMonth(), docExpire.getDate());
 
-        if (ageInYears < 10) {
+        if (expireDate > nowDate) {
             return DocumentRetentionStatus.ACTIVE;
         }
 
-        if (ageInYears === 10) {
+        if (expireDate.getTime() === nowDate.getTime()) {
             return DocumentRetentionStatus.DESTROYABLE;
         }
 

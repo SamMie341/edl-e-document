@@ -4,7 +4,6 @@ const path = require('path');
 // List of controllers to parse
 const controllers = [
   'src/app.controller.ts',
-  'src/modules/address/presentation/controllers/address.controller.ts',
   'src/modules/department/presentation/controller/department.controller.ts',
   'src/modules/division/presentation/controller/division.controller.ts',
   'src/modules/document/presentation/controllers/document.controller.ts',
@@ -15,6 +14,7 @@ const controllers = [
   'src/modules/office/presentation/controller/office.controller.ts',
   'src/modules/search/presentation/controllers/search.controller.ts',
   'src/modules/shelf/presentation/controllers/shelf.controller.ts',
+  'src/modules/sub-document/presentation/controllers/sub-document.controller.ts',
   'src/modules/unit/presentation/controllers/unit.controller.ts',
   'src/modules/user/presentation/controllers/auth.controller.ts',
   'src/modules/user/presentation/controllers/user.controller.ts',

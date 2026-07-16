@@ -157,6 +157,7 @@ export class DocumentMapper {
       model.subDocuments
         ? model.subDocuments.map((sub: any) => SubDocumentMapper.toDomain(sub))
         : [],
+      model.destructionApprovalPath,
     );
   }
 }
