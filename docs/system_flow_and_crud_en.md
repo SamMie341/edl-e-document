@@ -92,8 +92,8 @@ Manages digital attachments and physical document metadata.
   * All roles can update documents. Ownership/scope checks are applied via the use case layer.
   * Supports replacing file attachments (up to 10 files).
 * **Delete:**
-  * Direct document deletion via API is prohibited to prevent data loss and ensure audit security.
-  * **Expired Documents:** `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` can bulk delete expired documents: `DELETE /documents/expired`.
+  * `DELETE /documents/expired` — Bulk delete all expired documents. Requires an attached destruction approval PDF (`multipart/form-data`, field: `file`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * **[New]** `DELETE /documents/:id` — Delete a single document. Requires an attached destruction approval PDF (`multipart/form-data`, field: `file`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -118,7 +118,8 @@ Manages physical folders placed on shelves.
 * **Create:** `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` can create folders under a specific shelf (`shelfId`). A QR code and `locationRef` are generated automatically.
 * **Read:**
   * `SUPER_ADMIN` and `HQ_ADMIN` see all folders. `BRANCH_ADMIN` and `USER` are scoped to their warehouse's `departmentId` / `divisionId` (traversed via Folder → Shelf → Locker → Warehouse).
-  * `GET /folders` — Paginated list with filters: `shelfId`, `search`.
+  * `GET /folders` — Paginated list with filters: `page`, `limit`, `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`.
+  * **[New]** `GET /folders/dropdown` — Lightweight dropdown list. Filters: `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`. Returns `id`, `name`, `code`, and location reference.
   * `GET /folders/:id` — Get folder details by ID.
 * **Update:** `PUT /folders/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update folder details.
 * **Delete:** `DELETE /folders/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
@@ -131,6 +132,7 @@ Manages physical shelves within lockers.
 * **Read:**
   * `SUPER_ADMIN` and `HQ_ADMIN` see all shelves. `BRANCH_ADMIN` is scoped via Shelf → Locker → Warehouse.
   * `GET /shelves` — Paginated list with filters: `lockerId`, `warehouseId`, `search`, `status`.
+  * **[New]** `GET /shelves/dropdown` — Lightweight dropdown list. Filters: `lockerId`, `warehouseId`, `status`, `search`. Returns `id`, `name`, `code`, and parent locker/warehouse info.
   * `GET /shelves/:id` — Get shelf details by ID.
 * **Update:** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update shelf information and status.
 * **Delete:** `DELETE /shelves/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
@@ -228,16 +230,28 @@ Provides a unified full-text search across multiple entity types with role-based
 ---
 
 ### 10. Department Module
-* **Read:** `GET /departments` — All authenticated users can view departments.
-* **Dropdown:** `GET /departments/dropdown` — Lightweight dropdown list.
+Manages organizational departments (synced from HRM or managed manually).
+* **Create:** `POST /departments` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code` (required), `name` (required), `phone` (optional), `email` (optional), `status` (optional).
+* **Read:**
+  * `GET /departments` — All authenticated users can view departments.
+  * `GET /departments/dropdown` — Lightweight dropdown (`id`, `code`, `name`). `BRANCH_ADMIN` and `USER` see only their own department.
+  * `GET /departments/:id` — Get department by ID. All roles.
+* **Update:** `PUT /departments/:id` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code`, `name`, `phone`, `email`, `status`.
+* **Delete:** `DELETE /departments/:id` — `SUPER_ADMIN`, `HQ_ADMIN`.
 * **Sync:** `POST /departments/sync` — Only `SUPER_ADMIN` can trigger sync from external HRM database.
 
 ---
 
 ### 11. Division Module
-* **Read:** `GET /divisions` — All authenticated users can view divisions.
-* **Dropdown:** `GET /divisions/dropdown?departmentId=` — Filter by department.
-* **By Department:** `GET /divisions/department/:departmentId` — All divisions under a specific department.
+Manages organizational divisions under departments (synced from HRM or managed manually).
+* **Create:** `POST /divisions` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code` (required), `name` (required), `shortName` (optional), `status` (optional), `departmentId` (optional).
+* **Read:**
+  * `GET /divisions` — All authenticated users can view divisions.
+  * `GET /divisions/dropdown?departmentId=` — Lightweight dropdown (`id`, `code`, `name`, `shortName`, `status`). `BRANCH_ADMIN` auto-filters by their own `departmentId`.
+  * `GET /divisions/department/:departmentId` — All divisions under a specific department.
+  * `GET /divisions/:id` — Get division by ID. All roles.
+* **Update:** `PUT /divisions/:id` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code`, `name`, `shortName`, `status`, `departmentId`.
+* **Delete:** `DELETE /divisions/:id` — `SUPER_ADMIN`, `HQ_ADMIN`.
 * **Sync:** `POST /divisions/sync` — Only `SUPER_ADMIN` can trigger sync from HRM.
 
 ---
@@ -306,6 +320,32 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-07-23
+
+#### ✅ Added
+| Item | Detail |
+|---|---|
+| **`GET /folders/dropdown`** | New folder dropdown endpoint. Filters: `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`. |
+| **`GET /shelves/dropdown`** | New shelf dropdown endpoint. Filters: `lockerId`, `warehouseId`, `status`, `search`. |
+
+#### 🔄 Updated
+| Item | Detail |
+|---|---|
+| **`GET /folders` query params** | Added `lockerId`, `warehouseId`, `departmentId`, `divisionId` filters to the paginated folder list. |
+
+---
+
+### Version 2026-07-22
+
+#### ✅ Added
+| Item | Detail |
+|---|---|
+| **Department full CRUD** | Added `POST /departments`, `GET /departments/:id`, `PUT /departments/:id`, `DELETE /departments/:id` endpoints. |
+| **Division full CRUD** | Added `POST /divisions`, `GET /divisions/:id`, `PUT /divisions/:id`, `DELETE /divisions/:id` endpoints. |
+| **`DELETE /documents/:id`** | New single-document delete endpoint. Requires a destruction approval PDF (`multipart/form-data`, field: `file`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`. |
+
+---
 
 ### Version 2026-07-16
 

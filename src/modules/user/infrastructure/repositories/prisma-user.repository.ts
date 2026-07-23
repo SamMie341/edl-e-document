@@ -18,7 +18,7 @@ const USER_INCLUDE = {
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(userData: any): Promise<User> {
     const { divisionIds, ...data } = userData;
@@ -27,13 +27,13 @@ export class PrismaUserRepository implements IUserRepository {
         ...data,
         ...(divisionIds?.length
           ? {
-              userDivisions: {
-                create: divisionIds.map((id: number, index: number) => ({
-                  divisionId: id,
-                  isPrimary: index === 0,
-                })),
-              },
-            }
+            userDivisions: {
+              create: divisionIds.map((id: number, index: number) => ({
+                divisionId: id,
+                isPrimary: index === 0,
+              })),
+            },
+          }
           : {}),
       },
       include: USER_INCLUDE,

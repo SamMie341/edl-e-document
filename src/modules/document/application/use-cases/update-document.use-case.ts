@@ -15,6 +15,8 @@ import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
 import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
 
+import { fixUtf8Object, fixUtf8String } from 'src/core/utils/utf8-fix.util';
+
 @Injectable()
 export class UpdateDocumentUseCase {
   constructor(
@@ -33,6 +35,8 @@ export class UpdateDocumentUseCase {
     user: any,
     files?: Express.Multer.File[],
   ): Promise<DocumentEntity> {
+    const fixedDto = fixUtf8Object(dto);
+
     // 1. Check if document exists, including the owner user info for RBAC checks
     const doc = await this.prisma.documentModel.findUnique({
       where: { id },
@@ -60,9 +64,10 @@ export class UpdateDocumentUseCase {
 
     if (files && files.length > 0) {
       for (const file of files) {
+        const decodedOriginalName = fixUtf8String(file.originalname);
         const savedFile = await this.fileStorageService.uploadAndCompress({
           buffer: file.buffer,
-          originalname: file.originalname,
+          originalname: decodedOriginalName,
           mimetype: file.mimetype,
           size: file.size,
         });
@@ -78,7 +83,7 @@ export class UpdateDocumentUseCase {
 
     // 4. Build database update payload
     const dataToUpdate: any = {
-      ...dto,
+      ...fixedDto,
     };
 
     if (attachmentsData.length > 0) {
@@ -86,8 +91,8 @@ export class UpdateDocumentUseCase {
     }
 
     // Update qrCode if docNo changes and no new qrCode is provided
-    if (dto.docNo && !dto.qrCode) {
-      dataToUpdate.qrCode = dto.docNo;
+    if (fixedDto.docNo && !fixedDto.qrCode) {
+      dataToUpdate.qrCode = fixedDto.docNo;
     }
 
     // 5. Update the document in database

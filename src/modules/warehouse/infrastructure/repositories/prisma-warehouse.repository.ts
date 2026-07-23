@@ -99,8 +99,33 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
       }
     }
 
+    let code = data.code?.trim();
+    if (!code) {
+      const lastWarehouse = await this.prisma.warehouseModel.findFirst({
+        orderBy: { createdAt: 'desc' },
+      });
+      let nextSeq = 1;
+      if (lastWarehouse && lastWarehouse.code) {
+        const match = lastWarehouse.code.match(/\d+/);
+        if (match) {
+          nextSeq = parseInt(match[0], 10) + 1;
+        }
+      }
+      code = `WH-${String(nextSeq).padStart(3, '0')}`;
+    }
+
+    const existingCode = await this.prisma.warehouseModel.findFirst({
+      where: { code },
+    });
+    if (existingCode) {
+      throw new ConflictException(`ລະຫັດສາງ '${code}' ຖືກໃຊ້ງານແລ້ວໃນລະບົບ`);
+    }
+
     const model = await this.prisma.warehouseModel.create({
-      data,
+      data: {
+        ...data,
+        code,
+      },
       include: { department: true, division: true, lockers: true },
     });
     return WarehouseMapper.toDomain(model);
@@ -129,6 +154,24 @@ export class PrismaWarehouseRepository implements IWarehouseRepository {
       });
       if (!div) {
         throw new NotFoundException('ບໍ່ພົບຂະແໜງນີ້ໃນລະບົບ');
+      }
+    }
+
+    if (data.code !== undefined) {
+      const trimmedCode = data.code?.trim();
+      if (!trimmedCode) {
+        delete data.code;
+      } else if (trimmedCode !== existing.code) {
+        const duplicateCode = await this.prisma.warehouseModel.findFirst({
+          where: {
+            code: trimmedCode,
+            id: { not: id },
+          },
+        });
+        if (duplicateCode) {
+          throw new ConflictException(`ລະຫັດສາງ '${trimmedCode}' ຖືກໃຊ້ງານແລ້ວໃນລະບົບ`);
+        }
+        data.code = trimmedCode;
       }
     }
 

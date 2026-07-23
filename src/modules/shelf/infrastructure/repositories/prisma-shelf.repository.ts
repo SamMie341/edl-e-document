@@ -235,4 +235,46 @@ export class PrismaShelfRepository implements IShelfRepository {
 
     await this.prisma.shelfModel.delete({ where: { id } });
   }
+
+  async getDropdown(params?: ShelfFilterParams): Promise<any[]> {
+    const {
+      search,
+      lockerId,
+      warehouseId,
+      departmentId,
+      divisionId,
+      status,
+    } = params || {};
+
+    const where: any = {};
+    if (status) where.status = status;
+    if (lockerId) where.lockerId = lockerId;
+
+    if (warehouseId || departmentId || divisionId) {
+      const warehouseFilter: any = {};
+      if (warehouseId) warehouseFilter.id = warehouseId;
+      if (departmentId) warehouseFilter.departmentId = departmentId;
+      if (divisionId) warehouseFilter.divisionId = divisionId;
+      where.locker = { is: { warehouse: { is: warehouseFilter } } };
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return this.prisma.shelfModel.findMany({
+      where,
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        maxQty: true,
+        lockerId: true,
+      },
+    });
+  }
 }

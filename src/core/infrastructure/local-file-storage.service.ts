@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   IFileStorageService,
   SavedFileData,
@@ -14,8 +14,6 @@ export class LocalFileStorageService implements IFileStorageService {
   private readonly uploadDir: string;
 
   constructor() {
-    // อ่าน path จาก env — ถ้าไม่กำหนดจะใช้ default
-    // Production: กำหนด UPLOAD_DESTINATION เป็น absolute path เช่น /var/www/edl-edoc/uploads/documents
     this.uploadDir = process.env.UPLOAD_DESTINATION ?? './uploads/documents';
 
     if (!fs.existsSync(this.uploadDir)) {
@@ -24,6 +22,9 @@ export class LocalFileStorageService implements IFileStorageService {
   }
 
   async uploadAndCompress(file: UploadedFile): Promise<SavedFileData> {
+    if (!file.buffer || file.buffer.length === 0) {
+      throw new BadRequestException(`ໄຟລ໌ "${file.originalname}" ບໍ່ມີໄຟລ໌ ຫຼື ໄຟລ໌ສູນຫາຍ`);
+    }
     const fileId = uuidv4();
     const isImage = file.mimetype.startsWith('image/');
 

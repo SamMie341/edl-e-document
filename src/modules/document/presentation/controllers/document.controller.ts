@@ -35,6 +35,7 @@ import { GetAllDocumentUseCase } from '../../application/use-cases/get-all-docum
 import { GetDocumentByIdUseCase } from '../../application/use-cases/get-document-by-id.use-case';
 import { DeleteExpiredDocumentsUseCase } from '../../application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from '../../application/use-cases/get-expired-documents.use-case';
+import { DeleteDocumentUseCase } from '../../application/use-cases/delete-document.use-case';
 import { PrismaService } from 'src/core/database/prisma.service';
 
 
@@ -50,6 +51,7 @@ export class DocumentController {
     private readonly updateDocumentUseCase: UpdateDocumentUseCase,
     private readonly deleteExpiredDocumentsUseCase: DeleteExpiredDocumentsUseCase,
     private readonly getExpiredDocumentsUseCase: GetExpiredDocumentsUseCase,
+    private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
     private readonly prisma: PrismaService,
   ) { }
 
@@ -315,7 +317,9 @@ export class DocumentController {
     const fileStream = createReadStream(attachment.filePath);
     res.set({
       'Content-Type': attachment.mimeType,
-      'Content-Disposition': `inline; filename="${encodeURIComponent(attachment.fileName)}"`,
+      'Content-Length': attachment.size.toString(),
+      'Content-Disposition': `inline; filename="${attachment.id}.pdf"; filename*=UTF-8''${encodeURIComponent(attachment.fileName)}"`,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
     });
     return new StreamableFile(fileStream);
   }
@@ -359,5 +363,29 @@ export class DocumentController {
     }
     const result = await this.deleteExpiredDocumentsUseCase.execute(file);
     return { message: result.message, deleted: result.deleted };
+  }
+
+  // ─── DELETE SINGLE DOCUMENT FILES (with destruction approval PDF) ────────
+  @Delete(':id')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  @UseInterceptors(FileInterceptor('file', {
+    storage: require('multer').memoryStorage(),
+    fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
+      if (file.mimetype !== 'application/pdf') {
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບ "${file.mimetype}"`), false);
+      }
+      cb(null, true);
+    },
+  }))
+  async deleteDocument(
+    @Param('id') id: string,
+    @Req() req: any,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('ກະລຸນາແນບໄຟລ໌ອະນຸມັດການທຳລາຍ (PDF) ມາດ້ວຍ');
+    }
+    const document = await this.deleteDocumentUseCase.execute(id, file, req.user);
+    return { message: 'ລົບໄຟລ໌ເອກະສານສຳເລັດ', data: document };
   }
 }

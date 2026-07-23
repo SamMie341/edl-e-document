@@ -21,6 +21,7 @@ import { CreateFolderDto } from '../../application/dtos/create-folder.dto';
 import { UpdateFolderDto } from '../../application/dtos/update-folder.dto';
 import { GetAllFolderUseCase } from '../../application/use-cases/get-all-folders.use-case';
 import { GetFolderByIdUseCase } from '../../application/use-cases/get-folder-by-id.use-case';
+import { GetFolderDropdownUseCase } from '../../application/use-cases/get-folder-dropdown.use-case';
 
 @Controller('folders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -29,6 +30,7 @@ export class FolderController {
     private readonly createFolderUseCase: CreateFolderUseCase,
     private readonly getAllFolderUseCase: GetAllFolderUseCase,
     private readonly getFolderByIdUseCase: GetFolderByIdUseCase,
+    private readonly getFolderDropdownUseCase: GetFolderDropdownUseCase,
     private readonly updateFolderUseCase: UpdateFolderUseCase,
     private readonly deleteFolderUseCase: DeleteFolderUseCase,
   ) { }
@@ -50,6 +52,10 @@ export class FolderController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('shelfId') shelfId?: string,
+    @Query('lockerId') lockerId?: string,
+    @Query('warehouseId') warehouseId?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
     @Query('search') search?: string,
   ) {
     const user = req.user;
@@ -60,12 +66,17 @@ export class FolderController {
       departmentId = user.departmentId || -1;
     } else if (user.role === Role.USER) {
       divisionId = user.divisionId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const result = await this.getAllFolderUseCase.execute({
       page: parseInt(page, 10) || 1,
       limit: parseInt(limit, 10) || 10,
       shelfId,
+      lockerId,
+      warehouseId,
       search,
       departmentId,
       divisionId,
@@ -76,6 +87,41 @@ export class FolderController {
     };
   }
 
+  // ─── GET DROPDOWN ────────────────────────────────────────────────────────────
+  @Get('dropdown')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async getDropdown(
+    @Req() req: any,
+    @Query('shelfId') shelfId?: string,
+    @Query('lockerId') lockerId?: string,
+    @Query('warehouseId') warehouseId?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
+    @Query('search') search?: string,
+  ) {
+    const user = req.user;
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
+    }
+
+    const data = await this.getFolderDropdownUseCase.execute({
+      shelfId,
+      lockerId,
+      warehouseId,
+      departmentId,
+      divisionId,
+      search,
+    });
+    return { message: 'Success', data };
+  }
 
   // ─── GET BY ID ────────────────────────────────────────────────────────────
   @Get(':id')

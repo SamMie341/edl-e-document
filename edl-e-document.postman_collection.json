@@ -138,6 +138,181 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "GET /departments/:id (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "departments",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: departmentId (integer)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /departments (Roles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/departments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "departments"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"DEPT-001\",\n  \"name\": \"ຊື່ຝ່າຍ\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"status\": \"A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /departments/:id (Roles)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "departments",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id (integer)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"\",\n  \"name\": \"\",\n  \"phone\": \"\",\n  \"email\": \"\",\n  \"status\": \"A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /departments/:id (Roles)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/departments/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "departments",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id (integer)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -282,6 +457,181 @@
               ],
               "query": [],
               "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /divisions/:id (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/divisions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "divisions",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id (integer)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /divisions (Roles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/divisions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "divisions"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"DIV-001\",\n  \"name\": \"ຊື່ພະແນກ\",\n  \"shortName\": \"\",\n  \"status\": \"A\",\n  \"departmentId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PUT /divisions/:id (Roles)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/divisions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "divisions",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id (integer)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"\",\n  \"name\": \"\",\n  \"shortName\": \"\",\n  \"status\": \"A\",\n  \"departmentId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /divisions/:id (Roles)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/divisions/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "divisions",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": "Path variable: id (integer)"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -941,6 +1291,59 @@
                   "value": null,
                   "type": "file",
                   "description": "Destruction approval PDF (required)",
+                  "src": null
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE /documents/:id (Roles)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/documents/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "uuid-here",
+                  "description": "Path variable: document id (UUID)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "value": null,
+                  "type": "file",
+                  "description": "Destruction approval PDF (required, PDF only)",
                   "src": null
                 }
               ]
@@ -1642,7 +2045,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/folders",
+              "raw": "{{baseUrl}}/folders?page=1&limit=10&shelfId=&search=&lockerId=&warehouseId=&departmentId=&divisionId=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1664,6 +2067,92 @@
                   "key": "shelfId",
                   "value": "",
                   "description": "Query parameter: shelfId"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Query parameter: search"
+                },
+                {
+                  "key": "lockerId",
+                  "value": "",
+                  "description": "Query parameter: lockerId"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "",
+                  "description": "Query parameter: warehouseId"
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Query parameter: departmentId"
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "description": "Query parameter: divisionId"
+                }
+              ],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /folders/dropdown (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/folders/dropdown",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "folders",
+                "dropdown"
+              ],
+              "query": [
+                {
+                  "key": "shelfId",
+                  "value": "",
+                  "description": "Query parameter: shelfId"
+                },
+                {
+                  "key": "lockerId",
+                  "value": "",
+                  "description": "Query parameter: lockerId"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "",
+                  "description": "Query parameter: warehouseId"
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Query parameter: departmentId"
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "description": "Query parameter: divisionId"
                 },
                 {
                   "key": "search",
@@ -2365,6 +2854,62 @@
                   "key": "status",
                   "value": "",
                   "description": "Query parameter: status"
+                }
+              ],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /shelves/dropdown (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shelves/dropdown",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "shelves",
+                "dropdown"
+              ],
+              "query": [
+                {
+                  "key": "lockerId",
+                  "value": "",
+                  "description": "Query parameter: lockerId"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "",
+                  "description": "Query parameter: warehouseId"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "Query parameter: status"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "Query parameter: search"
                 }
               ],
               "variable": []

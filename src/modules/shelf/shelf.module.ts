@@ -7,6 +7,7 @@ import { GetAllShelvesUseCase } from './application/use-cases/get-all-shelves.us
 import { UpdateShelfUseCase } from './application/use-cases/update-shelf.use-case';
 import { DeleteShelfUseCase } from './application/use-cases/delete-shelf.use-case';
 import { GetShelfByIdUseCase } from './application/use-cases/get-shelf-by-id.use-case';
+import { GetDropdownShelvesUseCase } from './application/use-cases/get-dropdown-shelves.use-case';
 
 @Module({
   controllers: [ShelfController],
@@ -14,6 +15,7 @@ import { GetShelfByIdUseCase } from './application/use-cases/get-shelf-by-id.use
     CreateShelfUseCase,
     GetAllShelvesUseCase,
     GetShelfByIdUseCase,
+    GetDropdownShelvesUseCase,
     UpdateShelfUseCase,
     DeleteShelfUseCase,
     {

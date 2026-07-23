@@ -19,7 +19,8 @@ import { GetAllShelvesUseCase } from '../../application/use-cases/get-all-shelve
 import { UpdateShelfUseCase } from '../../application/use-cases/update-shelf.use-case';
 import { DeleteShelfUseCase } from '../../application/use-cases/delete-shelf.use-case';
 import { GetShelfByIdUseCase } from '../../application/use-cases/get-shelf-by-id.use-case';
-import { CreateShelfDto, CreateShelvesDto } from '../../application/dtos/create-shelf.dto';
+import { GetDropdownShelvesUseCase } from '../../application/use-cases/get-dropdown-shelves.use-case';
+import { CreateShelvesDto } from '../../application/dtos/create-shelf.dto';
 import { UpdateShelfDto } from '../../application/dtos/update-shelf.dto';
 
 @Controller('shelves')
@@ -29,6 +30,7 @@ export class ShelfController {
     private readonly createShelfUseCase: CreateShelfUseCase,
     private readonly getAllShelvesUseCase: GetAllShelvesUseCase,
     private readonly getShelfByIdUseCase: GetShelfByIdUseCase,
+    private readonly getDropdownShelvesUseCase: GetDropdownShelvesUseCase,
     private readonly updateShelfUseCase: UpdateShelfUseCase,
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
   ) { }
@@ -72,6 +74,37 @@ export class ShelfController {
       status,
     });
     return { message: 'Success', ...result };
+  }
+
+  // ─── GET DROPDOWN ────────────────────────────────────────────────────────────
+  @Get('dropdown')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async getDropdown(
+    @Req() req: any,
+    @Query('lockerId') lockerId?: string,
+    @Query('warehouseId') warehouseId?: string,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    const user = req.user;
+    let departmentId: number | undefined;
+    let divisionId: number | undefined;
+
+    if (user.role === Role.BRANCH_ADMIN) {
+      departmentId = user.departmentId || -1;
+    } else if (user.role === Role.USER) {
+      divisionId = user.divisionId || -1;
+    }
+
+    const data = await this.getDropdownShelvesUseCase.execute({
+      lockerId,
+      warehouseId,
+      departmentId,
+      divisionId,
+      status,
+      search,
+    });
+    return { message: 'Success', data };
   }
 
   @Get(':id')
