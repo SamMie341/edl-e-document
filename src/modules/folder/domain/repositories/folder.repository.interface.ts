@@ -6,6 +6,8 @@ export interface FolderFilterParams {
   page?: number;
   limit?: number;
   shelfId?: string;
+  lockerId?: string;
+  warehouseId?: string;
   departmentId?: number;
   divisionId?: number;
   search?: string;
@@ -19,4 +21,5 @@ export interface IFolderRepository {
   findById(id: string): Promise<Folder>;
   update(id: string, data: any): Promise<Folder>;
   delete(id: string): Promise<void>;
+  getDropdown(params?: FolderFilterParams): Promise<any[]>;
 }

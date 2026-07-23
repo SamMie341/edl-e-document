@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { IDepartmentRepository } from '../../domain/repositories/department.repository.interface';
 import { Department } from '../../domain/entities/department.entity';
@@ -53,6 +53,65 @@ export class HrmDepartmentRepository implements IDepartmentRepository {
       this.logger.error(`ບໍ່ສາມາດດຶງຂໍ້ມູນ Department ຈາກ HRM: ${error.message}`);
       return [];
     }
+  }
+
+  async create(data: any): Promise<Department> {
+    let id = data.id;
+    if (!id) {
+      const last = await this.prisma.departmentModel.findFirst({
+        orderBy: { id: 'desc' },
+        select: { id: true },
+      });
+      id = (last?.id ?? 0) + 1;
+    }
+
+    const model = await this.prisma.departmentModel.create({
+      data: {
+        id,
+        code: data.code,
+        name: data.name,
+        phone: data.phone ?? null,
+        email: data.email ?? null,
+        status: data.status ?? 'A',
+      },
+    });
+    return DepartmentMapper.toDomain(model);
+  }
+
+  async update(id: number, data: any): Promise<Department> {
+    const existing = await this.prisma.departmentModel.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('ບໍ່ພົບຝ່າຍນີ້ໃນລະບົບ');
+    }
+
+    const model = await this.prisma.departmentModel.update({
+      where: { id },
+      data: {
+        ...(data.code && { code: data.code }),
+        ...(data.name && { name: data.name }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.status && { status: data.status }),
+      },
+    });
+    return DepartmentMapper.toDomain(model);
+  }
+
+  async delete(id: number): Promise<void> {
+    const existing = await this.prisma.departmentModel.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundException('ບໍ່ພົບຝ່າຍນີ້ໃນລະບົບ');
+    }
+
+    const countDivisions = await this.prisma.divisionModel.count({ where: { departmentId: id } });
+    const countUsers = await this.prisma.userModel.count({ where: { departmentId: id } });
+    const countDocs = await this.prisma.documentModel.count({ where: { departmentId: id } });
+
+    if (countDivisions > 0 || countUsers > 0 || countDocs > 0) {
+      throw new BadRequestException('ບໍ່ສາມາດລຶບຝ່າຍນີ້ໄດ້ ເນື່ອງຈາກມີຂໍ້ມູນພະແນກ, ຜູ້ໃຊ້ ຫຼື ເອກະສານ ທີ່ກ່ຽວຂ້ອງ');
+    }
+
+    await this.prisma.departmentModel.delete({ where: { id } });
   }
 
   // ─── ຂໍ Token ຈາກ HRM Auth ────────────────────────────────────────────────────

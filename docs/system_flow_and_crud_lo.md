@@ -88,8 +88,8 @@
 * **Update (ແກ້ໄຂ):** `PUT /documents/:id`
   * ທຸກລະດັບສິດສາມາດແກ້ໄຂໄດ້ (ກວດສອບຂອບເຂດໃນ use case layer). ຮອງຮັບການໃສ່ໄຟລ໌ແນບໃໝ່.
 * **Delete (ລົບ):**
-  * ບໍ່ອະນຸຍາດໃຫ້ລົບເອກະສານໂດຍກົງ.
-  * **ເອກະສານໝົດອາຍຸ:** `DELETE /documents/expired` — ລົບຈຳນວນຫຼາຍ (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`).
+  * `DELETE /documents/expired` — ລົບຈຳນວນຫຼາຍ (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`). ຕ້ອງແນບໄຟລ໌ PDF ອະນຸມັດ (`multipart/form-data`, field: `file`).
+  * **[ໃໝ່]** `DELETE /documents/:id` — ລົບເອກະສານດຽວ. ຕ້ອງແນບໄຟລ໌ PDF ອະນຸມັດ (`multipart/form-data`, field: `file`). ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -109,7 +109,8 @@
 ຄຸ້ມຄອງແຟ້ມເອກະສານທາງກາຍະພາບທີ່ວາງຢູ່ເທິງຊັ້ນວາງ.
 * **Create (ສ້າງ):** `POST /folders` — `SUPER_ADMIN`, `USER`, `BRANCH_ADMIN`, `HQ_ADMIN` ສາມາດສ້າງແຟ້ມ ໂດຍຕ້ອງລະບຸ `shelfId`. ລະບົບຈະສ້າງ QR Code ແລະ `locationRef` ໂດຍອັດຕະໂນມັດ.
 * **Read (ອ່ານ):**
-  * `GET /folders` — ລາຍການໜ້າ ດ້ວຍ filter: `shelfId`, `search`.
+  * `GET /folders` — ລາຍການໜ້າ ດ້ວຍ filter: `page`, `limit`, `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`.
+  * **[ໃໝ່]** `GET /folders/dropdown` — Dropdown ຫຍໍ້. Filters: `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`. ສົ່ງຄືນ `id`, `name`, `code` ແລະ location reference.
   * `GET /folders/:id` — ລາຍລະອຽດແຟ້ມ.
   * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກແຟ້ມ. `BRANCH_ADMIN` ແລະ `USER` ຖືກຈຳກັດຕາມ warehouse ຂອງຕົນ.
 * **Update (ແກ້ໄຂ):** `PUT /folders/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
@@ -122,6 +123,7 @@
 * **Create (ສ້າງ):** `POST /shelves` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` ໂດຍລະບຸ `lockerId` ແລະ `maxQty`. **[ໃໝ່]** ຮອງຮັບການສ້າງຊັ້ນວາງຫຼາຍອັນໃນຄັ້ງດຽວ ຜ່ານ array `shelves`.
 * **Read (ອ່ານ):**
   * `GET /shelves` — ລາຍການໜ້າ ດ້ວຍ filter: `lockerId`, `warehouseId`, `search`, `status`.
+  * **[ໃໝ່]** `GET /shelves/dropdown` — Dropdown ຫຍໍ້. Filters: `lockerId`, `warehouseId`, `status`, `search`. ສົ່ງຄືນ `id`, `name`, `code` + ຂໍ້ມູນ locker/warehouse.
   * `GET /shelves/:id` — ລາຍລະອຽດຊັ້ນວາງ.
   * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກຊັ້ນວາງ. `BRANCH_ADMIN` ຖືກຈຳກັດຕາມ warehouse.
 * **Update (ແກ້ໄຂ):** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
@@ -195,17 +197,29 @@
 ---
 
 ### 10. ໂມດູນພະແນກ (Department Module)
-* `GET /departments` — ທຸກລະດັບສິດ.
-* `GET /departments/dropdown` — Dropdown ຫຍໍ້.
-* `POST /departments/sync` — ສະເພາະ `SUPER_ADMIN`.
+ຄຸ້ມຄອງຂໍ້ມູນພະແນກ (ຊິງຄ໌ຈາກ HRM ຫຼືຈັດການໂດຍກົງ).
+* **Create (ສ້າງ):** `POST /departments` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code` (ຕ້ອງມີ), `name` (ຕ້ອງມີ), `phone` (ທາງເລືອກ), `email` (ທາງເລືອກ), `status` (ທາງເລືອກ).
+* **Read (ອ່ານ):**
+  * `GET /departments` — ທຸກລະດັບສິດ.
+  * `GET /departments/dropdown` — Dropdown ຫຍໍ້ (`id`, `code`, `name`). `BRANCH_ADMIN` ແລະ `USER` ເຫັນສະເພາະພະແນກຕົນ.
+  * `GET /departments/:id` — ລາຍລະອຽດພະແນກ. ທຸກລະດັບສິດ.
+* **Update (ແກ້ໄຂ):** `PUT /departments/:id` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code`, `name`, `phone`, `email`, `status`.
+* **Delete (ລົບ):** `DELETE /departments/:id` — `SUPER_ADMIN`, `HQ_ADMIN`.
+* **Sync:** `POST /departments/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
 ### 11. ໂມດູນຝ່າຍ (Division Module)
-* `GET /divisions` — ທຸກລະດັບສິດ.
-* `GET /divisions/dropdown?departmentId=` — Dropdown ຕາມພະແນກ.
-* `GET /divisions/department/:departmentId` — ທຸກຝ່າຍໃນພະແນກ.
-* `POST /divisions/sync` — ສະເພາະ `SUPER_ADMIN`.
+ຄຸ້ມຄອງຂໍ້ມູນຝ່າຍພາຍໃຕ້ພະແນກ (ຊິງຄ໌ຈາກ HRM ຫຼືຈັດການໂດຍກົງ).
+* **Create (ສ້າງ):** `POST /divisions` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code` (ຕ້ອງມີ), `name` (ຕ້ອງມີ), `shortName` (ທາງເລືອກ), `status` (ທາງເລືອກ), `departmentId` (ທາງເລືອກ).
+* **Read (ອ່ານ):**
+  * `GET /divisions` — ທຸກລະດັບສິດ.
+  * `GET /divisions/dropdown?departmentId=` — Dropdown ຕາມພະແນກ (`id`, `code`, `name`, `shortName`, `status`). `BRANCH_ADMIN` ກັ່ນຕອງ `departmentId` ຂອງຕົນໂດຍອັດຕະໂນມັດ.
+  * `GET /divisions/department/:departmentId` — ທຸກຝ່າຍໃນພະແນກ.
+  * `GET /divisions/:id` — ລາຍລະອຽດຝ່າຍ. ທຸກລະດັບສິດ.
+* **Update (ແກ້ໄຂ):** `PUT /divisions/:id` — `SUPER_ADMIN`, `HQ_ADMIN`. Fields: `code`, `name`, `shortName`, `status`, `departmentId`.
+* **Delete (ລົບ):** `DELETE /divisions/:id` — `SUPER_ADMIN`, `HQ_ADMIN`.
+* **Sync:** `POST /divisions/sync` — ສະເພາະ `SUPER_ADMIN`.
 
 ---
 
@@ -246,6 +260,32 @@
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-07-23
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`GET /folders/dropdown`** | Dropdown ແຟ້ມເອກະສານໃໝ່. Filters: `shelfId`, `lockerId`, `warehouseId`, `departmentId`, `divisionId`, `search`. |
+| **`GET /shelves/dropdown`** | Dropdown ຊັ້ນວາງໃໝ່. Filters: `lockerId`, `warehouseId`, `status`, `search`. |
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`GET /folders` query params** | ເພີ່ມ filter `lockerId`, `warehouseId`, `departmentId`, `divisionId` ໃສ່ໃນລາຍການໜ້າຂອງ folder. |
+
+---
+
+### ເວີຊັ່ນ 2026-07-22
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **Department full CRUD** | ເພີ່ມ `POST /departments`, `GET /departments/:id`, `PUT /departments/:id`, `DELETE /departments/:id`. |
+| **Division full CRUD** | ເພີ່ມ `POST /divisions`, `GET /divisions/:id`, `PUT /divisions/:id`, `DELETE /divisions/:id`. |
+| **`DELETE /documents/:id`** | ລົບເອກະສານດຽວ. ຕ້ອງແນບໄຟລ໌ PDF ອະນຸມັດ. ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`. |
+
+---
 
 ### ເວີຊັ່ນ 2026-07-16
 

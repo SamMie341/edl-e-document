@@ -26,7 +26,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         const ownerPrimaryDivisionId = owner?.userDivisions?.[0]?.divisionId ?? undefined;
 
         // ─── ຄຳນວນຊ່ວງປີຈາກ docDate ──────────────────────────────────────────────────────────
-        const docDateObj = new Date(data.docDate);
+        let docDateObj = data.docDate ? new Date(data.docDate) : new Date();
+        if (isNaN(docDateObj.getTime())) {
+            docDateObj = new Date();
+        }
         const year = docDateObj.getFullYear();
         const yearStart = new Date(`${year}-01-01T00:00:00.000Z`);
         const yearEnd = new Date(`${year}-12-31T23:59:59.999Z`);
@@ -43,7 +46,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         });
         if (existingDocNo) {
             throw new ConflictException(
-                `ເລກທີ່ເອກະສານ '${data.docNo}' ມີຢູ່ໃນພະແນກນີ້ແລ້ວ (ປີ ${year})`,
+                `ເລກທີ່ເອກະສານ '${data.docNo}' ມີຢູ່ແລ້ວ (ປີ ${year})`,
             );
         }
 
@@ -196,7 +199,13 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         if (search) {
             whereCondition.OR = [
                 { docNo: { contains: search, mode: 'insensitive' } },
-                { subDocNo: { contains: search, mode: 'insensitive' } },
+                {
+                    subDocuments: {
+                        some: {
+                            subDocNo: { contains: search, mode: 'insensitive' },
+                        },
+                    },
+                },
                 { title: { contains: search, mode: 'insensitive' } },
                 { shortName: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
@@ -454,5 +463,42 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         ]);
 
         return expiredDocs.length;
+    }
+
+    async deleteDocument(id: string, approvalFilePath: string): Promise<DocumentEntity> {
+        const doc = await this.prisma.documentModel.findUnique({
+            where: { id },
+            include: { attachments: true },
+        });
+
+        if (!doc) {
+            throw new NotFoundException('ບໍ່ພົບເອກະສານນີ້ໃນລະບົບ');
+        }
+
+        // ລົບໄຟລ໌ attachments ຈາກ disk
+        const fs = await import('fs');
+        for (const att of doc.attachments) {
+            try {
+                if (fs.existsSync(att.filePath)) fs.unlinkSync(att.filePath);
+            } catch {
+                // ຂ້າມຖ້າລົບໄຟລ໌ບໍ່ໄດ້
+            }
+        }
+
+        // ລົບ attachments ແລະ ອັບເດດເອກະສານໃນ transaction
+        await this.prisma.$transaction([
+            this.prisma.attachmentModel.deleteMany({
+                where: { documentId: id },
+            }),
+            this.prisma.documentModel.update({
+                where: { id },
+                data: {
+                    destructionApprovalPath: approvalFilePath,
+                },
+            }),
+        ]);
+
+        const updated = await this.findById(id);
+        return updated!;
     }
 }

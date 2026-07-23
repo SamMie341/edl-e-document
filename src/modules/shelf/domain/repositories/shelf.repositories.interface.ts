@@ -20,4 +20,5 @@ export interface IShelfRepository {
   findById(id: string): Promise<Shelf | null>;
   update(id: string, data: any): Promise<Shelf>;
   delete(id: string): Promise<void>;
+  getDropdown(params?: ShelfFilterParams): Promise<any[]>;
 }

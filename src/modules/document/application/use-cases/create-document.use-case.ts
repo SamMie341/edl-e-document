@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fileStorageInterface from 'src/core/interfaces/file-storage.interface';
 import { PrismaService } from 'src/core/database/prisma.service';
 
+import { fixUtf8Object, fixUtf8String } from 'src/core/utils/utf8-fix.util';
+
 @Injectable()
 export class CreateDocumentUseCase {
   constructor(
@@ -21,7 +23,8 @@ export class CreateDocumentUseCase {
     userId: string,
     files: Express.Multer.File[],
   ) {
-    const generatedId = dto.id || uuidv4();
+    const fixedDto = fixUtf8Object(dto);
+    const generatedId = fixedDto.id || uuidv4();
     const qrCode = generatedId;
 
     const attachmentsData: {
@@ -33,9 +36,10 @@ export class CreateDocumentUseCase {
 
     if (files && files.length > 0) {
       for (const file of files) {
+        const decodedOriginalName = fixUtf8String(file.originalname);
         const savedFile = await this.fileStorageService.uploadAndCompress({
           buffer: file.buffer,
-          originalname: file.originalname,
+          originalname: decodedOriginalName,
           mimetype: file.mimetype,
           size: file.size,
         });
@@ -63,15 +67,15 @@ export class CreateDocumentUseCase {
     });
     const primaryDivisionId = creator?.userDivisions?.[0]?.divisionId ?? null;
 
-    const { subDocuments, ...documentDto } = dto;
+    const { subDocuments, ...documentDto } = fixedDto;
 
     const dataToSave = {
       ...documentDto,
       id: generatedId,
       userId,
       qrCode,
-      departmentId: dto.departmentId ?? creator?.departmentId ?? null,
-      divisionId: dto.divisionId ?? primaryDivisionId ?? null,
+      departmentId: fixedDto.departmentId ?? creator?.departmentId ?? null,
+      divisionId: fixedDto.divisionId ?? primaryDivisionId ?? null,
       attachments: attachmentsData,
       subDocuments: subDocuments && subDocuments.length > 0
         ? { create: subDocuments }

@@ -87,6 +87,8 @@ export class WarehouseController {
   @Get('dropdown')
   async getDropdown(
     @Req() req: any,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
 
@@ -104,8 +106,14 @@ export class WarehouseController {
       if (divisionIds.length === 0) {
         divisionIds = [-1];
       }
+      if (departmentIdQuery) {
+        departmentId = parseInt(departmentIdQuery, 10);
+      }
     } else if (user.role === Role.USER) {
       divisionId = user.divisionId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const data = await this.getWarehouseDropdownUseCase.execute({
@@ -144,7 +152,7 @@ export class WarehouseController {
   }
 
   // ─── DELETE ───────────────────────────────────────────────────────────────
-  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     await this.deleteWarehouseUseCase.execute(id);

@@ -11,7 +11,15 @@ import { DocumentBorrowMapper } from '../mappers/document-borrow.mapper';
 // ─── Include ທົ່ວໄປ ──────────────────────────────────────────────────────────
 const BORROW_INCLUDE = {
   document: {
-    select: { id: true, docNo: true, title: true, folderId: true, departmentId: true, divisionId: true },
+    select: {
+      id: true,
+      docNo: true,
+      title: true,
+      folderId: true,
+      departmentId: true,
+      divisionId: true,
+      attachments: true,
+    },
   },
   folder: {
     select: { id: true, code: true, name: true },
@@ -247,7 +255,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   async return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity> {
     const model = await this.prisma.documentBorrowModel.update({
       where: { id },
-      data: { 
+      data: {
         returnedAt,
         status: 'RETURNED',
       },

@@ -65,15 +65,19 @@ export class UpdateFolderUseCase {
       if (user.role === Role.BRANCH_ADMIN) {
         if (newShelf.locker?.warehouse?.departmentId !== user.departmentId) {
           throw new ForbiddenException(
-            'ທ່ານບໍ່ມີສິດຍ້າຍໂກໂນໄປຊັ້ນວາງຂອງພະແນກອື່ນ',
+            'ທ່ານບໍ່ມີສິດຍ້າຍໂກໂນໄປຊັ້ນວາງຂອງສາຂາອື່ນ',
           );
         }
       }
 
       const deptCode = newShelf.locker?.warehouse?.department?.code ?? '';
-      const divCode = newShelf.locker?.warehouse?.division?.shortName ?? '';
-      const prefix = deptCode || divCode || 'LOC';
-      const locationRef = `${prefix}/${newShelf.locker?.warehouse?.code ?? ''}/${newShelf.locker?.code ?? ''}`;
+      const divCode = newShelf.locker?.warehouse?.division?.code ?? newShelf.locker?.warehouse?.division?.shortName ?? '';
+      const warehouseCode = newShelf.locker?.warehouse?.code ?? '';
+      const lockerCode = newShelf.locker?.code ?? '';
+
+      const locationRef = [deptCode, divCode, warehouseCode, lockerCode]
+        .filter((c) => Boolean(c && c.trim()))
+        .join('/');
       return await this.folderRepository.update(id, { ...dto, locationRef });
     }
 

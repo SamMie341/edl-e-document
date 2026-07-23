@@ -11,6 +11,7 @@ import { GetDocumentByIdUseCase } from './application/use-cases/get-document-by-
 import { UpdateDocumentUseCase } from './application/use-cases/update-document.use-case';
 import { DeleteExpiredDocumentsUseCase } from './application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from './application/use-cases/get-expired-documents.use-case';
+import { DeleteDocumentUseCase } from './application/use-cases/delete-document.use-case';
 import { FolderModule } from '../folder/folder.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { FolderModule } from '../folder/folder.module';
     UpdateDocumentUseCase,
     DeleteExpiredDocumentsUseCase,
     GetExpiredDocumentsUseCase,
+    DeleteDocumentUseCase,
 
     // ── Repository ─────────────────────────────────────────────────────────
     {

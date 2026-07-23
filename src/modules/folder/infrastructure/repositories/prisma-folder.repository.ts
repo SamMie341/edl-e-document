@@ -3,7 +3,7 @@ import {
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
-import { IFolderRepository } from '../../domain/repositories/folder.repository.interface';
+import { IFolderRepository, FolderFilterParams } from '../../domain/repositories/folder.repository.interface';
 import { Folder } from '../../domain/entities/folder.entity';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { FolderMapper } from '../mappers/folder.mapper';
@@ -12,15 +12,10 @@ import { FolderMapper } from '../mappers/folder.mapper';
 export class PrismaFolderRepository implements IFolderRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findAll(params?: {
-        skip?: number;
-        take?: number;
-        shelfId?: string;
-        departmentId?: number;
-        divisionId?: number;
-        search?: string;
-    }): Promise<{ data: Folder[]; total: number }> {
-        const { skip, take, shelfId, departmentId, divisionId, search } = params || {};
+    async findAll(
+        params?: FolderFilterParams & { skip?: number; take?: number },
+    ): Promise<{ data: Folder[]; total: number }> {
+        const { skip, take, shelfId, lockerId, warehouseId, departmentId, divisionId, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
@@ -34,13 +29,25 @@ export class PrismaFolderRepository implements IFolderRepository {
             ];
         }
 
-        if (departmentId || divisionId) {
+        const shelfFilter: any = {};
+        if (lockerId) shelfFilter.lockerId = lockerId;
+
+        if (warehouseId || departmentId || divisionId) {
             const warehouseFilter: any = {};
+            if (warehouseId) warehouseFilter.id = warehouseId;
             if (departmentId) warehouseFilter.departmentId = departmentId;
             if (divisionId) warehouseFilter.divisionId = divisionId;
-            where.shelf = {
-                is: { locker: { is: { warehouse: { is: warehouseFilter } } } },
+
+            shelfFilter.locker = {
+                is: {
+                    ...(shelfFilter.locker?.is || {}),
+                    warehouse: { is: warehouseFilter },
+                },
             };
+        }
+
+        if (Object.keys(shelfFilter).length > 0) {
+            where.shelf = { is: shelfFilter };
         }
 
         const [models, total] = await this.prisma.$transaction([
@@ -150,10 +157,14 @@ export class PrismaFolderRepository implements IFolderRepository {
             }
         }
 
-        const deptCode = shelf.locker.warehouse?.department?.code ?? '';
-        const divCode = shelf.locker.warehouse?.division?.shortName ?? '';
-        const prefix = deptCode || divCode || 'LOC';
-        const locationRef = `${prefix}/${shelf.locker?.warehouse?.code ?? ''}/${shelf.locker?.code ?? ''}`;
+        const deptCode = shelf.locker?.warehouse?.department?.code ?? '';
+        const divCode = shelf.locker?.warehouse?.division?.code ?? shelf.locker?.warehouse?.division?.shortName ?? '';
+        const warehouseCode = shelf.locker?.warehouse?.code ?? '';
+        const lockerCode = shelf.locker?.code ?? '';
+
+        const locationRef = [deptCode, divCode, warehouseCode, lockerCode]
+            .filter((c) => Boolean(c && c.trim()))
+            .join('/');
         const qrCode = data.qrCode?.trim() || `${locationRef}`;
 
         const model = await this.prisma.folderModel.create({
@@ -252,5 +263,77 @@ export class PrismaFolderRepository implements IFolderRepository {
         }
 
         await this.prisma.folderModel.delete({ where: { id } });
+    }
+
+    async getDropdown(params?: FolderFilterParams): Promise<any[]> {
+        const { shelfId, lockerId, warehouseId, departmentId, divisionId, search } = params || {};
+
+        const where: any = {};
+        if (shelfId) where.shelfId = shelfId;
+
+        if (search) {
+            where.OR = [
+                { code: { contains: search, mode: 'insensitive' } },
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { locationRef: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        const shelfFilter: any = {};
+        if (lockerId) shelfFilter.lockerId = lockerId;
+
+        if (warehouseId || departmentId || divisionId) {
+            const warehouseFilter: any = {};
+            if (warehouseId) warehouseFilter.id = warehouseId;
+            if (departmentId) warehouseFilter.departmentId = departmentId;
+            if (divisionId) warehouseFilter.divisionId = divisionId;
+
+            shelfFilter.locker = {
+                is: {
+                    ...(shelfFilter.locker?.is || {}),
+                    warehouse: { is: warehouseFilter },
+                },
+            };
+        }
+
+        if (Object.keys(shelfFilter).length > 0) {
+            where.shelf = { is: shelfFilter };
+        }
+
+        const models = await this.prisma.folderModel.findMany({
+            where,
+            orderBy: { code: 'asc' },
+            select: {
+                id: true,
+                code: true,
+                name: true,
+                status: true,
+                locationRef: true,
+                // shelfId: true,
+                // shelf: {
+                //     select: {
+                //         id: true,
+                //         name: true,
+                //         locker: {
+                //             select: {
+                //                 id: true,
+                //                 code: true,
+                //                 name: true,
+                //                 warehouse: {
+                //                     select: {
+                //                         id: true,
+                //                         code: true,
+                //                         name: true,
+                //                     },
+                //                 },
+                //             },
+                //         },
+                //     },
+                // },
+            },
+        });
+
+        return models;
     }
 }
