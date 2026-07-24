@@ -94,9 +94,19 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             warehouseId,
             lockerId,
             shelfId,
+            isDestroyed,
         } = params;
         const skip = (page - 1) * limit;
         const whereCondition: any = {};
+
+        if (isDestroyed !== undefined && isDestroyed !== null && isDestroyed !== '') {
+            const isDest = isDestroyed === true || isDestroyed === 'true' || isDestroyed === '1';
+            if (isDest) {
+                whereCondition.destructionApprovalPath = { not: null };
+            } else {
+                whereCondition.destructionApprovalPath = null;
+            }
+        }
 
         if (folderId) whereCondition.folderId = folderId;
         if (userId) whereCondition.userId = userId;
@@ -390,9 +400,54 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         };
     }
 
-    async findExpired(): Promise<DocumentEntity[]> {
-        const models = await this.prisma.documentModel.findMany({
-            where: this.expiredNonContractWhere,
+    async findExpired(
+        params?: { page?: number; limit?: number; isDestroyed?: boolean | string; search?: string } | boolean | string,
+    ): Promise<{ data: DocumentEntity[]; total: number }> {
+        let page = 1;
+        let limit = 10;
+        let isDestroyed: boolean | string | undefined = undefined;
+        let search: string | undefined = undefined;
+        let isPaginated = false;
+
+        if (typeof params === 'object' && params !== null) {
+            page = params.page || 1;
+            limit = params.limit || 10;
+            isDestroyed = params.isDestroyed;
+            search = params.search;
+            if (params.page !== undefined || params.limit !== undefined) {
+                isPaginated = true;
+            }
+        } else {
+            isDestroyed = params;
+        }
+
+        const whereCondition: any = {
+            ...this.expiredNonContractWhere,
+        };
+
+        if (isDestroyed === true || isDestroyed === 'true' || isDestroyed === '1') {
+            whereCondition.destructionApprovalPath = { not: null };
+        } else if (isDestroyed === false || isDestroyed === 'false' || isDestroyed === '0') {
+            whereCondition.destructionApprovalPath = null;
+        } else if (isDestroyed === undefined || isDestroyed === null || isDestroyed === '') {
+            // Default: ດຶງເອກະສານທີ່ຍັງບໍ່ທັນຖືກທຳລາຍ (destructionApprovalPath: null)
+            whereCondition.destructionApprovalPath = null;
+        }
+
+        if (search) {
+            whereCondition.OR = [
+                { docNo: { contains: search, mode: 'insensitive' } },
+                { title: { contains: search, mode: 'insensitive' } },
+                { shortName: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { user: { firstNameLa: { contains: search, mode: 'insensitive' } } },
+                { user: { lastNameLa: { contains: search, mode: 'insensitive' } } },
+            ];
+        }
+
+        const findManyOptions: any = {
+            where: whereCondition,
+            orderBy: { docExpire: 'asc' },
             include: {
                 attachments: true,
                 documentType: true,
@@ -418,15 +473,31 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                     },
                 },
             },
-            orderBy: { docExpire: 'asc' },
-        });
-        return models.map((m) => DocumentMapper.toDomain(m));
+        };
+
+        if (isPaginated) {
+            findManyOptions.skip = (page - 1) * limit;
+            findManyOptions.take = limit;
+        }
+
+        const [models, total] = await Promise.all([
+            this.prisma.documentModel.findMany(findManyOptions),
+            this.prisma.documentModel.count({ where: whereCondition }),
+        ]);
+
+        return {
+            data: models.map((m) => DocumentMapper.toDomain(m)),
+            total,
+        };
     }
 
     async deleteExpired(approvalFilePath: string): Promise<number> {
-        // ດຶງ IDs + attachments ເຉพาะທີ່ຫົມດອາຍຸ ແລະ ບໍ່ໄດ້ຕິດພັນສັນຍາ
+        // ດຶງ IDs + attachments ເຉพาะທີ່ຫົມດອາຍຸ, ບໍ່ໄດ້ຕິດພັນສັນຍາ ແລະ ຍັງບໍ່ທັນຖືກທຳລາຍ (destructionApprovalPath == null)
         const expiredDocs = await this.prisma.documentModel.findMany({
-            where: this.expiredNonContractWhere,
+            where: {
+                ...this.expiredNonContractWhere,
+                destructionApprovalPath: null,
+            },
             select: {
                 id: true,
                 attachments: { select: { filePath: true } },
