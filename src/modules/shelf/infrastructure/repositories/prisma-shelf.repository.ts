@@ -79,38 +79,6 @@ export class PrismaShelfRepository implements IShelfRepository {
     };
   }
 
-  async create(data: any): Promise<Shelf> {
-    if (data.lockerId) {
-      const locker = await this.prisma.lockerModel.findUnique({
-        where: { id: data.lockerId },
-      });
-      if (!locker) {
-        throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ໃນລະບົບ');
-      }
-
-      if (data.name) {
-        const existing = await this.prisma.shelfModel.findFirst({
-          where: {
-            lockerId: data.lockerId,
-            name: data.name,
-          },
-        });
-        if (existing) {
-          throw new ConflictException(
-            `ຊື່ຊັ້ນວາງ '${data.name}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`,
-          );
-        }
-      }
-    }
-    const model = await this.prisma.shelfModel.create({
-      data,
-      include: {
-        _count: { select: { folders: true } }
-      },
-    });
-    return ShelfMapper.toDomain(model);
-  }
-
   async createMany(dataList: any[]): Promise<Shelf[]> {
     const inputKeys = dataList.map((d) => `${d.lockerId}_${d.name || ''}`);
     const hasSelfDuplicates = inputKeys.some((val, i) => inputKeys.indexOf(val) !== i);

@@ -92,11 +92,14 @@ export class PrismaLockerRepository implements ILockerRepository {
   }
 
   async create(data: any): Promise<Locker> {
-    const existing = await this.prisma.lockerModel.findUnique({
-      where: { code: data.code },
+    const existing = await this.prisma.lockerModel.findFirst({
+      where: {
+        code: data.code,
+        warehouseId: data.warehouseId ?? null,
+      },
     });
     if (existing) {
-      throw new ConflictException(`ລະຫັດຕູ້ '${data.code}' ຖືກໃຊ້ງານແລ້ວ`);
+      throw new ConflictException(`ລະຫັດຕູ້ '${data.code}' ຖືກໃຊ້ງານແລ້ວໃນສາງນີ້`);
     }
     if (data.warehouseId) {
       const warehouse = await this.prisma.warehouseModel.findUnique({
@@ -116,6 +119,23 @@ export class PrismaLockerRepository implements ILockerRepository {
     });
     if (!existing) {
       throw new NotFoundException('ບໍ່ພົບຕູ້ Locker ນີ້ໃນລະບົບ');
+    }
+    if (data.code || data.warehouseId !== undefined) {
+      const targetCode = data.code ?? existing.code;
+      const targetWarehouseId =
+        data.warehouseId !== undefined ? data.warehouseId : existing.warehouseId;
+      const duplicate = await this.prisma.lockerModel.findFirst({
+        where: {
+          code: targetCode,
+          warehouseId: targetWarehouseId ?? null,
+          NOT: { id },
+        },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          `ລະຫັດຕູ້ '${targetCode}' ຖືກໃຊ້ງານແລ້ວໃນສາງນີ້`,
+        );
+      }
     }
     if (data.warehouseId) {
       const warehouse = await this.prisma.warehouseModel.findUnique({

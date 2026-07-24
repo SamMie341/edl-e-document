@@ -12,7 +12,7 @@ import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/core/auth/guards/roles.guard';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
-import { CreateSubDocumentDto, CreateSubDocumentsDto } from '../../application/dtos/create-sub-document.dto';
+import { CreateSubDocumentsDto } from '../../application/dtos/create-sub-document.dto';
 import { UpdateSubDocumentDto } from '../../application/dtos/update-sub-document.dto';
 import { CreateSubDocumentUseCase } from '../../application/use-cases/create-sub-document.use-case';
 import { GetSubDocumentsUseCase } from '../../application/use-cases/get-sub-documents.use-case';

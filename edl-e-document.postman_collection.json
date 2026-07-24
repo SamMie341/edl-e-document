@@ -2769,7 +2769,7 @@
       "name": "Shelf",
       "item": [
         {
-          "name": "POST /shelves (Roles)",
+          "name": "POST /shelves/locker/:lockerId (Roles)",
           "request": {
             "method": "POST",
             "header": [
@@ -2779,15 +2779,23 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/shelves",
+              "raw": "{{baseUrl}}/shelves/locker/:lockerId",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "shelves"
+                "shelves",
+                "locker",
+                ":lockerId"
               ],
               "query": [],
-              "variable": []
+              "variable": [
+                {
+                  "key": "lockerId",
+                  "value": "locker-uuid-here",
+                  "description": "Path variable: lockerId (UUID) — the locker to add shelves to"
+                }
+              ]
             },
             "auth": {
               "type": "bearer",
@@ -2801,7 +2809,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"name_val\",\n  \"description\": \"description_val\",\n  \"maxQty\": 1,\n  \"lockerId\": \"1\",\n  \"shelves\": []\n}"
+              "raw": "{\n  \"shelves\": [\n    {\n      \"name\": \"ຊັ້ນ A1\",\n      \"description\": \"\",\n      \"maxQty\": 50\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": []

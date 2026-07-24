@@ -72,6 +72,8 @@ export class DocumentController {
     @Query('warehouseId') warehouseId?: string,
     @Query('lockerId') lockerId?: string,
     @Query('shelfId') shelfId?: string,
+    @Query('isDestroyed') isDestroyed?: string,
+    @Query('isDeleted') isDeleted?: string,
   ) {
     const user = req.user;
     let targetUserId: string | undefined = undefined;
@@ -124,6 +126,7 @@ export class DocumentController {
       warehouseId: warehouseId ?? undefined,
       lockerId: lockerId ?? undefined,
       shelfId: shelfId ?? undefined,
+      isDestroyed: isDestroyed ?? isDeleted,
     };
     const result = await this.getAllDocumentUseCase.execute(params);
     return {
@@ -132,11 +135,26 @@ export class DocumentController {
     };
   }
 
-  // ─── GET EXPIRED (list for review) ─────────────────────────────────────────
+  // ─── GET EXPIRED (list for review & history) ─────────────────────────────────
   @Get('expired')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async getExpiredDocuments() {
-    const result = await this.getExpiredDocumentsUseCase.execute();
+  async getExpiredDocuments(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('isDestroyed') isDestroyed?: string,
+    @Query('isDeleted') isDeleted?: string,
+    @Query('search') search?: string,
+  ) {
+    const isDestroyedFilter = isDestroyed !== undefined ? isDestroyed : isDeleted;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+
+    const result = await this.getExpiredDocumentsUseCase.execute({
+      page: pageNum,
+      limit: limitNum,
+      isDestroyed: isDestroyedFilter,
+      search,
+    });
     return { message: 'Success', ...result };
   }
 

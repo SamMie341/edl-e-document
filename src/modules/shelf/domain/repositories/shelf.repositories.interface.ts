@@ -14,7 +14,6 @@ export interface ShelfFilterParams {
 }
 
 export interface IShelfRepository {
-  create(data: any): Promise<Shelf>;
   createMany(dataList: any[]): Promise<Shelf[]>;
   findAll(params: ShelfFilterParams): Promise<{ data: Shelf[]; total: number }>;
   findById(id: string): Promise<Shelf | null>;

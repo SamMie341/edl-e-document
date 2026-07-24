@@ -177,10 +177,15 @@ export class DocumentEntity {
         return DocumentRetentionStatus.EXPIRED;
     }
 
+    get isDestroyed(): boolean {
+        return !!this.destructionApprovalPath;
+    }
+
     toJSON() {
         return {
             ...this,
             retentionStatus: this.retentionStatus,
+            isDestroyed: this.isDestroyed,
         };
     }
 }

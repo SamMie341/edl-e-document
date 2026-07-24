@@ -128,7 +128,10 @@ Manages physical folders placed on shelves.
 
 ### 4. Shelf Module
 Manages physical shelves within lockers.
-* **Create:** `POST /shelves` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can create shelves under a locker (`lockerId`) and define `maxQty`. Supports batch creation via `shelves` array.
+* **Create:** `POST /shelves/locker/:lockerId`
+  * **[Updated]** `lockerId` is now a **path parameter** (previously a body field).
+  * Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * Body: `shelves` (required array) — each item: `name` (optional), `description` (optional), `maxQty` (required). Supports batch creation in a single request.
 * **Read:**
   * `SUPER_ADMIN` and `HQ_ADMIN` see all shelves. `BRANCH_ADMIN` is scoped via Shelf → Locker → Warehouse.
   * `GET /shelves` — Paginated list with filters: `lockerId`, `warehouseId`, `search`, `status`.
@@ -320,6 +323,15 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-07-24
+
+#### 🔄 Updated
+| Item | Before | After |
+|---|---|---|
+| **`POST /shelves` route** | `POST /shelves` with `lockerId` in body | `POST /shelves/locker/:lockerId` — `lockerId` moved to **path parameter** |
+
+---
 
 ### Version 2026-07-23
 

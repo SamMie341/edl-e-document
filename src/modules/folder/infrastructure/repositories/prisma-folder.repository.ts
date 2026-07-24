@@ -55,7 +55,7 @@ export class PrismaFolderRepository implements IFolderRepository {
                 where,
                 skip,
                 take,
-                orderBy: { code: 'asc' },
+                orderBy: { createdAt: 'asc' },
                 include: {
                     shelf: {
                         include: {
@@ -212,32 +212,31 @@ export class PrismaFolderRepository implements IFolderRepository {
             throw new NotFoundException('ບໍ່ພົບໂກໂນນີ້ໃນລະບົບ');
         }
 
-        // ตรวจ code ซ้ำ (ถ้าเปลี่ยน code)
-        if (data.code && data.code !== existing.code) {
-            const shelfId = data.shelfId || existing.shelfId;
+        // ─── ตรวจสอบความซ้ำของ code (ทั้งกรณีเปลี่ยน code หรือย้าย shelfId/Locker) ───
+        const newCode = (data.code !== undefined ? data.code?.trim() : existing.code);
+        const newShelfId = data.shelfId || existing.shelfId;
+
+        if (data.code !== undefined || data.shelfId !== undefined) {
             const shelf = await this.prisma.shelfModel.findUnique({
-                where: { id: shelfId },
+                where: { id: newShelfId },
             });
-            if (shelf) {
+            if (!shelf) {
+                throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
+            }
+
+            if (newCode) {
                 const codeExists = await this.prisma.folderModel.findFirst({
                     where: {
                         shelf: { lockerId: shelf.lockerId },
-                        code: data.code,
+                        code: newCode,
                         NOT: { id },
                     },
                 });
                 if (codeExists) {
-                    throw new ConflictException(`ລະຫັດໂກໂນ '${data.code}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`);
+                    throw new ConflictException(
+                        `ລະຫັດໂກໂນ '${newCode}' ຖືກໃຊ້ງານແລ້ວໃນຕູ້ Locker ນີ້`,
+                    );
                 }
-            }
-        }
-
-        if (data.shelfId) {
-            const shelf = await this.prisma.shelfModel.findUnique({
-                where: { id: data.shelfId },
-            });
-            if (!shelf) {
-                throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
             }
         }
 

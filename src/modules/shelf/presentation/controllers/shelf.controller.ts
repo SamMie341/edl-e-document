@@ -35,10 +35,17 @@ export class ShelfController {
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
   ) { }
 
-  @Post()
+  @Post('locker/:lockerId')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async create(@Body() dto: CreateShelvesDto, @Req() req: any) {
-    const shelves = await this.createShelfUseCase.execute(dto, req.user);
+  async create(
+    @Param('lockerId') lockerId: string,
+    @Body() dto: CreateShelvesDto,
+    @Req() req: any,
+  ) {
+    const shelves = await this.createShelfUseCase.execute(
+      { ...dto, lockerId },
+      req.user,
+    );
     return { message: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', data: shelves };
   }
 

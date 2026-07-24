@@ -8,8 +8,26 @@ export class GetExpiredDocumentsUseCase {
     private readonly documentRepository: documentRepositoryInterface.IDocumentRepository,
   ) { }
 
-  async execute() {
-    const data = await this.documentRepository.findExpired();
-    return { data, total: data.length };
+  async execute(
+    params?: documentRepositoryInterface.ExpiredDocumentFilterParams | boolean | string,
+  ) {
+    const { data, total } = await this.documentRepository.findExpired(params);
+
+    let page = 1;
+    let limit = 10;
+    if (typeof params === 'object' && params !== null) {
+      page = params.page || 1;
+      limit = params.limit || 10;
+    }
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

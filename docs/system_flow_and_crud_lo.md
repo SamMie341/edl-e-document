@@ -120,7 +120,10 @@
 
 ### 4. ໂມດູນຊັ້ນວາງເອກະສານ (Shelf Module)
 ຄຸ້ມຄອງຊັ້ນວາງເອກະສານພາຍໃນຕູ້ເກັບ.
-* **Create (ສ້າງ):** `POST /shelves` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN` ໂດຍລະບຸ `lockerId` ແລະ `maxQty`. **[ໃໝ່]** ຮອງຮັບການສ້າງຊັ້ນວາງຫຼາຍອັນໃນຄັ້ງດຽວ ຜ່ານ array `shelves`.
+* **Create (ສ້າງ):** `POST /shelves/locker/:lockerId`
+  * **[ອັບເດດ]** `lockerId` ຕອນນີ້ເປັນ **path parameter** (ກ່ອນໜ້າຢຈາກ body).
+  * ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * Body: `shelves` (array ຕ້ອງມີ) — ແຕ່ລະ item: `name` (ທາງເລືອກ), `description` (ທາງເລືອກ), `maxQty` (ຕ້ອງມີ). ຮອງຮັບການສ້າງຫຼາຍອັນພົ້ມກັນ.
 * **Read (ອ່ານ):**
   * `GET /shelves` — ລາຍການໜ້າ ດ້ວຍ filter: `lockerId`, `warehouseId`, `search`, `status`.
   * **[ໃໝ່]** `GET /shelves/dropdown` — Dropdown ຫຍໍ້. Filters: `lockerId`, `warehouseId`, `status`, `search`. ສົ່ງຄືນ `id`, `name`, `code` + ຂໍ້ມູນ locker/warehouse.
@@ -260,6 +263,15 @@
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-07-24
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ກ່ອນໝ້ານີ້ | ຫຼັງຈາກນີ້ |
+|--------|-----------|----------|
+| **Route `POST /shelves`** | `POST /shelves` + `lockerId` ໃນ body | `POST /shelves/locker/:lockerId` — `lockerId` ກາຍເປັນ path parameter |
+
+---
 
 ### ເວີຊັ່ນ 2026-07-23
 

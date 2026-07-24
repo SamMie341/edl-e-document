@@ -20,7 +20,7 @@ import { UpdateUserDivisionsUseCase } from './application/use-cases/update-user-
   imports: [
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: (process.env.JWT_EXPIRATION as any) || '8h' },
     }),
     AuditModule,
   ],

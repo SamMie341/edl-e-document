@@ -168,7 +168,7 @@ model WarehouseModel {
 
 model LockerModel {
   id          String  @id @default(uuid())
-  code        String  @unique
+  code        String
   name        String?
   description String?
   status      String  @default("A")
@@ -181,6 +181,7 @@ model LockerModel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([warehouseId, code])
   @@map("lockers")
 }
 
@@ -238,15 +239,15 @@ model DocumentTypeModel {
 }
 
 model DocumentModel {
-  id              String    @id @default(uuid())
-  docNo           String
-  shortName       String?
-  docDate         DateTime
-  title           String
-  description     String?
-  docExpire       DateTime
-  qrCode          String
-  isContractBound         Boolean   @default(false)
+  id                      String   @id @default(uuid())
+  docNo                   String
+  shortName               String?
+  docDate                 DateTime
+  title                   String
+  description             String?
+  docExpire               DateTime
+  qrCode                  String
+  isContractBound         Boolean  @default(false)
   destructionApprovalPath String?
 
   userId String
