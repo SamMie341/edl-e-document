@@ -8,6 +8,8 @@ import * as folderRepositoryInterface from '../../domain/repositories/folder.rep
 import { UpdateFolderDto } from '../dtos/update-folder.dto';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class UpdateFolderUseCase {
@@ -15,6 +17,7 @@ export class UpdateFolderUseCase {
     @Inject(folderRepositoryInterface.FOLDER_REPOSITORY)
     private readonly folderRepository: folderRepositoryInterface.IFolderRepository,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(id: string, dto: UpdateFolderDto, user: any) {
@@ -42,6 +45,7 @@ export class UpdateFolderUseCase {
       }
     }
 
+    let updated;
     // ถ้ามีการเปลี่ยน shelfId → recalculate locationRef
     if (dto.shelfId && dto.shelfId !== existing.shelfId) {
       const newShelf = await this.prisma.shelfModel.findUnique({
@@ -74,13 +78,28 @@ export class UpdateFolderUseCase {
       const divCode = newShelf.locker?.warehouse?.division?.code ?? newShelf.locker?.warehouse?.division?.shortName ?? '';
       const warehouseCode = newShelf.locker?.warehouse?.code ?? '';
       const lockerCode = newShelf.locker?.code ?? '';
+      const shelfCode = newShelf.name ?? '';
 
-      const locationRef = [deptCode, divCode, warehouseCode, lockerCode]
+      const locationRef = [deptCode, divCode, warehouseCode, lockerCode, shelfCode]
         .filter((c) => Boolean(c && c.trim()))
         .join('/');
-      return await this.folderRepository.update(id, { ...dto, locationRef });
+      updated = await this.folderRepository.update(id, { ...dto, locationRef });
+    } else {
+      updated = await this.folderRepository.update(id, dto);
     }
 
-    return await this.folderRepository.update(id, dto);
+    await this.auditService.log({
+      action: 'UPDATED',
+      details: `ແກ້ໄຂໂຟນເດີ: ${existing.name}`,
+      entityId: id,
+      entityType: 'FOLDER',
+      actorId: user?.userId || user?.id,
+      departmentId: user?.departmentId,
+      divisionId: user?.divisionId,
+      oldValue: existing,
+      newValue: updated,
+    });
+
+    return updated;
   }
 }

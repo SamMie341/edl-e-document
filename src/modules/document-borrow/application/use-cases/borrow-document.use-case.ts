@@ -2,12 +2,15 @@ import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import * as documentBorrowRepositoryInterface from '../../domain/repositories/document-borrow.repository.interface';
 import { CreateBorrowDto } from '../dtos/create-borrow.dto';
 import { DocumentBorrowEntity } from '../../domain/entities/document-borrow.entity';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class BorrowDocumentUseCase {
   constructor(
     @Inject(documentBorrowRepositoryInterface.DOCUMENT_BORROW_REPOSITORY)
     private readonly borrowRepository: documentBorrowRepositoryInterface.IDocumentBorrowRepository,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(dto: CreateBorrowDto, actorId: string): Promise<DocumentBorrowEntity[]> {
@@ -50,6 +53,20 @@ export class BorrowDocumentUseCase {
       throw new BadRequestException('ກະລຸນາເລືອກເອກະສານ ຫຼື ແຟ້ມ ທີ່ຕ້ອງການຢືມ');
     }
 
-    return await this.borrowRepository.createMany(items);
+    const createdBorrows = await this.borrowRepository.createMany(items);
+
+    for (const b of createdBorrows) {
+      await this.auditService.log({
+        action: AuditAction.SUBMITTED,
+        details: `ຢືມເອກະສານ/ແຟ້ມ ໂດຍ: ${b.borrower}`,
+        entityId: b.id,
+        entityType: 'DOCUMENT_BORROW',
+        actorId,
+        divisionId: b.toDivisionId,
+        payload: b,
+      });
+    }
+
+    return createdBorrows;
   }
 }

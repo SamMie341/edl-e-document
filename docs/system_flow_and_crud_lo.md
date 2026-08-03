@@ -264,6 +264,19 @@
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
 
+### ເວີຊັ່ນ 2026-07-31
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`GET /documents` filter params** | ເພີ່ມ `isDestroyed` ແລະ `isDeleted` ສຳຫຼັບກອງເອກະສານທີ່ຖືກທຳລາຍ/ລົບ. |
+| **`GET /documents/expired`** | ເພີ່ມ Pagination (`page`, `limit`) ແລະ Filter (`search`, `isDestroyed`, `isDeleted`). |
+| **`DELETE /documents/expired` body** | ເພີ່ມ `destroyedDate`, `details`, `reason` (ທາງເລືອກ) ໃນ formdata. |
+| **`DELETE /documents/:id` body** | ເພີ່ມ `destroyedDate`, `details`, `reason` (ທາງເລືອກ) ໃນ formdata. |
+| **Global Search `type` param** | ເພີ່ມ `document-types` ໃນລະບົບຄ້ນຫາ. |
+
+---
+
 ### ເວີຊັ່ນ 2026-07-24
 
 #### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)

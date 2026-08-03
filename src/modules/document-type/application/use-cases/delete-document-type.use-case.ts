@@ -1,9 +1,7 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { AppException } from 'src/core/exceptions/app.exception';
 import * as repoInterface from '../../domain/repositories/document-type.repository.interface';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
@@ -11,11 +9,10 @@ export class DeleteDocumentTypeUseCase {
   constructor(
     @Inject(repoInterface.DOCUMENT_TYPE_REPOSITORY)
     private readonly documentTypeRepository: repoInterface.IDocumentTypeRepository,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+    private readonly auditService: AuditService,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, user?: any): Promise<void> {
     const documentType = await this.documentTypeRepository.findById(id);
     if (!documentType) {
       throw new AppException(
@@ -28,16 +25,15 @@ export class DeleteDocumentTypeUseCase {
 
     await this.documentTypeRepository.delete(id);
 
-    const log = new AuditLog(
-      uuidv4(),
-      AuditAction.DELETED,
-      'ລຶບປະເພດເອກະສານ',
-      documentType.id,
-      'DOCUMENT_TYPE',
-      '',
-      new Date(),
-    );
-
-    await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: AuditAction.DELETED,
+      details: `ລຶບປະເພດເອກະສານ: ${documentType.name}`,
+      entityId: documentType.id,
+      entityType: 'DOCUMENT_TYPE',
+      actorId: user?.userId || user?.id,
+      departmentId: user?.departmentId,
+      divisionId: user?.divisionId,
+      oldValue: documentType,
+    });
   }
 }

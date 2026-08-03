@@ -13,9 +13,10 @@ import { DeleteExpiredDocumentsUseCase } from './application/use-cases/delete-ex
 import { GetExpiredDocumentsUseCase } from './application/use-cases/get-expired-documents.use-case';
 import { DeleteDocumentUseCase } from './application/use-cases/delete-document.use-case';
 import { FolderModule } from '../folder/folder.module';
+import { ShelfModule } from '../shelf/shelf.module';
 
 @Module({
-  imports: [AuditModule, FolderModule],
+  imports: [AuditModule, FolderModule, ShelfModule],
   controllers: [DocumentController],
   providers: [
     // ── Document use cases ─────────────────────────────────────────────────

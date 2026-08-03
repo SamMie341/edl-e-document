@@ -7,15 +7,18 @@ import {
 import * as userRepositoryInterface from '../../domain/repositories/user.repository.interface';
 import { ApproveUserDto } from '../dtos/approve-user.dto';
 import { Role } from 'src/core/auth/constants/role.enum';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class ApproveUserUseCase {
   constructor(
     @Inject(userRepositoryInterface.USER_REPOSITORY)
     private readonly userRepository: userRepositoryInterface.IUserRepository,
+    private readonly auditService: AuditService,
   ) { }
 
-  async execute(userId: string, dto: ApproveUserDto) {
+  async execute(userId: string, dto: ApproveUserDto, adminUser?: any) {
     const user = await this.userRepository.findById(userId);
     if (!user) throw new NotFoundException('ບໍ່ພົບຜູ້ໃຊ້ໃນລະບົບ');
 
@@ -32,12 +35,21 @@ export class ApproveUserUseCase {
       role: dto.role,
     };
 
-
     if (dto.divisionIds !== undefined) {
       updateData.divisionIds = dto.divisionIds;
     }
 
     const updatedUser = await this.userRepository.update(userId, updateData);
+
+    await this.auditService.log({
+      action: AuditAction.APPROVED,
+      details: `ອະນຸມັດຜູ້ໃຊ້: ${user.firstNameLa || ''} ${user.lastNameLa || ''} (Role: ${dto.role})`,
+      entityId: userId,
+      entityType: 'USER',
+      actorId: adminUser?.userId || adminUser?.id,
+      departmentId: user.departmentId,
+      newValue: { status: 'A', role: dto.role },
+    });
 
     return {
       message: 'ອະນຸມັດຜູ້ໃຊ້ສຳເລັດ',

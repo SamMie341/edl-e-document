@@ -36,6 +36,7 @@ export interface DocumentFilterParams {
   departmentId?: number;
   divisionId?: number;
   divisionIds?: number[];
+  orUserId?: string;
   retentionStatus?: string;
   warehouseId?: string;
   lockerId?: string;

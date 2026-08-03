@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     ConflictException,
     Injectable,
     NotFoundException,
@@ -55,7 +56,7 @@ export class PrismaFolderRepository implements IFolderRepository {
                 where,
                 skip,
                 take,
-                orderBy: { createdAt: 'asc' },
+                orderBy: { createdAt: 'desc' },
                 include: {
                     shelf: {
                         include: {
@@ -84,6 +85,7 @@ export class PrismaFolderRepository implements IFolderRepository {
         const shelf = await this.prisma.shelfModel.findUnique({
             where: { id: data.shelfId },
             include: {
+                _count: { select: { folders: true } },
                 locker: {
                     include: {
                         warehouse: {
@@ -98,6 +100,12 @@ export class PrismaFolderRepository implements IFolderRepository {
         });
 
         if (!shelf) throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
+
+        if (shelf.maxQty > 0 && shelf._count.folders >= shelf.maxQty) {
+            throw new BadRequestException(
+                `ຊັ້ນວາງນີ້ເຕັມແລ້ວ (ຄວາມຈຸສູງສຸດ ${shelf.maxQty} ແຟ້ມ), ບໍ່ສາມາດເພີ່ມແຟ້ມເອກະສານໃໝ່ໄດ້`,
+            );
+        }
 
         let code = data.code?.trim();
 
@@ -161,8 +169,9 @@ export class PrismaFolderRepository implements IFolderRepository {
         const divCode = shelf.locker?.warehouse?.division?.code ?? shelf.locker?.warehouse?.division?.shortName ?? '';
         const warehouseCode = shelf.locker?.warehouse?.code ?? '';
         const lockerCode = shelf.locker?.code ?? '';
+        const shelfCode = shelf.name ?? '';
 
-        const locationRef = [deptCode, divCode, warehouseCode, lockerCode]
+        const locationRef = [deptCode, divCode, warehouseCode, lockerCode, shelfCode]
             .filter((c) => Boolean(c && c.trim()))
             .join('/');
         const qrCode = data.qrCode?.trim() || `${locationRef}`;
@@ -219,9 +228,18 @@ export class PrismaFolderRepository implements IFolderRepository {
         if (data.code !== undefined || data.shelfId !== undefined) {
             const shelf = await this.prisma.shelfModel.findUnique({
                 where: { id: newShelfId },
+                include: { _count: { select: { folders: true } } },
             });
             if (!shelf) {
                 throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
+            }
+
+            if (data.shelfId !== undefined && data.shelfId !== existing.shelfId) {
+                if (shelf.maxQty > 0 && shelf._count.folders >= shelf.maxQty) {
+                    throw new BadRequestException(
+                        `ຊັ້ນວາງໃໝ່ທີ່ເລືອກເຕັມແລ້ວ (ຄວາມຈຸສູງສຸດ ${shelf.maxQty} ແຟ້ມ), ບໍ່ສາມາດຍ້າຍແຟ້ມເອກະສານໄປໄດ້`,
+                    );
+                }
             }
 
             if (newCode) {

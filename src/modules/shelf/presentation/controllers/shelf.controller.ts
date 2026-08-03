@@ -20,6 +20,7 @@ import { UpdateShelfUseCase } from '../../application/use-cases/update-shelf.use
 import { DeleteShelfUseCase } from '../../application/use-cases/delete-shelf.use-case';
 import { GetShelfByIdUseCase } from '../../application/use-cases/get-shelf-by-id.use-case';
 import { GetDropdownShelvesUseCase } from '../../application/use-cases/get-dropdown-shelves.use-case';
+import { CleanupEmptyFoldersUseCase } from '../../application/use-cases/cleanup-empty-folders.use-case';
 import { CreateShelvesDto } from '../../application/dtos/create-shelf.dto';
 import { UpdateShelfDto } from '../../application/dtos/update-shelf.dto';
 
@@ -33,7 +34,22 @@ export class ShelfController {
     private readonly getDropdownShelvesUseCase: GetDropdownShelvesUseCase,
     private readonly updateShelfUseCase: UpdateShelfUseCase,
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
+    private readonly cleanupEmptyFoldersUseCase: CleanupEmptyFoldersUseCase,
   ) { }
+
+  @Post('cleanup-empty-folders')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async cleanupEmptyFolders(@Req() req: any) {
+    const result = await this.cleanupEmptyFoldersUseCase.execute(undefined, req.user);
+    return { ...result };
+  }
+
+  @Post(':id/cleanup-empty-folders')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
+  async cleanupShelfEmptyFolders(@Param('id') id: string, @Req() req: any) {
+    const result = await this.cleanupEmptyFoldersUseCase.execute(id, req.user);
+    return { ...result };
+  }
 
   @Post('locker/:lockerId')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)

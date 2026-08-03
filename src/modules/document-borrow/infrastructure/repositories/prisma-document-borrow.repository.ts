@@ -98,7 +98,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   }
 
   async findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }> {
-    const { page = 1, limit = 10, documentId, folderId, divisionId, departmentId, activeOnly, borrowedAt, returnedAt, status } = params;
+    const { page = 1, limit = 10, documentId, folderId, type, divisionId, departmentId, activeOnly, borrowedAt, returnedAt, status, search } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {
@@ -108,6 +108,26 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     if (folderId) where.folderId = folderId;
     if (activeOnly) where.returnedAt = null;
     if (status) where.status = status;
+
+    if (type) {
+      const upperType = type.toUpperCase();
+      if (upperType === 'DOCUMENT') {
+        where.documentId = { not: null };
+      } else if (upperType === 'FOLDER') {
+        where.folderId = { not: null };
+      }
+    }
+
+    if (search) {
+      where.OR = [
+        { borrower: { contains: search, mode: 'insensitive' } },
+        { purpose: { contains: search, mode: 'insensitive' } },
+        { document: { is: { title: { contains: search, mode: 'insensitive' } } } },
+        { document: { is: { docNo: { contains: search, mode: 'insensitive' } } } },
+        { folder: { is: { name: { contains: search, mode: 'insensitive' } } } },
+        { folder: { is: { code: { contains: search, mode: 'insensitive' } } } },
+      ];
+    }
 
     if (borrowedAt) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(borrowedAt)) {
@@ -240,13 +260,30 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     return models.map(DocumentBorrowMapper.toDomain);
   }
 
-  async findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]> {
+  async findActive(
+    departmentId?: number,
+    divisionId?: number,
+    upcomingDays?: number,
+  ): Promise<DocumentBorrowEntity[]> {
     const scope = buildScopeWhere(departmentId, divisionId);
     const where: any = { returnedAt: null, ...scope };
 
+    if (upcomingDays && upcomingDays > 0) {
+      const now = new Date();
+      const futureDate = new Date();
+      futureDate.setDate(now.getDate() + upcomingDays);
+      where.dueDate = {
+        gte: now,
+        lte: futureDate,
+      };
+    }
+
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
-      orderBy: { borrowedAt: 'desc' },
+      orderBy: [
+        { dueDate: 'asc' },
+        { borrowedAt: 'desc' },
+      ],
       include: BORROW_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);

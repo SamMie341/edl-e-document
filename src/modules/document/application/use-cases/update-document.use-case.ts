@@ -11,8 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fileStorageInterface from 'src/core/interfaces/file-storage.interface';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { Role } from 'src/core/auth/constants/role.enum';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 import { fixUtf8Object, fixUtf8String } from 'src/core/utils/utf8-fix.util';
@@ -25,8 +24,7 @@ export class UpdateDocumentUseCase {
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorageService: fileStorageInterface.IFileStorageService,
     private readonly prisma: PrismaService,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(
@@ -99,17 +97,17 @@ export class UpdateDocumentUseCase {
     const updatedDoc = await this.documentRepository.update(id, dataToUpdate);
 
     // 6. Log the audit activity
-    const log = new AuditLog(
-      uuidv4(),
-      'UPDATED', // Using custom action since UPDATED is not in the AuditAction enum
-      `UPDATE BY ${user.userId}`,
-      updatedDoc.id,
-      'DOCUMENT',
-      user.userId,
-      new Date(),
-    );
-
-    await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: 'UPDATED',
+      details: `ແກ້ໄຂເອກະສານ: ${updatedDoc.title} (${updatedDoc.docNo})`,
+      entityId: updatedDoc.id,
+      entityType: 'DOCUMENT',
+      actorId: user.userId || user.id,
+      departmentId: user.departmentId || updatedDoc.departmentId,
+      divisionId: user.divisionId || updatedDoc.divisionId,
+      oldValue: { title: doc.title, docNo: doc.docNo },
+      newValue: { title: updatedDoc.title, docNo: updatedDoc.docNo },
+    });
 
     return updatedDoc;
   }

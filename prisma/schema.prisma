@@ -43,6 +43,7 @@ model UserModel {
 
   documents       DocumentModel[]
   recordedBorrows DocumentBorrowModel[] @relation("RecordedBy")
+  auditLogs       AuditLogModel[]       @relation("UserAuditLogs")
 
   @@map("users")
 }
@@ -77,6 +78,7 @@ model DepartmentModel {
   units      UnitModel[]
   documents  DocumentModel[]
   warehouses WarehouseModel[]
+  auditLogs  AuditLogModel[]
 
   @@map("departments")
 }
@@ -100,6 +102,7 @@ model DivisionModel {
   documentBorrows DocumentBorrowModel[]
   documents       DocumentModel[]
   warehouses      WarehouseModel[]
+  auditLogs       AuditLogModel[]
 
   @@map("divisions")
 }
@@ -294,11 +297,37 @@ model AuditLogModel {
   id         String   @id @default(uuid())
   action     String
   details    String?
-  entityId   String
-  entityType String
-  actorId    String
-  createdAt  DateTime @default(now())
+  status     String?
 
+  entityType String?
+  entityId   String?
+
+  actorId String?
+  actor   UserModel? @relation("UserAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+
+  departmentId Int?
+  department   DepartmentModel? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  divisionId Int?
+  division   DivisionModel? @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+
+  ipAddress String?
+  userAgent String?
+  method    String?
+  path      String?
+
+  oldValue Json?
+  newValue Json?
+  payload  Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([departmentId])
+  @@index([divisionId])
   @@map("audit_logs")
 }
 

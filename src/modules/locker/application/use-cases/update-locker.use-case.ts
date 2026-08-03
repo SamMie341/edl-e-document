@@ -8,6 +8,8 @@ import * as lockerRepositoryInterface from '../../domain/repositories/locker.rep
 import { UpdateLockerDto } from '../dtos/update-locker.dto';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class UpdateLockerUseCase {
@@ -15,6 +17,7 @@ export class UpdateLockerUseCase {
     @Inject(lockerRepositoryInterface.LOCKER_REPOSITORY)
     private readonly lockerRepository: lockerRepositoryInterface.ILockerRepository,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(id: string, dto: UpdateLockerDto, user: any) {
@@ -51,6 +54,20 @@ export class UpdateLockerUseCase {
       }
     }
 
-    return await this.lockerRepository.update(id, dto);
+    const updated = await this.lockerRepository.update(id, dto);
+
+    await this.auditService.log({
+      action: 'UPDATED',
+      details: `ແກ້ໄຂຕູ້ Locker: ${existingLocker.code}`,
+      entityId: id,
+      entityType: 'LOCKER',
+      actorId: user?.userId || user?.id,
+      departmentId: user?.departmentId,
+      divisionId: user?.divisionId,
+      oldValue: existingLocker,
+      newValue: updated,
+    });
+
+    return updated;
   }
 }

@@ -8,8 +8,10 @@ import { UpdateWarehouseUseCase } from './application/use-cases/update-warehouse
 import { DeleteWarehouseUseCase } from './application/use-cases/delete-warehouse.use-case';
 import { GetWarehouseByIdUseCase } from './application/use-cases/get-warehouse-by-id.use-case';
 import { GetWarehouseDropdownUseCase } from './application/use-cases/get-warehouse-dropdown.use-case';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
+  imports: [AuditModule],
   controllers: [WarehouseController],
   providers: [
     CreateWarehouseUseCase,

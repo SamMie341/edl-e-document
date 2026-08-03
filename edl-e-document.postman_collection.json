@@ -662,7 +662,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/documents",
+              "raw": "{{baseUrl}}/documents?page=1&limit=10&documentTypeId=&startDate=&endDate=&search=&folderId=&departmentId=&divisionId=&retentionStatus=&warehouseId=&lockerId=&shelfId=&isDestroyed=&isDeleted=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -734,6 +734,16 @@
                   "key": "shelfId",
                   "value": "",
                   "description": "Query parameter: shelfId"
+                },
+                {
+                  "key": "isDestroyed",
+                  "value": "",
+                  "description": "Filter: show only destroyed documents (true/false/all)"
+                },
+                {
+                  "key": "isDeleted",
+                  "value": "",
+                  "description": "Alias for isDestroyed"
                 }
               ],
               "variable": []
@@ -762,7 +772,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/documents/expired",
+              "raw": "{{baseUrl}}/documents/expired?page=1&limit=10&search=&isDestroyed=&isDeleted=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -770,7 +780,33 @@
                 "documents",
                 "expired"
               ],
-              "query": [],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": ""
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "isDestroyed",
+                  "value": "",
+                  "description": "Filter destroyed docs (true/false)"
+                },
+                {
+                  "key": "isDeleted",
+                  "value": "",
+                  "description": "Alias for isDestroyed"
+                }
+              ],
               "variable": []
             },
             "auth": {
@@ -1292,6 +1328,24 @@
                   "type": "file",
                   "description": "Destruction approval PDF (required)",
                   "src": null
+                },
+                {
+                  "key": "destroyedDate",
+                  "value": "",
+                  "description": "Optional: date of destruction (ISO 8601)",
+                  "type": "text"
+                },
+                {
+                  "key": "details",
+                  "value": "",
+                  "description": "Optional: details about destruction",
+                  "type": "text"
+                },
+                {
+                  "key": "reason",
+                  "value": "",
+                  "description": "Optional: reason for destruction",
+                  "type": "text"
                 }
               ]
             }
@@ -1345,6 +1399,24 @@
                   "type": "file",
                   "description": "Destruction approval PDF (required, PDF only)",
                   "src": null
+                },
+                {
+                  "key": "destroyedDate",
+                  "value": "",
+                  "description": "Optional: date of destruction (ISO 8601)",
+                  "type": "text"
+                },
+                {
+                  "key": "details",
+                  "value": "",
+                  "description": "Optional: details about destruction",
+                  "type": "text"
+                },
+                {
+                  "key": "reason",
+                  "value": "",
+                  "description": "Optional: reason for destruction",
+                  "type": "text"
                 }
               ]
             }
@@ -2694,7 +2766,7 @@
                 {
                   "key": "type",
                   "value": "",
-                  "description": "Query parameter: type"
+                  "description": "Comma-separated entity types: documents,folders,warehouses,lockers,shelves,users,departments,divisions,document-types"
                 },
                 {
                   "key": "dateFrom",

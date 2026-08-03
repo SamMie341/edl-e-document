@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -178,6 +179,17 @@ export class PrismaShelfRepository implements IShelfRepository {
       }
     }
 
+    if (data.maxQty !== undefined) {
+      const foldersCount = await this.prisma.folderModel.count({
+        where: { shelfId: id },
+      });
+      if (data.maxQty < foldersCount) {
+        throw new BadRequestException(
+          `ບໍ່ສາມາດປ່ຽນຄວາມຈຸເປັນ ${data.maxQty} ໄດ້ ເພາະມີແຟ້ມເອກະສານຢູ່ແລ້ວ ${foldersCount} ແຟ້ມ`,
+        );
+      }
+    }
+
     const model = await this.prisma.shelfModel.update({
       where: { id },
       data,
@@ -233,7 +245,7 @@ export class PrismaShelfRepository implements IShelfRepository {
       ];
     }
 
-    return this.prisma.shelfModel.findMany({
+    const models = await this.prisma.shelfModel.findMany({
       where,
       orderBy: { name: 'asc' },
       select: {
@@ -242,7 +254,23 @@ export class PrismaShelfRepository implements IShelfRepository {
         status: true,
         maxQty: true,
         lockerId: true,
+        _count: { select: { folders: true } },
       },
+    });
+
+    return models.map((model) => {
+      const folderCount = model._count?.folders ?? 0;
+      const remainingQty = model.maxQty - folderCount;
+      return {
+        id: model.id,
+        name: model.name,
+        status: model.status,
+        maxQty: model.maxQty,
+        lockerId: model.lockerId,
+        foldersCount: folderCount,
+        remainingQty: remainingQty > 0 ? remainingQty : 0,
+        isFull: folderCount >= model.maxQty,
+      };
     });
   }
 }

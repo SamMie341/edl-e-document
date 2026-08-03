@@ -8,12 +8,15 @@ import * as userRepositoryInterface from '../../domain/repositories/user.reposit
 import { ResetPasswordDto } from '../dtos/reset-password';
 import { Role } from 'src/core/auth/constants/role.enum';
 import * as bcrypt from 'bcrypt';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class ResetPasswordUseCase {
   constructor(
     @Inject(userRepositoryInterface.USER_REPOSITORY)
     private readonly userRepository: userRepositoryInterface.IUserRepository,
+    private readonly auditService: AuditService,
   ) {}
 
   async execute(targetUserId: string, adminUser: any): Promise<void> {
@@ -33,5 +36,14 @@ export class ResetPasswordUseCase {
 
     targetUser.updatePassword(newHash);
     await this.userRepository.save(targetUser);
+
+    await this.auditService.log({
+      action: AuditAction.PASSWORD_RESEST,
+      details: `ຣີເຊັດລະຫັດຜ່ານບັນຊີ: ${targetUser.firstNameLa || ''} ${targetUser.lastNameLa || ''} (EmpCode: ${targetUser.empCode || ''})`,
+      entityId: targetUser.id,
+      entityType: 'USER',
+      actorId: adminUser?.userId || adminUser?.id,
+      departmentId: adminUser?.departmentId || targetUser.departmentId,
+    });
   }
 }

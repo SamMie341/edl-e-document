@@ -9,6 +9,8 @@ import * as shelfRepositoriesInterface from '../../domain/repositories/shelf.rep
 import { CreateShelvesDto } from '../dtos/create-shelf.dto';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class CreateShelfUseCase {
@@ -16,6 +18,7 @@ export class CreateShelfUseCase {
     @Inject(shelfRepositoriesInterface.SHELF_REPOSITORY)
     private readonly shelfRepository: shelfRepositoriesInterface.IShelfRepository,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(dto: CreateShelvesDto, user: any) {
@@ -60,6 +63,20 @@ export class CreateShelfUseCase {
       });
     }
 
-    return await this.shelfRepository.createMany(itemsToCreate);
+    const createdShelves = await this.shelfRepository.createMany(itemsToCreate);
+
+    for (const shelf of createdShelves) {
+      await this.auditService.log({
+        action: AuditAction.CREATED,
+        details: `ສ້າງຊັ້ນວາງ: ${shelf.name}`,
+        entityId: shelf.id,
+        entityType: 'SHELF',
+        actorId: user?.userId || user?.id,
+        departmentId: user?.departmentId,
+        divisionId: user?.divisionId,
+      });
+    }
+
+    return createdShelves;
   }
 }

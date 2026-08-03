@@ -5,6 +5,8 @@ import * as documentRepositoryInterface from '../../domain/repositories/document
 import { v4 as uuidv4 } from 'uuid';
 import * as fileStorageInterface from 'src/core/interfaces/file-storage.interface';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 import { fixUtf8Object, fixUtf8String } from 'src/core/utils/utf8-fix.util';
 
@@ -16,6 +18,7 @@ export class CreateDocumentUseCase {
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorageService: fileStorageInterface.IFileStorageService,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(
@@ -69,19 +72,35 @@ export class CreateDocumentUseCase {
 
     const { subDocuments, ...documentDto } = fixedDto;
 
+    const departmentId = fixedDto.departmentId ?? creator?.departmentId ?? null;
+    const divisionId = fixedDto.divisionId ?? primaryDivisionId ?? null;
+
     const dataToSave = {
       ...documentDto,
       id: generatedId,
       userId,
       qrCode,
-      departmentId: fixedDto.departmentId ?? creator?.departmentId ?? null,
-      divisionId: fixedDto.divisionId ?? primaryDivisionId ?? null,
+      departmentId,
+      divisionId,
       attachments: attachmentsData,
       subDocuments: subDocuments && subDocuments.length > 0
         ? { create: subDocuments }
         : undefined,
     };
 
-    return await this.documentRepository.create(dataToSave);
+    const savedDoc = await this.documentRepository.create(dataToSave);
+
+    await this.auditService.log({
+      action: AuditAction.CREATED,
+      details: `ສ້າງເອກະສານ: ${savedDoc.title} (${savedDoc.docNo})`,
+      entityId: savedDoc.id,
+      entityType: 'DOCUMENT',
+      actorId: userId,
+      departmentId,
+      divisionId,
+      payload: { docNo: savedDoc.docNo, title: savedDoc.title },
+    });
+
+    return savedDoc;
   }
 }

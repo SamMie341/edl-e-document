@@ -5,8 +5,10 @@ import { ReturnDocumentUseCase } from './application/use-cases/return-document.u
 import { GetBorrowHistoryUseCase } from './application/use-cases/get-borrow-history.use-case';
 import { DOCUMENT_BORROW_REPOSITORY } from './domain/repositories/document-borrow.repository.interface';
 import { PrismaDocumentBorrowRepository } from './infrastructure/repositories/prisma-document-borrow.repository';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
+  imports: [AuditModule],
   controllers: [DocumentBorrowController],
   providers: [
     BorrowDocumentUseCase,
