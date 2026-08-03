@@ -12,6 +12,7 @@ import { UpdateDocumentUseCase } from './application/use-cases/update-document.u
 import { DeleteExpiredDocumentsUseCase } from './application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from './application/use-cases/get-expired-documents.use-case';
 import { DeleteDocumentUseCase } from './application/use-cases/delete-document.use-case';
+import { DeleteBatchDocumentsUseCase } from './application/use-cases/delete-batch-documents.use-case';
 import { FolderModule } from '../folder/folder.module';
 import { ShelfModule } from '../shelf/shelf.module';
 
@@ -29,6 +30,7 @@ import { ShelfModule } from '../shelf/shelf.module';
     DeleteExpiredDocumentsUseCase,
     GetExpiredDocumentsUseCase,
     DeleteDocumentUseCase,
+    DeleteBatchDocumentsUseCase,
 
     // ── Repository ─────────────────────────────────────────────────────────
     {

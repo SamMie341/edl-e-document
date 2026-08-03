@@ -99,8 +99,9 @@ Manages digital attachments and physical document metadata.
     * `file` (required) — destruction approval PDF.
     * **[New]** `destroyedDate` (optional), `details` (optional), `reason` (optional) — additional destruction record metadata.
     * Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
-  * `DELETE /documents/:id` — Delete a single document. `multipart/form-data`:
+  * `DELETE /documents/:id` — Delete document(s). Supports single document ID or comma-separated IDs in `:id` parameter (or `ids` in formdata for batch delete). `multipart/form-data`:
     * `file` (required) — destruction approval PDF.
+    * **[New]** `ids` (optional) — array or comma-separated list of document IDs for batch deletion.
     * **[New]** `destroyedDate` (optional), `details` (optional), `reason` (optional) — additional destruction record metadata.
     * Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
@@ -148,6 +149,9 @@ Manages physical shelves within lockers.
   * `GET /shelves/:id` — Get shelf details by ID.
 * **Update:** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, and `BRANCH_ADMIN` can update shelf information and status.
 * **Delete:** `DELETE /shelves/:id` — `SUPER_ADMIN` and `HQ_ADMIN` only.
+* **[New] Cleanup Empty Folders:**
+  * `POST /shelves/cleanup-empty-folders` — Auto-deletes all folders containing 0 active documents across all shelves (scoped by role/department/division). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `POST /shelves/:id/cleanup-empty-folders` — Auto-deletes all empty folders within a specific shelf (`:id`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -332,6 +336,21 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-08-03
+
+#### ✅ Added
+| Item | Detail |
+|---|---|
+| **`POST /shelves/cleanup-empty-folders`** | New endpoint to auto-delete empty folders (with 0 active documents) across all shelves. |
+| **`POST /shelves/:id/cleanup-empty-folders`** | New endpoint to auto-delete empty folders within a specific shelf. |
+
+#### 🔄 Updated
+| Item | Detail |
+|---|---|
+| **`DELETE /documents/:id` Batch Delete** | Enhanced endpoint to support batch deletion of multiple documents in a single call via comma-separated IDs in `:id` path param or `ids` formdata field. |
+
+---
 
 ### Version 2026-07-31
 

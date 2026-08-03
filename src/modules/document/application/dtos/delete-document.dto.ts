@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class DeleteDocumentDto {
   @IsOptional()
@@ -12,4 +12,9 @@ export class DeleteDocumentDto {
   @IsOptional()
   @IsString()
   reason?: string;
+}
+
+export class DeleteBatchDocumentsDto extends DeleteDocumentDto {
+  @IsNotEmpty({ message: 'ກະລຸນາລະບຸ ID ເອກະສານທີ່ຕ້ອງການລົບ' })
+  ids: string[] | string;
 }

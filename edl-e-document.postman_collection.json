@@ -1353,7 +1353,7 @@
           "response": []
         },
         {
-          "name": "DELETE /documents/:id (Roles)",
+          "name": "DELETE /documents/:id (Single or Batch Delete)",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1376,7 +1376,7 @@
                 {
                   "key": "id",
                   "value": "uuid-here",
-                  "description": "Path variable: document id (UUID)"
+                  "description": "Path variable: single document ID or comma-separated document IDs (e.g. id1,id2,id3)"
                 }
               ]
             },
@@ -1416,6 +1416,12 @@
                   "key": "reason",
                   "value": "",
                   "description": "Optional: reason for destruction",
+                  "type": "text"
+                },
+                {
+                  "key": "ids",
+                  "value": "",
+                  "description": "Optional: array or comma-separated document IDs for batch deletion",
                   "type": "text"
                 }
               ]
@@ -3136,6 +3142,85 @@
                 }
               ]
             }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /shelves/cleanup-empty-folders (Roles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shelves/cleanup-empty-folders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "shelves",
+                "cleanup-empty-folders"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Auto-deletes all folders across all shelves that contain 0 active documents."
+          },
+          "response": []
+        },
+        {
+          "name": "POST /shelves/:id/cleanup-empty-folders (Roles)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/shelves/:id/cleanup-empty-folders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "shelves",
+                ":id",
+                "cleanup-empty-folders"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Shelf ID"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Auto-deletes all empty folders within a specific shelf."
           },
           "response": []
         }

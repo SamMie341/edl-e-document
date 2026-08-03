@@ -101,7 +101,7 @@ export class PrismaFolderRepository implements IFolderRepository {
 
         if (!shelf) throw new NotFoundException('ບໍ່ພົບຊັ້ນວາງໃນລະບົບ');
 
-        if (shelf.maxQty > 0 && shelf._count.folders >= shelf.maxQty) {
+        if (shelf._count.folders >= shelf.maxQty) {
             throw new BadRequestException(
                 `ຊັ້ນວາງນີ້ເຕັມແລ້ວ (ຄວາມຈຸສູງສຸດ ${shelf.maxQty} ແຟ້ມ), ບໍ່ສາມາດເພີ່ມແຟ້ມເອກະສານໃໝ່ໄດ້`,
             );
@@ -235,7 +235,7 @@ export class PrismaFolderRepository implements IFolderRepository {
             }
 
             if (data.shelfId !== undefined && data.shelfId !== existing.shelfId) {
-                if (shelf.maxQty > 0 && shelf._count.folders >= shelf.maxQty) {
+                if (shelf._count.folders >= shelf.maxQty) {
                     throw new BadRequestException(
                         `ຊັ້ນວາງໃໝ່ທີ່ເລືອກເຕັມແລ້ວ (ຄວາມຈຸສູງສຸດ ${shelf.maxQty} ແຟ້ມ), ບໍ່ສາມາດຍ້າຍແຟ້ມເອກະສານໄປໄດ້`,
                     );

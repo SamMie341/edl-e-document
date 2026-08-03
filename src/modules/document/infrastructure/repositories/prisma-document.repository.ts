@@ -580,4 +580,57 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         const updated = await this.findById(id);
         return updated!;
     }
+
+    async deleteDocuments(ids: string[], approvalFilePath: string): Promise<DocumentEntity[]> {
+        if (!ids || ids.length === 0) return [];
+
+        const docs = await this.prisma.documentModel.findMany({
+            where: { id: { in: ids } },
+            include: { attachments: true },
+        });
+
+        if (docs.length === 0) return [];
+
+        const validIds = docs.map((d) => d.id);
+
+        // ລົບໄຟລ໌ attachments ຈາກ disk
+        const fs = await import('fs');
+        for (const doc of docs) {
+            for (const att of doc.attachments) {
+                try {
+                    if (fs.existsSync(att.filePath)) fs.unlinkSync(att.filePath);
+                } catch {
+                    // ຂ້າມຖ້າລົບໄຟລ໌ບໍ່ໄດ້
+                }
+            }
+        }
+
+        // ລົບ attachments ແລະ ອັບເດດເອກະສານໃນ transaction
+        await this.prisma.$transaction([
+            this.prisma.attachmentModel.deleteMany({
+                where: { documentId: { in: validIds } },
+            }),
+            this.prisma.documentModel.updateMany({
+                where: { id: { in: validIds } },
+                data: {
+                    destructionApprovalPath: approvalFilePath,
+                },
+            }),
+        ]);
+
+        const updatedDocs = await this.prisma.documentModel.findMany({
+            where: { id: { in: validIds } },
+            include: {
+                attachments: true,
+                documentType: true,
+                user: true,
+                department: true,
+                division: true,
+                folder: true,
+                subDocuments: { orderBy: { createdAt: 'asc' } },
+            },
+        });
+
+        return updatedDocs.map((m) => DocumentMapper.toDomain(m));
+    }
 }
