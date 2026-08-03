@@ -89,7 +89,11 @@
   * ທຸກລະດັບສິດສາມາດແກ້ໄຂໄດ້ (ກວດສອບຂອບເຂດໃນ use case layer). ຮອງຮັບການໃສ່ໄຟລ໌ແນບໃໝ່.
 * **Delete (ລົບ):**
   * `DELETE /documents/expired` — ລົບຈຳນວນຫຼາຍ (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`). ຕ້ອງແນບໄຟລ໌ PDF ອະນຸມັດ (`multipart/form-data`, field: `file`).
-  * **[ໃໝ່]** `DELETE /documents/:id` — ລົບເອກະສານດຽວ. ຕ້ອງແນບໄຟລ໌ PDF ອະນຸມັດ (`multipart/form-data`, field: `file`). ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `DELETE /documents/:id` — ລົບເອກະສານ (ຮອງຮັບການລົບ single ID ຫຼື multiple IDs ຜ່ານ comma-separated ໃສ່ `:id` ຫຼື field `ids` ໃນ formdata). `multipart/form-data`:
+    * `file` (ຕ້ອງມີ) — PDF ອະນຸມັດ.
+    * **[ໃໝ່]** `ids` (ທາງເລືອກ) — array ຫຼື comma-separated list ຂອງ ID ເອກະສານສຳລັບລົບຫຼາຍອັນພ້ອມກັນ.
+    * **[ໃໝ່]** `destroyedDate` (ທາງເລືອກ), `details` (ທາງເລືອກ), `reason` (ທາງເລືອກ).
+    * ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -131,6 +135,9 @@
   * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນທຸກຊັ້ນວາງ. `BRANCH_ADMIN` ຖືກຈຳກັດຕາມ warehouse.
 * **Update (ແກ້ໄຂ):** `PUT /shelves/:id` — `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 * **Delete (ລົບ):** `DELETE /shelves/:id` — `SUPER_ADMIN` ແລະ `HQ_ADMIN` ເທົ່ານັ້ນ.
+* **[ໃໝ່] ລຶບແຟ້ມເອກະສານຫວ່າງເປົ່າ (Cleanup Empty Folders):**
+  * `POST /shelves/cleanup-empty-folders` — ລຶບແຟ້ມເອກະສານທີ່ບໍ່ມີເອກະສານ (active documents = 0) ອອກຈາກທຸກຊັ້ນວາງອັດຕະໂນມັດ. ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `POST /shelves/:id/cleanup-empty-folders` — ລຶບແຟ້ມເອກະສານຫວ່າງເປົ່າພາຍໃນຊັ້ນວາງສະເພາະ (`:id`). ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -263,6 +270,21 @@
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-08-03
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`POST /shelves/cleanup-empty-folders`** | Endpoint ໃໝ່ສຳລັບລຶບແຟ້ມເອກະສານຫວ່າງເປົ່າ (ທີ່ບໍ່ມີເອກະສານ) ອອກຈາກທຸກຊັ້ນວາງ. |
+| **`POST /shelves/:id/cleanup-empty-folders`** | Endpoint ໃໝ່ສຳລັບລຶບແຟ້ມເອກະສານຫວ່າງເປົ່າພາຍໃນຊັ້ນວາງສະເພາະ. |
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`DELETE /documents/:id` Batch Delete** | ອັບເດດໃຫ້ຮອງຮັບການລົບເອກະສານຫຼາຍລາຍການພ້ອມກັນ ຜ່ານ comma-separated IDs ໃສ່ໃນ URL param `:id` ຫຼື field `ids` ໃນ formdata. |
+
+---
 
 ### ເວີຊັ່ນ 2026-07-31
 

@@ -21,6 +21,7 @@ export interface IDocumentRepository {
   ): Promise<{ data: DocumentEntity[]; total: number }>;       // หมดอายุ + ไม่ติดพันสัญญา (รองรับ pagination & search & isDestroyed)
   deleteExpired(approvalFilePath: string): Promise<number>;               // ลบไฟล์แนบของทั้งหมดที่ findExpired คืน และบันทึกไฟล์อนุมัติ
   deleteDocument(id: string, approvalFilePath: string): Promise<DocumentEntity>; // ลบไฟล์แนบของเอกสารรายฉบับ และบันทึกไฟล์อนุมัติ
+  deleteDocuments(ids: string[], approvalFilePath: string): Promise<DocumentEntity[]>; // ลบไฟล์แนบของเอกสารหลายฉบับ และบันทึกไฟล์อนุมัติ
 }
 
 export interface DocumentFilterParams {

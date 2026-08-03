@@ -101,73 +101,93 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     const { page = 1, limit = 10, documentId, folderId, type, divisionId, departmentId, activeOnly, borrowedAt, returnedAt, status, search } = params;
     const skip = (page - 1) * limit;
 
-    const where: any = {
-      ...buildScopeWhere(departmentId, divisionId),
-    };
-    if (documentId) where.documentId = documentId;
-    if (folderId) where.folderId = folderId;
-    if (activeOnly) where.returnedAt = null;
-    if (status) where.status = status;
+    const andConditions: any[] = [];
+
+    // Scope filter (BRANCH_ADMIN / USER)
+    const scopeWhere = buildScopeWhere(departmentId, divisionId);
+    if (scopeWhere.OR) {
+      andConditions.push({ OR: scopeWhere.OR });
+    }
+    if (scopeWhere.toDivisionId) {
+      andConditions.push({ toDivisionId: scopeWhere.toDivisionId });
+    }
+
+    if (documentId) andConditions.push({ documentId });
+    if (folderId) andConditions.push({ folderId });
+    if (activeOnly) andConditions.push({ returnedAt: null });
+    if (status) andConditions.push({ status });
 
     if (type) {
       const upperType = type.toUpperCase();
       if (upperType === 'DOCUMENT') {
-        where.documentId = { not: null };
+        andConditions.push({ documentId: { not: null } });
       } else if (upperType === 'FOLDER') {
-        where.folderId = { not: null };
+        andConditions.push({ folderId: { not: null } });
       }
     }
 
     if (search) {
-      where.OR = [
-        { borrower: { contains: search, mode: 'insensitive' } },
-        { purpose: { contains: search, mode: 'insensitive' } },
-        { document: { is: { title: { contains: search, mode: 'insensitive' } } } },
-        { document: { is: { docNo: { contains: search, mode: 'insensitive' } } } },
-        { folder: { is: { name: { contains: search, mode: 'insensitive' } } } },
-        { folder: { is: { code: { contains: search, mode: 'insensitive' } } } },
-      ];
+      andConditions.push({
+        OR: [
+          { borrower: { contains: search, mode: 'insensitive' } },
+          { purpose: { contains: search, mode: 'insensitive' } },
+          { document: { is: { title: { contains: search, mode: 'insensitive' } } } },
+          { document: { is: { docNo: { contains: search, mode: 'insensitive' } } } },
+          { folder: { is: { name: { contains: search, mode: 'insensitive' } } } },
+          { folder: { is: { code: { contains: search, mode: 'insensitive' } } } },
+        ],
+      });
     }
 
     if (borrowedAt) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(borrowedAt)) {
-        where.borrowedAt = {
-          gte: new Date(`${borrowedAt}T00:00:00.000Z`),
-          lte: new Date(`${borrowedAt}T23:59:59.999Z`),
-        };
+        andConditions.push({
+          borrowedAt: {
+            gte: new Date(`${borrowedAt}T00:00:00.000Z`),
+            lte: new Date(`${borrowedAt}T23:59:59.999Z`),
+          },
+        });
       } else {
         const date = new Date(borrowedAt);
         if (!isNaN(date.getTime())) {
           const yyyy = date.getUTCFullYear();
           const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
           const dd = String(date.getUTCDate()).padStart(2, '0');
-          where.borrowedAt = {
-            gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
-            lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
-          };
+          andConditions.push({
+            borrowedAt: {
+              gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
+              lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
+            },
+          });
         }
       }
     }
 
     if (returnedAt) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(returnedAt)) {
-        where.returnedAt = {
-          gte: new Date(`${returnedAt}T00:00:00.000Z`),
-          lte: new Date(`${returnedAt}T23:59:59.999Z`),
-        };
+        andConditions.push({
+          returnedAt: {
+            gte: new Date(`${returnedAt}T00:00:00.000Z`),
+            lte: new Date(`${returnedAt}T23:59:59.999Z`),
+          },
+        });
       } else {
         const date = new Date(returnedAt);
         if (!isNaN(date.getTime())) {
           const yyyy = date.getUTCFullYear();
           const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
           const dd = String(date.getUTCDate()).padStart(2, '0');
-          where.returnedAt = {
-            gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
-            lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
-          };
+          andConditions.push({
+            returnedAt: {
+              gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
+              lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
+            },
+          });
         }
       }
     }
+
+    const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const [models, total] = await Promise.all([
       this.prisma.documentBorrowModel.findMany({

@@ -22,7 +22,7 @@ import { CreateDocumentUseCase } from '../../application/use-cases/create-docume
 import { CreateDocumentDto } from '../../application/dtos/create-document.dto';
 import { UpdateDocumentUseCase } from '../../application/use-cases/update-document.use-case';
 import { UpdateDocumentDto } from '../../application/dtos/update-document.dto';
-import { DeleteDocumentDto } from '../../application/dtos/delete-document.dto';
+import { DeleteDocumentDto, DeleteBatchDocumentsDto } from '../../application/dtos/delete-document.dto';
 import { JwtAuthGuard } from '../../../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../core/auth/guards/roles.guard';
 import { Roles } from '../../../../core/auth/decorators/roles.decorator';
@@ -37,6 +37,7 @@ import { GetDocumentByIdUseCase } from '../../application/use-cases/get-document
 import { DeleteExpiredDocumentsUseCase } from '../../application/use-cases/delete-expired-documents.use-case';
 import { GetExpiredDocumentsUseCase } from '../../application/use-cases/get-expired-documents.use-case';
 import { DeleteDocumentUseCase } from '../../application/use-cases/delete-document.use-case';
+import { DeleteBatchDocumentsUseCase } from '../../application/use-cases/delete-batch-documents.use-case';
 import { PrismaService } from 'src/core/database/prisma.service';
 
 
@@ -53,6 +54,7 @@ export class DocumentController {
     private readonly deleteExpiredDocumentsUseCase: DeleteExpiredDocumentsUseCase,
     private readonly getExpiredDocumentsUseCase: GetExpiredDocumentsUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly deleteBatchDocumentsUseCase: DeleteBatchDocumentsUseCase,
     private readonly prisma: PrismaService,
   ) { }
 
@@ -395,7 +397,7 @@ export class DocumentController {
     return { message: result.message, deleted: result.deleted };
   }
 
-  // ─── DELETE SINGLE DOCUMENT FILES (with destruction approval PDF) ────────
+  // ─── DELETE DOCUMENT FILES (with destruction approval PDF, supports single or multiple IDs) ────
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
   @UseInterceptors(FileInterceptor('file', {
@@ -411,12 +413,44 @@ export class DocumentController {
     @Param('id') id: string,
     @Req() req: any,
     @UploadedFile() file?: Express.Multer.File,
-    @Body() dto?: DeleteDocumentDto,
+    @Body() dto?: DeleteBatchDocumentsDto,
   ) {
     if (!file) {
       throw new BadRequestException('ກະລຸນາແນບໄຟລ໌ອະນຸມັດການທຳລາຍ (PDF) ມາດ້ວຍ');
     }
-    const document = await this.deleteDocumentUseCase.execute(id, file, req.user, dto);
-    return { message: 'ລົບໄຟລ໌ເອກະສານສຳເລັດ', data: document };
+
+    let rawIds: string[] = [];
+
+    // Parse IDs from body dto if present
+    if (dto?.ids) {
+      if (Array.isArray(dto.ids)) {
+        rawIds.push(...dto.ids);
+      } else if (typeof dto.ids === 'string') {
+        try {
+          const jsonParsed = JSON.parse(dto.ids);
+          if (Array.isArray(jsonParsed)) rawIds.push(...jsonParsed);
+          else rawIds.push(...dto.ids.split(','));
+        } catch {
+          rawIds.push(...dto.ids.split(','));
+        }
+      }
+    }
+
+    // Parse IDs from URL param :id (comma-separated or single)
+    if (id) {
+      rawIds.push(...id.split(','));
+    }
+
+    const ids = Array.from(new Set(rawIds.map((s) => s.trim()).filter(Boolean)));
+
+    if (ids.length > 1) {
+      const result = await this.deleteBatchDocumentsUseCase.execute({ ...dto, ids }, file, req.user);
+      return { message: result.message, count: result.count, data: result.documents };
+    } else if (ids.length === 1) {
+      const document = await this.deleteDocumentUseCase.execute(ids[0], file, req.user, dto);
+      return { message: 'ລົບໄຟລ໌ເອກະສານສຳເລັດ', data: document };
+    } else {
+      throw new BadRequestException('ກະລຸນາລະບຸ ID ເອກະສານທີ່ຕ້ອງການລົບ');
+    }
   }
 }
