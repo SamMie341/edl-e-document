@@ -8,10 +8,13 @@ import * as userRepositoryInterface from '../../domain/repositories/user.reposit
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../dtos/login.dto';
 import * as bcrypt from 'bcrypt';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
-import { v4 as uuidv4 } from 'uuid';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
+
+export interface LoginContext {
+  ipAddress?: string;
+  userAgent?: string;
+}
 
 @Injectable()
 export class LoginUseCase {
@@ -19,29 +22,83 @@ export class LoginUseCase {
     @Inject(userRepositoryInterface.USER_REPOSITORY)
     private readonly userRepository: userRepositoryInterface.IUserRepository,
     private readonly jwtService: JwtService,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
-  ) {}
+    private readonly auditService: AuditService,
+  ) { }
 
-  async execute(dto: LoginDto): Promise<{ accessToken: string; user: any }> {
+  async execute(
+    dto: LoginDto,
+    context?: LoginContext,
+  ): Promise<{ accessToken: string; user: any }> {
     const user = await this.userRepository.findByEmpCode(dto.empCode);
 
     if (!user) {
+      await this.auditService.log({
+        action: AuditAction.LOGIN,
+        details: `ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ບໍ່ມີລະຫັດພະນັກງານ (${dto.empCode}) ໃນລະບົບ`,
+        status: 'FAILED',
+        entityType: 'USER',
+        ipAddress: context?.ipAddress,
+        userAgent: context?.userAgent,
+        payload: { empCode: dto.empCode, reason: 'USER_NOT_FOUND' },
+      });
       throw new NotFoundException('ບໍ່ມີບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ HRMS...');
     }
 
+    const primaryDiv =
+      user.divisions?.find((d: any) => d.isPrimary) || user.divisions?.[0];
+
     if (user.status === 'P') {
-      throw new UnauthorizedException('ບັນຊີຂອງທ່ານຍັງບໍ່ທັນອະນຸມັດ');
+      const reasonMsg = 'ບັນຊີຂອງທ່ານຍັງບໍ່ທັນອະນຸມັດ';
+      await this.auditService.log({
+        action: AuditAction.LOGIN,
+        details: `ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ${reasonMsg} (EmpCode: ${user.empCode})`,
+        status: 'FAILED',
+        entityId: user.id,
+        entityType: 'USER',
+        actorId: user.id,
+        departmentId: user.departmentId,
+        divisionId: primaryDiv ? primaryDiv.id : null,
+        ipAddress: context?.ipAddress,
+        userAgent: context?.userAgent,
+        payload: { empCode: dto.empCode, status: user.status, reason: reasonMsg },
+      });
+      throw new UnauthorizedException(reasonMsg);
     } else if (user.status !== 'A') {
-      throw new UnauthorizedException('ບັນຊີຂອງທ່ານຖືກລະງັບການນຳໃຊ້');
+      const reasonMsg = 'ບັນຊີຂອງທ່ານຖືກລະງັບການນຳໃຊ້';
+      await this.auditService.log({
+        action: AuditAction.LOGIN,
+        details: `ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ${reasonMsg} (EmpCode: ${user.empCode})`,
+        status: 'FAILED',
+        entityId: user.id,
+        entityType: 'USER',
+        actorId: user.id,
+        departmentId: user.departmentId,
+        divisionId: primaryDiv ? primaryDiv.id : null,
+        ipAddress: context?.ipAddress,
+        userAgent: context?.userAgent,
+        payload: { empCode: dto.empCode, status: user.status, reason: reasonMsg },
+      });
+      throw new UnauthorizedException(reasonMsg);
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
+      await this.auditService.log({
+        action: AuditAction.LOGIN,
+        details: `ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ (EmpCode: ${user.empCode})`,
+        status: 'FAILED',
+        entityId: user.id,
+        entityType: 'USER',
+        actorId: user.id,
+        departmentId: user.departmentId,
+        divisionId: primaryDiv ? primaryDiv.id : null,
+        ipAddress: context?.ipAddress,
+        userAgent: context?.userAgent,
+        payload: { empCode: dto.empCode, reason: 'INVALID_PASSWORD' },
+      });
       throw new UnauthorizedException('ລະຫັດພະນັກງານ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ...');
     }
 
-    const primaryDiv = user.divisions?.find((d: any) => d.isPrimary) || user.divisions?.[0];
     const payload = {
       sub: user.id,
       email: user.email,
@@ -52,17 +109,19 @@ export class LoginUseCase {
       unitId: user.unitId,
     };
 
-    const log = new AuditLog(
-      uuidv4(),
-      AuditAction.LOGIN,
-      '',
-      user.id,
-      `LOGIN: '${user.firstNameLa}'`,
-      user.role,
-      new Date(),
-    );
-
-    await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: AuditAction.LOGIN,
+      details: `ເຂົ້າສູ່ລະບົບສຳເລັດ: ${user.firstNameLa || ''} ${user.lastNameLa || ''} (EmpCode: ${user.empCode})`,
+      status: 'SUCCESS',
+      entityId: user.id,
+      entityType: 'USER',
+      actorId: user.id,
+      departmentId: user.departmentId,
+      divisionId: primaryDiv ? primaryDiv.id : null,
+      ipAddress: context?.ipAddress,
+      userAgent: context?.userAgent,
+      payload: { empCode: user.empCode, role: user.role },
+    });
 
     return {
       accessToken: this.jwtService.sign(payload),

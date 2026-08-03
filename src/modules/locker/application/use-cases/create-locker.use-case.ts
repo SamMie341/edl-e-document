@@ -8,6 +8,8 @@ import * as lockerRepositoryInterface from '../../domain/repositories/locker.rep
 import { CreateLockerDto } from '../dtos/create-locker.dto';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
 
 @Injectable()
 export class CreateLockerUseCase {
@@ -15,6 +17,7 @@ export class CreateLockerUseCase {
     @Inject(lockerRepositoryInterface.LOCKER_REPOSITORY)
     private readonly lockerRepository: lockerRepositoryInterface.ILockerRepository,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(dto: CreateLockerDto, user: any) {
@@ -42,6 +45,18 @@ export class CreateLockerUseCase {
       }
     }
 
-    return await this.lockerRepository.create(dto);
+    const created = await this.lockerRepository.create(dto);
+
+    await this.auditService.log({
+      action: AuditAction.CREATED,
+      details: `ສ້າງຕູ້ Locker: ${created.code} ${created.name || ''}`,
+      entityId: created.id,
+      entityType: 'LOCKER',
+      actorId: user?.userId || user?.id,
+      departmentId: user?.departmentId,
+      divisionId: user?.divisionId,
+    });
+
+    return created;
   }
 }

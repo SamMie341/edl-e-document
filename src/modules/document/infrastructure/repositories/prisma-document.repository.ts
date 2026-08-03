@@ -90,6 +90,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             departmentId,
             divisionId,
             divisionIds,
+            orUserId,
             retentionStatus,
             warehouseId,
             lockerId,
@@ -97,20 +98,20 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             isDestroyed,
         } = params;
         const skip = (page - 1) * limit;
-        const whereCondition: any = {};
+        const andConditions: any[] = [];
 
         if (isDestroyed !== undefined && isDestroyed !== null && isDestroyed !== '') {
             const isDest = isDestroyed === true || isDestroyed === 'true' || isDestroyed === '1';
             if (isDest) {
-                whereCondition.destructionApprovalPath = { not: null };
+                andConditions.push({ destructionApprovalPath: { not: null } });
             } else {
-                whereCondition.destructionApprovalPath = null;
+                andConditions.push({ destructionApprovalPath: null });
             }
         }
 
-        if (folderId) whereCondition.folderId = folderId;
-        if (userId) whereCondition.userId = userId;
-        if (departmentId) whereCondition.departmentId = departmentId;
+        if (folderId) andConditions.push({ folderId });
+        if (userId) andConditions.push({ userId });
+        if (departmentId) andConditions.push({ departmentId });
 
         if (shelfId || lockerId || warehouseId) {
             const folderWhere: any = {};
@@ -125,32 +126,40 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 }
                 folderWhere.shelf = shelfWhere;
             }
-            whereCondition.folder = folderWhere;
+            andConditions.push({ folder: folderWhere });
         }
 
-        if (divisionIds && divisionIds.length > 0) {
-            whereCondition.divisionId = { in: divisionIds };
-        } else if (divisionId) {
-            whereCondition.divisionId = divisionId;
+        if (orUserId) {
+            const orAccessList: any[] = [{ userId: orUserId }];
+            if (divisionIds && divisionIds.length > 0) {
+                orAccessList.push({ divisionId: { in: divisionIds } });
+            } else if (divisionId) {
+                orAccessList.push({ divisionId });
+            }
+            andConditions.push({ OR: orAccessList });
+        } else {
+            if (divisionIds && divisionIds.length > 0) {
+                andConditions.push({ divisionId: { in: divisionIds } });
+            } else if (divisionId) {
+                andConditions.push({ divisionId });
+            }
         }
 
-        if (documentTypeId) whereCondition.documentTypeId = documentTypeId;
+        if (documentTypeId) andConditions.push({ documentTypeId });
         if (startDate || endDate) {
-            whereCondition.docDate = {};
+            const docDateCond: any = {};
             if (startDate) {
-                whereCondition.docDate.gte = new Date(`${startDate}T00:00:00.000Z`);
+                docDateCond.gte = new Date(`${startDate}T00:00:00.000Z`);
             }
             if (endDate) {
-                whereCondition.docDate.lte = new Date(`${endDate}T23:59:59.999Z`);
+                docDateCond.lte = new Date(`${endDate}T23:59:59.999Z`);
             }
+            andConditions.push({ docDate: docDateCond });
         }
 
         // ─── retentionStatus filter ───────────────────────────────────────────────
-        // retentionStatus เป็น computed property (จาก docExpire + isContractBound)
-        // ต้องแปลงเป็น Prisma date-range conditions โดยอ้างอิง logic เดียวกับ entity getter
         if (retentionStatus) {
             const now = new Date();
-            // todayStart: วันเริ่มต้นของวันนี้ 00:00:00.000 (local time)
             const todayStart = new Date(
                 now.getFullYear(),
                 now.getMonth(),
@@ -160,8 +169,6 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 0,
                 0,
             );
-
-            // todayEnd: วันสุดท้ายของวันนี้ 23:59:59.999 (local time)
             const todayEnd = new Date(
                 now.getFullYear(),
                 now.getMonth(),
@@ -176,58 +183,59 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
             switch (retentionStatus) {
                 case 'ACTIVE':
-                    // ยังไม่หมดอายุ: docExpire > todayEnd AND ไม่ติดพันสัญญา
                     retentionDocExpire = { gt: todayEnd };
-                    whereCondition.isContractBound = false;
+                    andConditions.push({ isContractBound: false });
                     break;
 
                 case 'DESTROYABLE':
-                    // หมดอายุวันนี้พอดี: docExpire ระหว่าง [todayStart, todayEnd] AND ไม่ติดพันสัญญา
                     retentionDocExpire = {
                         gte: todayStart,
                         lte: todayEnd,
                     };
-                    whereCondition.isContractBound = false;
+                    andConditions.push({ isContractBound: false });
                     break;
 
                 case 'DESTROYABLE_HOLD':
-                    // ติดพันสัญญา (โดยไม่จำกัดอายุ)
-                    whereCondition.isContractBound = true;
+                    andConditions.push({ isContractBound: true });
                     break;
 
                 case 'EXPIRED':
-                    // หมดอายุก่อนวันนี้: docExpire < todayStart AND ไม่ติดพันสัญญา
                     retentionDocExpire = { lt: todayStart };
-                    whereCondition.isContractBound = false;
+                    andConditions.push({ isContractBound: false });
                     break;
             }
 
             if (Object.keys(retentionDocExpire).length > 0) {
-                whereCondition.docExpire = retentionDocExpire;
+                andConditions.push({ docExpire: retentionDocExpire });
             }
         }
+
         if (search) {
-            whereCondition.OR = [
-                { docNo: { contains: search, mode: 'insensitive' } },
-                {
-                    subDocuments: {
-                        some: {
-                            subDocNo: { contains: search, mode: 'insensitive' },
+            andConditions.push({
+                OR: [
+                    { docNo: { contains: search, mode: 'insensitive' } },
+                    {
+                        subDocuments: {
+                            some: {
+                                subDocNo: { contains: search, mode: 'insensitive' },
+                            },
                         },
                     },
-                },
-                { title: { contains: search, mode: 'insensitive' } },
-                { shortName: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-                { division: { name: { contains: search, mode: 'insensitive' } } },
-                { department: { name: { contains: search, mode: 'insensitive' } } },
-                { documentType: { name: { contains: search, mode: 'insensitive' } } },
-                { user: { firstNameLa: { contains: search, mode: 'insensitive' } } },
-                { user: { lastNameLa: { contains: search, mode: 'insensitive' } } },
-                { user: { firstNameEng: { contains: search, mode: 'insensitive' } } },
-                { user: { lastNameEng: { contains: search, mode: 'insensitive' } } },
-            ];
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { shortName: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                    { division: { name: { contains: search, mode: 'insensitive' } } },
+                    { department: { name: { contains: search, mode: 'insensitive' } } },
+                    { documentType: { name: { contains: search, mode: 'insensitive' } } },
+                    { user: { firstNameLa: { contains: search, mode: 'insensitive' } } },
+                    { user: { lastNameLa: { contains: search, mode: 'insensitive' } } },
+                    { user: { firstNameEng: { contains: search, mode: 'insensitive' } } },
+                    { user: { lastNameEng: { contains: search, mode: 'insensitive' } } },
+                ],
+            });
         }
+
+        const whereCondition = andConditions.length > 0 ? { AND: andConditions } : {};
         const [models, total] = await this.prisma.$transaction([
             this.prisma.documentModel.findMany({
                 where: whereCondition,

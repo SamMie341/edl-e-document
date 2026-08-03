@@ -70,14 +70,15 @@ export class DocumentBorrowController {
     return { message: 'ຄືນເອກະສານສຳເລັດ', data: record };
   }
 
-  // ─── GET /document-borrows/active — ລາຍການທີ່ຍັງຢືມຢູ່ ──────────────────
+  // ─── GET /document-borrows/active — ລາຍການທີ່ຍັງຢືມຢູ່ (เรียงตามกำหนดส่งที่ใกล้ที่สุด) ───
   @Get('active')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
-  async getActive(@Req() req: any) {
+  async getActive(@Req() req: any, @Query('days') days?: string) {
     const { forcedDepartmentId, forcedDivisionId } = this.buildScopeFilter(req.user);
     const data = await this.getBorrowHistoryUseCase.findActive(
       forcedDepartmentId,
       forcedDivisionId,
+      days ? parseInt(days, 10) : undefined,
     );
     return { message: 'Success', data };
   }
@@ -90,12 +91,15 @@ export class DocumentBorrowController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
     @Query('documentId') documentId?: string,
+    @Query('folderId') folderId?: string,
+    @Query('type') type?: string,
     @Query('borrowerId') borrowerId?: string,
     @Query('divisionId') divisionId?: string,
     @Query('activeOnly') activeOnly?: string,
     @Query('borrowedAt') borrowedAt?: string,
     @Query('returnedAt') returnedAt?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
   ) {
     const { forcedDepartmentId, forcedDivisionId } = this.buildScopeFilter(req.user);
 
@@ -103,6 +107,8 @@ export class DocumentBorrowController {
       page: parseInt(page) || 1,
       limit: parseInt(limit) || 10,
       documentId,
+      folderId,
+      type,
       borrowerId,
       // scope ບັງຄັບ override query param ຖ້າມີ
       divisionId: forcedDivisionId ?? (divisionId ? parseInt(divisionId) : undefined),
@@ -111,6 +117,7 @@ export class DocumentBorrowController {
       borrowedAt,
       returnedAt,
       status,
+      search,
     });
     return { message: 'Success', ...result };
   }

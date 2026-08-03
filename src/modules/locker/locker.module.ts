@@ -8,8 +8,10 @@ import { UpdateLockerUseCase } from './application/use-cases/update-locker.use-c
 import { DeleteLockerUseCase } from './application/use-cases/delete-locker.use-case';
 import { GetLockerByIdUseCase } from './application/use-cases/get-locker-by-id.use-case';
 import { GetDropdownLockersUseCase } from './application/use-cases/get-dropdown-lockers.use-case';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
+  imports: [AuditModule],
   controllers: [LockerController],
   providers: [
     CreateLockerUseCase,

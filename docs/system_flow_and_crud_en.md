@@ -79,21 +79,30 @@ Manages digital attachments and physical document metadata.
 * **Read:**
   * `GET /documents` — Retrieve a paginated list of documents with filters:
     * `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`
-    * **[New]** `retentionStatus` — filter by retention status (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
-    * **[New]** `warehouseId`, `lockerId`, `shelfId` — filter by physical storage location
+    * `retentionStatus` — filter by retention status (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
+    * `warehouseId`, `lockerId`, `shelfId` — filter by physical storage location
+    * **[New]** `isDestroyed` / `isDeleted` — filter by destruction status (`true` / `false`)
   * `SUPER_ADMIN` and `HQ_ADMIN` see all documents.
   * `BRANCH_ADMIN` and `USER` see only documents within their assigned divisions (`userDivisionIds` from `UserDivisionModel`).
   * `GET /documents/:id` — Retrieve document details by ID; also enforces division-based access for `BRANCH_ADMIN` and `USER`.
   * `GET /documents/attachments/:attachmentId` — Stream/view a file attachment with role-based permission checks.
-  * **[New]** `GET /documents/attachments/:attachmentId/download` — Force-download a file attachment.
-  * `GET /documents/expired` — List documents that are expired or destroyable (`SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`).
-  * **[New]** `GET /documents/:id/destruction-approval` — Get the destruction approval status for a specific document.
+  * `GET /documents/attachments/:attachmentId/download` — Force-download a file attachment.
+  * `GET /documents/expired` — List expired/destroyable documents. Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+    * **[New]** Supports pagination: `page`, `limit`.
+    * **[New]** Supports filters: `search`, `isDestroyed`, `isDeleted`.
+  * `GET /documents/:id/destruction-approval` — Stream the destruction approval PDF for a specific document.
 * **Update:** `PUT /documents/:id`
   * All roles can update documents. Ownership/scope checks are applied via the use case layer.
   * Supports replacing file attachments (up to 10 files).
 * **Delete:**
-  * `DELETE /documents/expired` — Bulk delete all expired documents. Requires an attached destruction approval PDF (`multipart/form-data`, field: `file`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
-  * **[New]** `DELETE /documents/:id` — Delete a single document. Requires an attached destruction approval PDF (`multipart/form-data`, field: `file`). Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `DELETE /documents/expired` — Bulk delete all expired documents. `multipart/form-data`:
+    * `file` (required) — destruction approval PDF.
+    * **[New]** `destroyedDate` (optional), `details` (optional), `reason` (optional) — additional destruction record metadata.
+    * Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `DELETE /documents/:id` — Delete a single document. `multipart/form-data`:
+    * `file` (required) — destruction approval PDF.
+    * **[New]** `destroyedDate` (optional), `details` (optional), `reason` (optional) — additional destruction record metadata.
+    * Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
 
 ---
 
@@ -217,7 +226,7 @@ Provides a unified full-text search across multiple entity types with role-based
     * `page` (default: 1)
     * `type` (optional, comma-separated) — filter to specific entity types; e.g. `documents,folders`
     * `dateFrom` / `dateTo` (optional, ISO 8601) — date range filter applied to `documents` only
-  * Supported entity types: `documents`, `folders`, `warehouses`, `lockers`, `shelves`, `users`, `departments`, `divisions`.
+  * Supported entity types: `documents`, `folders`, `warehouses`, `lockers`, `shelves`, `users`, `departments`, `divisions`, **`document-types`** *(new)*.
   * **Scope:**
     * `SUPER_ADMIN` and `HQ_ADMIN` search across all data.
     * `BRANCH_ADMIN` and `USER` are scoped to their assigned divisions (`userDivisionIds`).
@@ -323,6 +332,19 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-07-31
+
+#### 🔄 Updated
+| Item | Detail |
+|---|---|
+| **`GET /documents` filter params** | Added `isDestroyed` and `isDeleted` query params to filter destroyed/deleted documents. |
+| **`GET /documents/expired` params** | Now supports pagination (`page`, `limit`) and filters (`search`, `isDestroyed`, `isDeleted`). |
+| **`DELETE /documents/expired` body** | Added optional `destroyedDate`, `details`, `reason` formdata fields (from `DeleteDocumentDto`). |
+| **`DELETE /documents/:id` body** | Added optional `destroyedDate`, `details`, `reason` formdata fields (from `DeleteDocumentDto`). |
+| **Global Search `type` param** | Added `document-types` as a supported search entity type. |
+
+---
 
 ### Version 2026-07-24
 

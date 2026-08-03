@@ -6,8 +6,10 @@ import { UpdateSubDocumentUseCase } from './application/use-cases/update-sub-doc
 import { DeleteSubDocumentUseCase } from './application/use-cases/delete-sub-document.use-case';
 import { SUB_DOCUMENT_REPOSITORY } from './domain/repositories/sub-document.repository.interface';
 import { PrismaSubDocumentRepository } from './infrastructure/repositories/prisma-sub-document.repository';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
+  imports: [AuditModule],
   controllers: [SubDocumentController],
   providers: [
     // ── Use Cases ─────────────────────────────────────────────────────────

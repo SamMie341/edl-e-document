@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/core/auth/guards/jwt-auth.guard';
@@ -43,8 +44,9 @@ export class SubDocumentController {
   async create(
     @Param('documentId') documentId: string,
     @Body() dto: CreateSubDocumentsDto,
+    @Req() req: any,
   ) {
-    const data = await this.createSubDocumentUseCase.execute(documentId, dto);
+    const data = await this.createSubDocumentUseCase.execute(documentId, dto, req.user);
     return { message: 'ສ້າງເອກະສານຍ່ອຍສຳເລັດ', data };
   }
 
@@ -54,16 +56,17 @@ export class SubDocumentController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateSubDocumentDto,
+    @Req() req: any,
   ) {
-    const data = await this.updateSubDocumentUseCase.execute(id, dto);
+    const data = await this.updateSubDocumentUseCase.execute(id, dto, req.user);
     return { message: 'ແກ້ໄຂເອກະສານຍ່ອຍສຳເລັດ', data };
   }
 
   // ─── DELETE sub-document ───────────────────────────────────────────────────
   @Delete(':id')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN)
-  async delete(@Param('id') id: string) {
-    const result = await this.deleteSubDocumentUseCase.execute(id);
+  async delete(@Param('id') id: string, @Req() req: any) {
+    const result = await this.deleteSubDocumentUseCase.execute(id, req.user);
     return result;
   }
 }

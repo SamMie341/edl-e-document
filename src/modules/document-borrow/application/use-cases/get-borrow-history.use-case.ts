@@ -32,9 +32,13 @@ export class GetBorrowHistoryUseCase {
     return await this.borrowRepository.findByFolderId(folderId, departmentId, divisionId);
   }
 
-  // ລາຍການທີ່ຍັງຢືມຢູ່ (ກຣອງຕາມ scope ຖ້າມີ)
-  async findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]> {
-    return await this.borrowRepository.findActive(departmentId, divisionId);
+  // ລາຍການທີ່ຍັງຢືມຢູ່ (ກຣອງຕາມ scope ຖ້າມີ, เรียงตามกำหนดส่งที่ใกล้ที่สุด)
+  async findActive(
+    departmentId?: number,
+    divisionId?: number,
+    upcomingDays?: number,
+  ): Promise<DocumentBorrowEntity[]> {
+    return await this.borrowRepository.findActive(departmentId, divisionId, upcomingDays);
   }
 
   // ດຶງລາຍການຢືມດ້ວຍ ID

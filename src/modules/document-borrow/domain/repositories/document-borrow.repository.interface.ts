@@ -7,6 +7,7 @@ export interface DocumentBorrowFilterParams {
   limit?: number;
   documentId?: string;
   folderId?: string;
+  type?: string;          // 'DOCUMENT' | 'FOLDER'
   borrowerId?: string;
   divisionId?: number;    // ກອງຕາມ division ທີ່ຮັບໄປ
   departmentId?: number;  // ກອງຕາມ department (ສຳລັບ BRANCH_ADMIN)
@@ -14,6 +15,7 @@ export interface DocumentBorrowFilterParams {
   borrowedAt?: string;
   returnedAt?: string;
   status?: string;
+  search?: string;
 }
 
 export interface IDocumentBorrowRepository {
@@ -24,7 +26,7 @@ export interface IDocumentBorrowRepository {
   findByDocumentId(documentId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
   findByFolderId(folderId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
   findByDivisionId(divisionId: number, activeOnly?: boolean): Promise<DocumentBorrowEntity[]>;
-  findActive(departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
+  findActive(departmentId?: number, divisionId?: number, upcomingDays?: number): Promise<DocumentBorrowEntity[]>;
   return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity>;
 }
 

@@ -2,18 +2,15 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Role } from 'src/core/auth/constants/role.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
 import * as fs from 'fs';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
-import { v4 as uuidv4 } from 'uuid';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
 import { AppException } from 'src/core/exceptions/app.exception';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 
 @Injectable()
 export class GetAttachmentUseCase {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+    private readonly auditService: AuditService,
   ) { }
 
   async execute(attachmentId: string, user: any) {
@@ -34,12 +31,14 @@ export class GetAttachmentUseCase {
     const doc = attachment.document;
 
     if (user.role === Role.USER) {
-      // USER เห็นเฉพาะ attachment ใน primary division ของตัวเอง
+      // USER เห็นเฉพาะ attachment ใน primary division ของตัวเอง หรือ เอกสารที่ตัวเองอัพโหลด
       const primaryDiv = await this.prisma.userDivisionModel.findFirst({
         where: { userId: user.userId, isPrimary: true },
         select: { divisionId: true },
       });
-      if (!doc.divisionId || !primaryDiv || doc.divisionId !== primaryDiv.divisionId) {
+      const isOwner = doc.userId === user.userId;
+      const isSameDivision = primaryDiv && doc.divisionId === primaryDiv.divisionId;
+      if (!isOwner && !isSameDivision) {
         throw new AppException(
           'UNAUTHORIZATION',
           'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງໄຟລ່ຂອງເອກະສານສະບັບນີ້',
@@ -74,17 +73,15 @@ export class GetAttachmentUseCase {
       );
     }
 
-    // const log = new AuditLog(
-    //   uuidv4(),
-    //   AuditAction.GET,
-    //   '',
-    //   doc.id,
-    //   'DOCUMENT',
-    //   user.userId,
-    //   new Date(),
-    // );
-
-    // await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: AuditAction.GET,
+      details: `ດາວໂຫຼດ/ເບິ່ງໄຟລ໌ແນບ: ${attachment.fileName}`,
+      entityId: attachment.id,
+      entityType: 'ATTACHMENT',
+      actorId: user.userId || user.id,
+      departmentId: user.departmentId || doc.departmentId,
+      divisionId: user.divisionId || doc.divisionId,
+    });
 
     return attachment;
   }

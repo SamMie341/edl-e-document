@@ -22,6 +22,7 @@ import { CreateDocumentUseCase } from '../../application/use-cases/create-docume
 import { CreateDocumentDto } from '../../application/dtos/create-document.dto';
 import { UpdateDocumentUseCase } from '../../application/use-cases/update-document.use-case';
 import { UpdateDocumentDto } from '../../application/dtos/update-document.dto';
+import { DeleteDocumentDto } from '../../application/dtos/delete-document.dto';
 import { JwtAuthGuard } from '../../../../core/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../../core/auth/guards/roles.guard';
 import { Roles } from '../../../../core/auth/decorators/roles.decorator';
@@ -80,14 +81,16 @@ export class DocumentController {
     let targetDivisionId: number | undefined = divisionId ? parseInt(divisionId) : undefined;
     let targetDepartmentId: number | undefined = departmentId ? parseInt(departmentId) : undefined;
     let targetDivisionIds: number[] | undefined = undefined;
+    let orUserId: string | undefined = undefined;
 
     if (user.role === Role.USER) {
-      // USER เห็นเฉพาะ document ใน primary division ของตัวเอง
+      // USER เห็นเอกสารใน primary division ของตัวเอง หรือ เอกสารที่ตัวเองอัพโหลด
       const primaryDiv = await this.prisma.userDivisionModel.findFirst({
         where: { userId: user.userId, isPrimary: true },
         select: { divisionId: true },
       });
-      targetDivisionIds = primaryDiv ? [primaryDiv.divisionId] : [-1];
+      targetDivisionIds = primaryDiv ? [primaryDiv.divisionId] : [];
+      orUserId = user.userId;
     } else if (user.role === Role.BRANCH_ADMIN) {
       // BRANCH_ADMIN เห็นเฉพาะ document ใน divisions ที่ถูก assign
       const userDivs = await this.prisma.userDivisionModel.findMany({
@@ -122,6 +125,7 @@ export class DocumentController {
       userId: targetUserId,
       departmentId: targetDepartmentId,
       divisionIds: targetDivisionIds,
+      orUserId,
       retentionStatus,
       warehouseId: warehouseId ?? undefined,
       lockerId: lockerId ?? undefined,
@@ -174,7 +178,9 @@ export class DocumentController {
         where: { userId: user.userId, isPrimary: true },
         select: { divisionId: true },
       });
-      if (!document.divisionId || !primaryDiv || document.divisionId !== primaryDiv.divisionId) {
+      const isOwner = document.userId === user.userId;
+      const isSameDivision = primaryDiv && document.divisionId === primaryDiv.divisionId;
+      if (!isOwner && !isSameDivision) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
       }
     } else if (user.role === Role.BRANCH_ADMIN) {
@@ -213,12 +219,14 @@ export class DocumentController {
     const document = await this.getDocumentByIdUseCase.execute(id);
 
     if (user.role === Role.USER) {
-      // USER เห็นเฉพาะ document ใน primary division ของตัวเอง
+      // USER เห็นเอกสารใน primary division ของตัวเอง หรือ เอกสารที่ตัวเองอัพโหลด
       const primaryDiv = await this.prisma.userDivisionModel.findFirst({
         where: { userId: user.userId, isPrimary: true },
         select: { divisionId: true },
       });
-      if (!document.divisionId || !primaryDiv || document.divisionId !== primaryDiv.divisionId) {
+      const isOwner = document.userId === user.userId;
+      const isSameDivision = primaryDiv && document.divisionId === primaryDiv.divisionId;
+      if (!isOwner && !isSameDivision) {
         throw new ForbiddenException('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງເອກະສານນີ້');
       }
     } else if (user.role === Role.BRANCH_ADMIN) {
@@ -375,11 +383,15 @@ export class DocumentController {
       cb(null, true);
     },
   }))
-  async deleteExpiredDocuments(@UploadedFile() file?: Express.Multer.File) {
+  async deleteExpiredDocuments(
+    @UploadedFile() file?: Express.Multer.File,
+    @Body() dto?: DeleteDocumentDto,
+    @Req() req?: any,
+  ) {
     if (!file) {
       throw new BadRequestException('ກະລຸນາແນບໄຟລ໌ອະນຸມັດການທຳລາຍ (PDF) ມາດ້ວຍ');
     }
-    const result = await this.deleteExpiredDocumentsUseCase.execute(file);
+    const result = await this.deleteExpiredDocumentsUseCase.execute(file, dto, req?.user);
     return { message: result.message, deleted: result.deleted };
   }
 
@@ -390,7 +402,7 @@ export class DocumentController {
     storage: require('multer').memoryStorage(),
     fileFilter: (_req: any, file: Express.Multer.File, cb: any) => {
       if (file.mimetype !== 'application/pdf') {
-        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບ "${file.mimetype}"`), false);
+        return cb(new BadRequestException(`ອະນຸຍາດສະເພາະໄຟລ໌ PDF ເທົ່ານັ້ນ, ແຕ່ໄດ້ຮັບໄຟລ໌ "${file.mimetype}"`), false);
       }
       cb(null, true);
     },
@@ -399,11 +411,12 @@ export class DocumentController {
     @Param('id') id: string,
     @Req() req: any,
     @UploadedFile() file?: Express.Multer.File,
+    @Body() dto?: DeleteDocumentDto,
   ) {
     if (!file) {
       throw new BadRequestException('ກະລຸນາແນບໄຟລ໌ອະນຸມັດການທຳລາຍ (PDF) ມາດ້ວຍ');
     }
-    const document = await this.deleteDocumentUseCase.execute(id, file, req.user);
+    const document = await this.deleteDocumentUseCase.execute(id, file, req.user, dto);
     return { message: 'ລົບໄຟລ໌ເອກະສານສຳເລັດ', data: document };
   }
 }

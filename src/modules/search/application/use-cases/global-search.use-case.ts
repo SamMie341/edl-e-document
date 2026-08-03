@@ -115,11 +115,28 @@ export class GlobalSearchUseCase {
     const activeTypes = types && types.length > 0 ? new Set(types) : new Set(SEARCH_ENTITY_TYPES);
     const wants = (t: SearchEntityType) => activeTypes.has(t);
 
-    // ─── Division-scoped filter ──────────────────────────────────────────────
+    // ─── Document Access Filter ──────────────────────────────────────────────
     const divisionWhere =
       !isPrivileged && userDivisionIds && userDivisionIds.length > 0
         ? { in: userDivisionIds }
         : undefined;
+
+    const docAccessFilter = !isPrivileged
+      ? userRole === 'USER' && userId
+        ? [
+            {
+              OR: [
+                ...(userDivisionIds && userDivisionIds.length > 0
+                  ? [{ divisionId: { in: userDivisionIds } }]
+                  : []),
+                { userId },
+              ],
+            },
+          ]
+        : divisionWhere
+          ? [{ divisionId: divisionWhere }]
+          : []
+      : [];
 
     // ─── Date range filter for documents ────────────────────────────────────
     const dateFilter: { gte?: Date; lte?: Date } = {};
@@ -144,7 +161,7 @@ export class GlobalSearchUseCase {
         ? this.prisma.documentModel.findMany({
           where: {
             AND: [
-              ...(divisionWhere ? [{ divisionId: divisionWhere }] : []),
+              ...docAccessFilter,
               ...(hasDateFilter ? [{ docDate: dateFilter }] : []),
               {
                 OR: [

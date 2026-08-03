@@ -4,6 +4,9 @@ import * as fileStorageInterface from 'src/core/interfaces/file-storage.interfac
 import { DocumentEntity } from '../../domain/entities/document.entity';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { Role } from 'src/core/auth/constants/role.enum';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
+import { AuditAction } from 'src/core/constants/audit-action.enum';
+import { CleanupEmptyFoldersUseCase } from 'src/modules/shelf/application/use-cases/cleanup-empty-folders.use-case';
 
 @Injectable()
 export class DeleteDocumentUseCase {
@@ -15,12 +18,15 @@ export class DeleteDocumentUseCase {
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorageService: fileStorageInterface.IFileStorageService,
     private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    private readonly cleanupEmptyFoldersUseCase: CleanupEmptyFoldersUseCase,
   ) { }
 
   async execute(
     id: string,
     approvalFile: Express.Multer.File,
     user: any,
+    dto?: { destroyedDate?: string; details?: string; reason?: string },
   ): Promise<DocumentEntity> {
     const document = await this.documentRepository.findById(id);
 
@@ -63,7 +69,41 @@ export class DeleteDocumentUseCase {
 
     // 2. Delete attachment files and set destruction approval path
     const updatedDocument = await this.documentRepository.deleteDocument(id, savedFile.filePath);
-    this.logger.log(`ລົບໄຟລ໌ເອກະສານ ID ${id} ສຳເລັດ ໂດຍໃຊ້ໄຟລ໌ອະນຸມັດ: ${savedFile.filePath}`);
+
+    const destructionDate = dto?.destroyedDate || '';
+    const destructionDetails = dto?.details || dto?.reason || '';
+
+    const logDetails = [
+      `ທຳລາຍ/ລຶບເອກະສານ ID ${id}`,
+      destructionDate ? `ວັນທີທຳລາຍ: ${destructionDate}` : null,
+      destructionDetails ? `ລາຍລະອຽດ: ${destructionDetails}` : null,
+      `ໄຟລ໌ອະນຸມັດ: ${savedFile.filePath}`,
+    ]
+      .filter(Boolean)
+      .join(' | ');
+
+    this.logger.log(`ລົບໄຟລ໌ເອກະສານ ID ${id} ສຳເລັດ (${logDetails})`);
+
+    await this.auditService.log({
+      action: AuditAction.DELETED,
+      details: logDetails,
+      entityId: id,
+      entityType: 'DOCUMENT',
+      actorId: user?.userId || user?.id,
+      departmentId: user?.departmentId || document.departmentId,
+      divisionId: user?.divisionId || document.divisionId,
+      oldValue: { title: document.title, docNo: document.docNo },
+      payload: {
+        destroyedDate: destructionDate || null,
+        details: destructionDetails || null,
+        approvalFilePath: savedFile.filePath,
+      },
+    });
+
+    // Check and remove the folder from shelf if it no longer has active documents
+    if (document.folderId) {
+      await this.cleanupEmptyFoldersUseCase.cleanupFolderIfEmpty(document.folderId, user);
+    }
 
     return updatedDocument;
   }

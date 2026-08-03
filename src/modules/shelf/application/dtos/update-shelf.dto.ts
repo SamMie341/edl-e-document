@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpdateShelfDto {
   @IsOptional()
@@ -11,6 +11,7 @@ export class UpdateShelfDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(1, { message: 'ຄວາມຈຸຂອງຊັ້ນວາງຕ້ອງຫຼາຍກວ່າ 0' })
   maxQty?: number;
 
   @IsOptional()

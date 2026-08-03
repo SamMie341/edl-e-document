@@ -2,9 +2,7 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import * as userRepositoryInterface from '../../domain/repositories/user.repository.interface';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import * as bcrypt from 'bcrypt';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
-import { v4 as uuidv4 } from 'uuid';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 import { AuditAction } from 'src/core/constants/audit-action.enum';
 import { AppException } from 'src/core/exceptions/app.exception';
 
@@ -13,8 +11,7 @@ export class ChangePasswordUseCase {
   constructor(
     @Inject(userRepositoryInterface.USER_REPOSITORY)
     private readonly userRepository: userRepositoryInterface.IUserRepository,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+    private readonly auditService: AuditService,
   ) {}
 
   async execute(userId: string, dto: ChangePasswordDto): Promise<void> {
@@ -56,15 +53,13 @@ export class ChangePasswordUseCase {
     user.updatePassword(newHash);
     await this.userRepository.save(user);
 
-    const log = new AuditLog(
-      uuidv4(),
-      AuditAction.PASSWORD_CHANGED,
-      'ຜູ້ໃຊ້ປ່ຽນລະຫັດຜ່ານດ້ວຍຕົວເອງ',
-      user.id,
-      'USER',
-      user.id,
-      new Date(),
-    );
-    await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: AuditAction.PASSWORD_CHANGED,
+      details: 'ຜູ້ໃຊ້ປ່ຽນລະຫັດຜ່ານດ້ວຍຕົວເອງ',
+      entityId: user.id,
+      entityType: 'USER',
+      actorId: user.id,
+      departmentId: user.departmentId,
+    });
   }
 }

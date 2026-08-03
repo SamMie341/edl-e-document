@@ -3,9 +3,7 @@ import { AuditAction } from 'src/core/constants/audit-action.enum';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { AppException } from 'src/core/exceptions/app.exception';
 import * as fileStorageInterface from 'src/core/interfaces/file-storage.interface';
-import { AuditLog } from 'src/modules/audit/domain/entities/audit-log.entity';
-import * as auditLogRepositoryInterface from 'src/modules/audit/domain/repositories/audit-log.repository.interface';
-import { v4 as uuidv4 } from 'uuid';
+import { AuditService } from 'src/modules/audit/application/services/audit.service';
 
 @Injectable()
 export class UploadAttachmentUseCase {
@@ -13,8 +11,7 @@ export class UploadAttachmentUseCase {
     @Inject(fileStorageInterface.FILE_STORAGE_SERVICE)
     private readonly fileStorage: fileStorageInterface.IFileStorageService,
     private readonly prisma: PrismaService,
-    @Inject(auditLogRepositoryInterface.AUDIT_LOG_REPOSITORY)
-    private readonly auditLogRepository: auditLogRepositoryInterface.IAuditLogRepository,
+    private readonly auditService: AuditService,
   ) {}
 
   async execute(documentId: string, file: any, userId: string): Promise<any> {
@@ -48,17 +45,16 @@ export class UploadAttachmentUseCase {
       },
     });
 
-    const log = new AuditLog(
-      uuidv4(),
-      AuditAction.UPLOADATTACHMENT,
-      `UPLOAD BY ${userId}`,
-      document.id,
-      'DOCUMENT',
-      userId,
-      new Date(),
-    );
-
-    await this.auditLogRepository.save(log);
+    await this.auditService.log({
+      action: AuditAction.UPLOADATTACHMENT,
+      details: `ອັບໂຫຼດໄຟລ໌ແນບ: ${savedFile.fileName}`,
+      entityId: document.id,
+      entityType: 'DOCUMENT',
+      actorId: userId,
+      departmentId: document.departmentId,
+      divisionId: document.divisionId,
+      payload: { attachmentId: attachment.id, fileName: savedFile.fileName },
+    });
 
     return attachment;
   }

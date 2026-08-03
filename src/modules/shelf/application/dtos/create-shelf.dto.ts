@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -19,6 +20,7 @@ export class CreateShelfDto {
 
   @IsNotEmpty({ message: 'ກະລຸນາກຳນົດຄວາມຈຸຂອງຊັ້ນ' })
   @IsNumber()
+  @Min(1, { message: 'ຄວາມຈຸຂອງຊັ້ນວາງຕ້ອງຫຼາຍກວ່າ 0' })
   maxQty: number;
 }
 

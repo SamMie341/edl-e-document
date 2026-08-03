@@ -22,10 +22,8 @@ import { SearchModule } from './modules/search/search.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-
     CoreModule,
     TaskModule,
-
     DivisionModule,
     UserModule,
     DocumentModule,

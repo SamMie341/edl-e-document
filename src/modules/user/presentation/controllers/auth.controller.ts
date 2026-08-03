@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Ip, Post, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { LoginUseCase } from '../../application/use-cases/login.use-case';
 import { LoginDto } from '../../application/dtos/login.dto';
 import { SyncUserFromHrmUseCase } from '../../application/use-cases/sync-user-from-hrm.use-case';
@@ -22,8 +23,21 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    const result = await this.loginUseCase.execute(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent: string,
+  ) {
+    const rawIp = req.headers['x-forwarded-for'];
+    const ipAddress = rawIp
+      ? (Array.isArray(rawIp) ? rawIp[0] : rawIp.split(',')[0]).trim()
+      : ip;
+
+    const result = await this.loginUseCase.execute(dto, {
+      ipAddress,
+      userAgent,
+    });
     return {
       message: 'ເຂົ້າສູ່ລະບົບສຳເລັດ',
       data: result,
