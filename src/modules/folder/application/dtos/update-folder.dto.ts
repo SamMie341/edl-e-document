@@ -15,7 +15,7 @@ export class UpdateFolderDto {
 
   @IsNotEmpty()
   @IsString()
-  description: string;
+  description?: string;
 
   @IsOptional()
   @IsString()

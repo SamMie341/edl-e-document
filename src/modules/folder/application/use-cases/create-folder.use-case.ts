@@ -10,13 +10,13 @@ export class CreateFolderUseCase {
     @Inject(folderRepositoryInterface.FOLDER_REPOSITORY)
     private readonly folderRepository: folderRepositoryInterface.IFolderRepository,
     private readonly auditService: AuditService,
-  ) {}
+  ) { }
 
   async execute(dto: CreateFolderDto, user?: any) {
     const createdFolder = await this.folderRepository.create(dto);
     await this.auditService.log({
       action: AuditAction.CREATED,
-      details: `ສ້າງໂຟນເດີ: ${createdFolder.name || createdFolder.code}`,
+      details: `ສ້າງໂກໂນ: ${createdFolder.name || createdFolder.code}`,
       entityId: createdFolder.id,
       entityType: 'FOLDER',
       actorId: user?.userId || user?.id,

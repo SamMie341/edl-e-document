@@ -218,8 +218,8 @@ model FolderModel {
   shelfId String
   shelf   ShelfModel @relation(fields: [shelfId], references: [id])
 
-  documents       DocumentModel[]
-  documentBorrows DocumentBorrowModel[]
+  documents   DocumentModel[]
+  borrowItems DocumentBorrowItemModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -269,7 +269,7 @@ model DocumentModel {
   division   DivisionModel? @relation(fields: [divisionId], references: [id])
 
   attachments  AttachmentModel[]
-  borrows      DocumentBorrowModel[]
+  borrowItems  DocumentBorrowItemModel[]
   subDocuments SubDocumentModel[]
 
   createdAt DateTime @default(now())
@@ -334,38 +334,56 @@ model AuditLogModel {
 model DocumentBorrowModel {
   id String @id @default(uuid())
 
-  documentId String?
-  document   DocumentModel? @relation(fields: [documentId], references: [id])
-
-  folderId String?
-  folder   FolderModel? @relation(fields: [folderId], references: [id])
-
   // ຄົນທີ່ຢືມ
   borrower String
   phone    String? // ເບີໂທ
 
-  borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
-  returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
-  dueDate    DateTime? // ກຳນົດສົ່ງ
+  borrowedAt DateTime @default(now()) // ວັນທີ/ເວລາຢືມ
 
   purpose String? // ຈຸດປະສົງ
 
   // ພາກສ່ວນໃດ
   toDivisionId Int?
   toDivision   DivisionModel? @relation(fields: [toDivisionId], references: [id])
-  toLocation   String? // free text ເસີມ (ຫ້ອງ, ຊັ້ນ, ...)
+  toLocation   String? // free text ເສີມ (ຫ້ອງ, ຊັ້ນ, ...)
   // ຄົນທີ່ບັນທຶກ
   createdById  String
   createdBy    UserModel      @relation("RecordedBy", fields: [createdById], references: [id])
 
   note String?
 
-  status String @default("BORROWED") // ສະຖານະ (e.g. BORROWED, RETURNED)
+  status String @default("BORROWED") // ສະຖານະ (e.g. BORROWED, PARTIALLY_RETURNED, RETURNED)
+
+  items DocumentBorrowItemModel[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("document_borrows")
+}
+
+model DocumentBorrowItemModel {
+  id String @id @default(uuid())
+
+  borrowId String
+  borrow   DocumentBorrowModel @relation(fields: [borrowId], references: [id], onDelete: Cascade)
+
+  documentId String?
+  document   DocumentModel? @relation(fields: [documentId], references: [id])
+
+  folderId String?
+  folder   FolderModel? @relation(fields: [folderId], references: [id])
+
+  dueDate    DateTime? // ກຳນົດສົ່ງ
+  returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
+  status     String    @default("BORROWED") // ສະຖານະ (e.g. BORROWED, RETURNED)
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("document_borrow_items")
 }
 
 model UserDivisionModel {

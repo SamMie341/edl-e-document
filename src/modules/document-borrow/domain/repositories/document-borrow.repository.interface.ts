@@ -1,4 +1,4 @@
-import { DocumentBorrowEntity } from '../entities/document-borrow.entity';
+import { DocumentBorrowEntity, DocumentBorrowItemEntity } from '../entities/document-borrow.entity';
 
 export const DOCUMENT_BORROW_REPOSITORY = Symbol('DOCUMENT_BORROW_REPOSITORY');
 
@@ -20,7 +20,6 @@ export interface DocumentBorrowFilterParams {
 
 export interface IDocumentBorrowRepository {
   create(data: CreateDocumentBorrowData): Promise<DocumentBorrowEntity>;
-  createMany(data: CreateDocumentBorrowData[]): Promise<DocumentBorrowEntity[]>;
   findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }>;
   findById(id: string): Promise<DocumentBorrowEntity | null>;
   findByDocumentId(documentId: string, departmentId?: number, divisionId?: number): Promise<DocumentBorrowEntity[]>;
@@ -28,12 +27,18 @@ export interface IDocumentBorrowRepository {
   findByDivisionId(divisionId: number, activeOnly?: boolean): Promise<DocumentBorrowEntity[]>;
   findActive(departmentId?: number, divisionId?: number, upcomingDays?: number): Promise<DocumentBorrowEntity[]>;
   return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity>;
+  returnItem(itemId: string, returnedAt: Date): Promise<{ item: DocumentBorrowItemEntity; header: DocumentBorrowEntity }>;
+  findItemById(itemId: string): Promise<DocumentBorrowItemEntity | null>;
 }
 
-
-export interface CreateDocumentBorrowData {
+export interface CreateDocumentBorrowItemData {
   documentId?: string;
   folderId?: string;
+  dueDate?: Date;
+  note?: string;
+}
+
+export interface CreateDocumentBorrowData {
   borrower: string;
   phone?: string;
   purpose?: string;
@@ -41,5 +46,5 @@ export interface CreateDocumentBorrowData {
   toLocation?: string;
   createdById: string;
   note?: string;
-  dueDate?: Date;
+  items: CreateDocumentBorrowItemData[];
 }
