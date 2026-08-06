@@ -4,12 +4,13 @@ import {
   CreateDocumentBorrowData,
   DocumentBorrowFilterParams,
 } from '../../domain/repositories/document-borrow.repository.interface';
-import { DocumentBorrowEntity } from '../../domain/entities/document-borrow.entity';
+import { DocumentBorrowEntity, DocumentBorrowItemEntity } from '../../domain/entities/document-borrow.entity';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { DocumentBorrowMapper } from '../mappers/document-borrow.mapper';
+import { DocumentBorrowItemMapper } from '../mappers/document-borrow-item.mapper';
 
-// ─── Include ທົ່ວໄປ ──────────────────────────────────────────────────────────
-const BORROW_INCLUDE = {
+// ─── Includes ───────────────────────────────────────────────────────────────
+const BORROW_ITEM_INCLUDE = {
   document: {
     select: {
       id: true,
@@ -24,6 +25,12 @@ const BORROW_INCLUDE = {
   folder: {
     select: { id: true, code: true, name: true },
   },
+};
+
+const BORROW_HEADER_INCLUDE = {
+  items: {
+    include: BORROW_ITEM_INCLUDE,
+  },
   toDivision: { select: { id: true, name: true, departmentId: true } },
   createdBy: {
     select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true },
@@ -31,7 +38,7 @@ const BORROW_INCLUDE = {
 };
 
 // ─── Helper: สร้าง scope where clause ────────────────────────────────────────
-// departmentId (BRANCH_ADMIN): กรองผ่าน document.departmentId หรือ toDivision.departmentId
+// departmentId (BRANCH_ADMIN): กรองผ่าน items.document.departmentId หรือ toDivision.departmentId
 // divisionId   (USER):         กรองผ่าน toDivisionId (ฝั่งรับ)
 function buildScopeWhere(
   departmentId?: number,
@@ -40,8 +47,8 @@ function buildScopeWhere(
   if (departmentId) {
     return {
       OR: [
-        { document: { is: { departmentId } } },
-        { documentId: null, toDivision: { is: { departmentId } } },
+        { items: { some: { document: { is: { departmentId } } } } },
+        { toDivision: { is: { departmentId } } },
       ],
     };
   }
@@ -58,8 +65,6 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   async create(data: CreateDocumentBorrowData): Promise<DocumentBorrowEntity> {
     const model = await this.prisma.documentBorrowModel.create({
       data: {
-        documentId: data.documentId,
-        folderId: data.folderId,
         borrower: data.borrower,
         phone: data.phone,
         purpose: data.purpose,
@@ -67,34 +72,20 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
         toLocation: data.toLocation,
         createdById: data.createdById,
         note: data.note,
-        dueDate: data.dueDate,
-      },
-      include: BORROW_INCLUDE,
-    });
-    return DocumentBorrowMapper.toDomain(model);
-  }
-
-  async createMany(data: CreateDocumentBorrowData[]): Promise<DocumentBorrowEntity[]> {
-    const models = await this.prisma.$transaction(
-      data.map((item) =>
-        this.prisma.documentBorrowModel.create({
-          data: {
+        status: 'BORROWED',
+        items: {
+          create: data.items.map((item) => ({
             documentId: item.documentId,
             folderId: item.folderId,
-            borrower: item.borrower,
-            phone: item.phone,
-            purpose: item.purpose,
-            toDivisionId: item.toDivisionId,
-            toLocation: item.toLocation,
-            createdById: item.createdById,
-            note: item.note,
             dueDate: item.dueDate,
-          },
-          include: BORROW_INCLUDE,
-        })
-      )
-    );
-    return models.map((m) => DocumentBorrowMapper.toDomain(m));
+            note: item.note,
+            status: 'BORROWED',
+          })),
+        },
+      },
+      include: BORROW_HEADER_INCLUDE,
+    });
+    return DocumentBorrowMapper.toDomain(model);
   }
 
   async findAll(params: DocumentBorrowFilterParams): Promise<{ data: DocumentBorrowEntity[]; total: number }> {
@@ -112,17 +103,25 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
       andConditions.push({ toDivisionId: scopeWhere.toDivisionId });
     }
 
-    if (documentId) andConditions.push({ documentId });
-    if (folderId) andConditions.push({ folderId });
-    if (activeOnly) andConditions.push({ returnedAt: null });
-    if (status) andConditions.push({ status });
+    if (documentId) {
+      andConditions.push({ items: { some: { documentId } } });
+    }
+    if (folderId) {
+      andConditions.push({ items: { some: { OR: [{ folderId }, { document: { folderId } }] } } });
+    }
+    if (activeOnly) {
+      andConditions.push({ status: { in: ['BORROWED', 'PARTIALLY_RETURNED'] } });
+    }
+    if (status) {
+      andConditions.push({ status });
+    }
 
     if (type) {
       const upperType = type.toUpperCase();
       if (upperType === 'DOCUMENT') {
-        andConditions.push({ documentId: { not: null } });
+        andConditions.push({ items: { some: { documentId: { not: null } } } });
       } else if (upperType === 'FOLDER') {
-        andConditions.push({ folderId: { not: null } });
+        andConditions.push({ items: { some: { folderId: { not: null } } } });
       }
     }
 
@@ -131,10 +130,10 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
         OR: [
           { borrower: { contains: search, mode: 'insensitive' } },
           { purpose: { contains: search, mode: 'insensitive' } },
-          { document: { is: { title: { contains: search, mode: 'insensitive' } } } },
-          { document: { is: { docNo: { contains: search, mode: 'insensitive' } } } },
-          { folder: { is: { name: { contains: search, mode: 'insensitive' } } } },
-          { folder: { is: { code: { contains: search, mode: 'insensitive' } } } },
+          { items: { some: { document: { is: { title: { contains: search, mode: 'insensitive' } } } } } },
+          { items: { some: { document: { is: { docNo: { contains: search, mode: 'insensitive' } } } } } },
+          { items: { some: { folder: { is: { name: { contains: search, mode: 'insensitive' } } } } } },
+          { items: { some: { folder: { is: { code: { contains: search, mode: 'insensitive' } } } } } },
         ],
       });
     }
@@ -164,27 +163,18 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     }
 
     if (returnedAt) {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(returnedAt)) {
-        andConditions.push({
-          returnedAt: {
-            gte: new Date(`${returnedAt}T00:00:00.000Z`),
-            lte: new Date(`${returnedAt}T23:59:59.999Z`),
+      andConditions.push({
+        items: {
+          some: {
+            returnedAt: /^\d{4}-\d{2}-\d{2}$/.test(returnedAt)
+              ? {
+                gte: new Date(`${returnedAt}T00:00:00.000Z`),
+                lte: new Date(`${returnedAt}T23:59:59.999Z`),
+              }
+              : undefined,
           },
-        });
-      } else {
-        const date = new Date(returnedAt);
-        if (!isNaN(date.getTime())) {
-          const yyyy = date.getUTCFullYear();
-          const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
-          const dd = String(date.getUTCDate()).padStart(2, '0');
-          andConditions.push({
-            returnedAt: {
-              gte: new Date(`${yyyy}-${mm}-${dd}T00:00:00.000Z`),
-              lte: new Date(`${yyyy}-${mm}-${dd}T23:59:59.999Z`),
-            },
-          });
-        }
-      }
+        },
+      });
     }
 
     const where = andConditions.length > 0 ? { AND: andConditions } : {};
@@ -195,7 +185,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
         skip,
         take: limit,
         orderBy: { borrowedAt: 'desc' },
-        include: BORROW_INCLUDE,
+        include: BORROW_HEADER_INCLUDE,
       }),
       this.prisma.documentBorrowModel.count({ where }),
     ]);
@@ -206,10 +196,19 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
   async findById(id: string): Promise<DocumentBorrowEntity | null> {
     const model = await this.prisma.documentBorrowModel.findUnique({
       where: { id },
-      include: BORROW_INCLUDE,
+      include: BORROW_HEADER_INCLUDE,
     });
     if (!model) return null;
     return DocumentBorrowMapper.toDomain(model);
+  }
+
+  async findItemById(itemId: string): Promise<DocumentBorrowItemEntity | null> {
+    const item = await this.prisma.documentBorrowItemModel.findUnique({
+      where: { id: itemId },
+      include: BORROW_ITEM_INCLUDE,
+    });
+    if (!item) return null;
+    return DocumentBorrowItemMapper.toDomain(item);
   }
 
   async findByDocumentId(
@@ -218,12 +217,15 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     divisionId?: number,
   ): Promise<DocumentBorrowEntity[]> {
     const scope = buildScopeWhere(departmentId, divisionId);
-    const where: any = { documentId, ...scope };
+    const where: any = {
+      items: { some: { documentId } },
+      ...scope,
+    };
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
       orderBy: { borrowedAt: 'desc' },
-      include: BORROW_INCLUDE,
+      include: BORROW_HEADER_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
@@ -234,48 +236,41 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     divisionId?: number,
   ): Promise<DocumentBorrowEntity[]> {
     const scope = buildScopeWhere(departmentId, divisionId);
+    const folderWhere = {
+      items: {
+        some: {
+          OR: [{ folderId }, { document: { folderId } }],
+        },
+      },
+    };
 
-    // ຮວມ folder scope ກັບ scope ຂອງ role:
-    // ດຶງ borrows ທີ່ຢືມ folder ໂດຍກົງ ຫຼື ຢືມ document ທີ່ຢູ່ໃນ folder ນີ້
     let where: any;
     if (scope.OR) {
-      // BRANCH_ADMIN: ຕ້ອງ match ທັງ folder ແລະ department scope
-      where = {
-        AND: [
-          { OR: [{ folderId }, { document: { folderId } }] },
-          { OR: scope.OR },
-        ],
-      };
+      where = { AND: [folderWhere, { OR: scope.OR }] };
     } else if (scope.toDivisionId) {
-      // USER: ຕ້ອງ match ທັງ folder ແລະ division scope
-      where = {
-        AND: [
-          { OR: [{ folderId }, { document: { folderId } }] },
-          { toDivisionId: scope.toDivisionId },
-        ],
-      };
+      where = { AND: [folderWhere, { toDivisionId: scope.toDivisionId }] };
     } else {
-      where = {
-        OR: [{ folderId }, { document: { folderId } }],
-      };
+      where = folderWhere;
     }
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
       orderBy: { borrowedAt: 'desc' },
-      include: BORROW_INCLUDE,
+      include: BORROW_HEADER_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
 
   async findByDivisionId(divisionId: number, activeOnly = false): Promise<DocumentBorrowEntity[]> {
     const where: any = { toDivisionId: divisionId };
-    if (activeOnly) where.returnedAt = null;
+    if (activeOnly) {
+      where.status = { in: ['BORROWED', 'PARTIALLY_RETURNED'] };
+    }
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
       orderBy: { borrowedAt: 'desc' },
-      include: BORROW_INCLUDE,
+      include: BORROW_HEADER_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
@@ -286,38 +281,79 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     upcomingDays?: number,
   ): Promise<DocumentBorrowEntity[]> {
     const scope = buildScopeWhere(departmentId, divisionId);
-    const where: any = { returnedAt: null, ...scope };
+    const where: any = {
+      status: { in: ['BORROWED', 'PARTIALLY_RETURNED'] },
+      ...scope,
+    };
 
     if (upcomingDays && upcomingDays > 0) {
       const now = new Date();
       const futureDate = new Date();
       futureDate.setDate(now.getDate() + upcomingDays);
-      where.dueDate = {
-        gte: now,
-        lte: futureDate,
+      where.items = {
+        some: {
+          returnedAt: null,
+          dueDate: {
+            gte: now,
+            lte: futureDate,
+          },
+        },
       };
     }
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
-      orderBy: [
-        { dueDate: 'asc' },
-        { borrowedAt: 'desc' },
-      ],
-      include: BORROW_INCLUDE,
+      orderBy: { borrowedAt: 'desc' },
+      include: BORROW_HEADER_INCLUDE,
     });
     return models.map(DocumentBorrowMapper.toDomain);
   }
 
   async return(id: string, returnedAt: Date): Promise<DocumentBorrowEntity> {
-    const model = await this.prisma.documentBorrowModel.update({
-      where: { id },
+    await this.prisma.documentBorrowItemModel.updateMany({
+      where: { borrowId: id },
       data: {
         returnedAt,
         status: 'RETURNED',
       },
-      include: BORROW_INCLUDE,
+    });
+
+    const model = await this.prisma.documentBorrowModel.update({
+      where: { id },
+      data: {
+        status: 'RETURNED',
+      },
+      include: BORROW_HEADER_INCLUDE,
     });
     return DocumentBorrowMapper.toDomain(model);
+  }
+
+  async returnItem(itemId: string, returnedAt: Date): Promise<{ item: DocumentBorrowItemEntity; header: DocumentBorrowEntity }> {
+    const updatedItemModel = await this.prisma.documentBorrowItemModel.update({
+      where: { id: itemId },
+      data: {
+        returnedAt,
+        status: 'RETURNED',
+      },
+      include: BORROW_ITEM_INCLUDE,
+    });
+
+    const allItems = await this.prisma.documentBorrowItemModel.findMany({
+      where: { borrowId: updatedItemModel.borrowId },
+    });
+
+    const allReturned = allItems.every((item) => item.status === 'RETURNED' || item.returnedAt !== null);
+    const headerStatus = allReturned ? 'RETURNED' : 'PARTIALLY_RETURNED';
+
+    const headerModel = await this.prisma.documentBorrowModel.update({
+      where: { id: updatedItemModel.borrowId },
+      data: { status: headerStatus },
+      include: BORROW_HEADER_INCLUDE,
+    });
+
+    return {
+      item: DocumentBorrowItemMapper.toDomain(updatedItemModel),
+      header: DocumentBorrowMapper.toDomain(headerModel),
+    };
   }
 }

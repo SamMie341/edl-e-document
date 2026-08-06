@@ -62,12 +62,20 @@ export class DocumentBorrowController {
     return { message: 'ຢືມເອກະສານສຳເລັດ', data: record };
   }
 
-  // ─── PUT /document-borrows/:id/return — ຄືນເອກະສານ ──────────────────────
+  // ─── PUT /document-borrows/:id/return — ຄືນເອກະສານ (ທັງใบ) ─────────────
   @Put(':id/return')
   @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
-  async returnDoc(@Param('id') id: string) {
-    const record = await this.returnDocumentUseCase.execute(id);
+  async returnDoc(@Param('id') id: string, @Req() req: any) {
+    const record = await this.returnDocumentUseCase.execute(id, req.user?.userId);
     return { message: 'ຄືນເອກະສານສຳເລັດ', data: record };
+  }
+
+  // ─── PUT /document-borrows/items/:itemId/return — ຄືນເອກະສານສະເພາະລາຍການ ──
+  @Put('items/:itemId/return')
+  @Roles(Role.SUPER_ADMIN, Role.HQ_ADMIN, Role.BRANCH_ADMIN, Role.USER)
+  async returnItem(@Param('itemId') itemId: string, @Req() req: any) {
+    const result = await this.returnDocumentUseCase.executeItemReturn(itemId, req.user?.userId);
+    return { message: 'ຄືນເອກະສານສຳເລັດ', data: result };
   }
 
   // ─── GET /document-borrows/active — ລາຍການທີ່ຍັງຢືມຢູ່ (เรียงตามกำหนดส่งที่ใกล้ที่สุด) ───

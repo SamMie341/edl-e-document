@@ -2,6 +2,9 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Install openssl for Prisma engine compatibility on Alpine
+RUN apk add --no-cache openssl
+
 # 1. Copy package files และติดตั้ง dependencies
 COPY package*.json ./
 RUN npm ci
@@ -17,19 +20,19 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-RUN npm prune --omit=dev
-
 # Stage 2: Production
 FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Install openssl for Prisma engine runtime on Alpine
+RUN apk add --no-cache openssl
+
 # Copy เฉพาะไฟล์ที่จำเป็นมาจาก Stage builder
 COPY --from=builder /app/package*.json ./
-# node_modules ในจุดนี้จะมี Prisma Client ที่ถูกสร้างขึ้นแล้วรวมอยู่ด้วย
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-# Copy folder prisma และ config มาด้วยสำหรับกรณีต้องรัน Migration ใน production
+# Copy folder prisma และ config มาด้วยสำหรับกรณีต้องรັນ Migration ใน production
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
 

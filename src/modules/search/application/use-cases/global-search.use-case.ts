@@ -199,16 +199,22 @@ export class GlobalSearchUseCase {
             documentType: { select: { id: true, name: true } },
             user: { select: { id: true, firstNameLa: true, lastNameLa: true, empCode: true } },
             // ── ข้อ 4: borrow status ──────────────────────────────────────
-            borrows: {
+            borrowItems: {
               where: { returnedAt: null },
               take: 1,
-              orderBy: { borrowedAt: 'desc' },
+              orderBy: { createdAt: 'desc' },
               select: {
                 id: true,
-                borrower: true,
-                borrowedAt: true,
-                purpose: true,
-                toDivision: { select: { id: true, name: true } },
+                dueDate: true,
+                borrow: {
+                  select: {
+                    id: true,
+                    borrower: true,
+                    borrowedAt: true,
+                    purpose: true,
+                    toDivision: { select: { id: true, name: true } },
+                  },
+                },
               },
             },
           },
@@ -521,10 +527,18 @@ export class GlobalSearchUseCase {
     const processedDocs = docRows
       ? docRows.map((doc) => {
         // ── ข้อ 4: Borrow status ─────────────────────────────────────────
-        const activeBorrow = doc.borrows?.[0] ?? null;
+        const activeBorrowItem = doc.borrowItems?.[0] ?? null;
+        const activeBorrow = activeBorrowItem?.borrow ?? null;
         const borrowStatus = activeBorrow
-          ? { isBorrowed: true, borrowedBy: activeBorrow.borrower, borrowedAt: activeBorrow.borrowedAt, purpose: activeBorrow.purpose ?? null, toDivision: activeBorrow.toDivision ?? null }
-          : { isBorrowed: false, borrowedBy: null, borrowedAt: null, purpose: null, toDivision: null };
+          ? {
+            isBorrowed: true,
+            borrowedBy: activeBorrow.borrower,
+            borrowedAt: activeBorrow.borrowedAt,
+            dueDate: activeBorrowItem?.dueDate ?? null,
+            purpose: activeBorrow.purpose ?? null,
+            toDivision: activeBorrow.toDivision ?? null,
+          }
+          : { isBorrowed: false, borrowedBy: null, borrowedAt: null, dueDate: null, purpose: null, toDivision: null };
 
         // ── ข้อ 6 (ส่วนหนึ่ง): Retention status ─────────────────────────
         const retentionStatus = calcRetentionStatus(doc.docExpire, doc.isContractBound);
@@ -542,7 +556,7 @@ export class GlobalSearchUseCase {
           ownerLastName: doc.user?.lastNameLa ?? null,
         });
 
-        const { borrows: _borrows, ...docFields } = doc;
+        const { borrowItems: _borrowItems, ...docFields } = doc;
         return { ...docFields, retentionStatus, borrowStatus, matchedIn };
       })
       : null;

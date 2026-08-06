@@ -112,7 +112,7 @@ export class CleanupEmptyFoldersUseCase {
         where: { folderId: folder.id },
         data: { folderId: null },
       }),
-      this.prisma.documentBorrowModel.updateMany({
+      this.prisma.documentBorrowItemModel.updateMany({
         where: { folderId: folder.id },
         data: { folderId: null },
       }),
