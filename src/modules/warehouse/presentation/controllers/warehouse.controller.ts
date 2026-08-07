@@ -46,13 +46,15 @@ export class WarehouseController {
     @Query('limit') limit: string = '10',
     @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
 
     // ─── Role-based department / division scoping ──────────────────────────
     // SUPER_ADMIN & HQ_ADMIN: ເຫັນທັງໝົດ (no extra filter)
-    // BRANCH_ADMIN          : ເຫັນສະເພາະ warehouse ໃນ divisions ທີ່ຕົວເອງຮັບຜິດຊອບ
-    // USER                  : ເຫັນສະເພາະ warehouse ໃນ division ຂອງຕົວເອງ
+    // BRANCH_ADMIN          : ເຫັນສະເພາະ warehouse ໃນ division ຂອງຕົວເອງ
+    // USER                  : ເຫັນສະເພາະ warehouse ໃນ department ຂອງຕົວເອງ
     let departmentId: number | undefined;
     let divisionId: number | undefined;
     let divisionIds: number[] | undefined;
@@ -63,11 +65,17 @@ export class WarehouseController {
         select: { divisionId: true },
       });
       divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
       if (divisionIds.length === 0) {
         divisionIds = [-1];
       }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const result = await this.getAllWarehouseUseCase.execute({
@@ -103,14 +111,14 @@ export class WarehouseController {
         select: { divisionId: true },
       });
       divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
       if (divisionIds.length === 0) {
         divisionIds = [-1];
       }
-      if (departmentIdQuery) {
-        departmentId = parseInt(departmentIdQuery, 10);
-      }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
     } else {
       if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
       if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);

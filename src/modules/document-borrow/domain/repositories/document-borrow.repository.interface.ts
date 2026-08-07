@@ -34,13 +34,13 @@ export interface IDocumentBorrowRepository {
 export interface CreateDocumentBorrowItemData {
   documentId?: string;
   folderId?: string;
-  dueDate?: Date;
   note?: string;
 }
 
 export interface CreateDocumentBorrowData {
   borrower: string;
   phone?: string;
+  dueDate?: Date;
   purpose?: string;
   toDivisionId?: number;
   toLocation?: string;

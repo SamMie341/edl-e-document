@@ -25,6 +25,7 @@ export class PrismaLockerRepository implements ILockerRepository {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     } = params;
     const skip = (page - 1) * limit;
@@ -32,11 +33,12 @@ export class PrismaLockerRepository implements ILockerRepository {
     const where: any = {};
     if (status) where.status = status;
 
-    if (warehouseId || departmentId || divisionId) {
+    if (warehouseId || departmentId || divisionId || divisionIds) {
       const warehouseFilter: any = {};
       if (warehouseId) warehouseFilter.id = warehouseId;
       if (departmentId) warehouseFilter.departmentId = departmentId;
       if (divisionId) warehouseFilter.divisionId = divisionId;
+      if (divisionIds) warehouseFilter.divisionId = { in: divisionIds };
       where.warehouse = { is: warehouseFilter };
     }
 
@@ -173,16 +175,18 @@ export class PrismaLockerRepository implements ILockerRepository {
     warehouseId?: string;
     departmentId?: number;
     divisionId?: number;
+    divisionIds?: number[];
     status?: string;
   }): Promise<any[]> {
     const where: any = {};
     if (params?.status) where.status = params.status;
 
-    if (params?.warehouseId || params?.departmentId || params?.divisionId) {
+    if (params?.warehouseId || params?.departmentId || params?.divisionId || params?.divisionIds) {
       const warehouseFilter: any = {};
       if (params?.warehouseId) warehouseFilter.id = params.warehouseId;
       if (params?.departmentId) warehouseFilter.departmentId = params.departmentId;
       if (params?.divisionId) warehouseFilter.divisionId = params.divisionId;
+      if (params?.divisionIds) warehouseFilter.divisionId = { in: params.divisionIds };
       where.warehouse = { is: warehouseFilter };
     }
 

@@ -67,6 +67,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
       data: {
         borrower: data.borrower,
         phone: data.phone,
+        dueDate: data.dueDate,
         purpose: data.purpose,
         toDivisionId: data.toDivisionId,
         toLocation: data.toLocation,
@@ -77,7 +78,6 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
           create: data.items.map((item) => ({
             documentId: item.documentId,
             folderId: item.folderId,
-            dueDate: item.dueDate,
             note: item.note,
             status: 'BORROWED',
           })),
@@ -290,14 +290,9 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
       const now = new Date();
       const futureDate = new Date();
       futureDate.setDate(now.getDate() + upcomingDays);
-      where.items = {
-        some: {
-          returnedAt: null,
-          dueDate: {
-            gte: now,
-            lte: futureDate,
-          },
-        },
+      where.dueDate = {
+        gte: now,
+        lte: futureDate,
       };
     }
 

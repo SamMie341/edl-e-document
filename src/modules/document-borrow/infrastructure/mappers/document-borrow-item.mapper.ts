@@ -7,7 +7,6 @@ export class DocumentBorrowItemMapper {
       model.borrowId,
       model.documentId,
       model.folderId,
-      model.dueDate,
       model.returnedAt,
       model.status,
       model.note,

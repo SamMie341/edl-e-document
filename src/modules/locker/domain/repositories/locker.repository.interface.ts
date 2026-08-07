@@ -9,6 +9,7 @@ export interface LockerFilterParams {
   warehouseId?: string;
   departmentId?: number;
   divisionId?: number;
+  divisionIds?: number[];
   status?: string;
 }
 
@@ -24,6 +25,7 @@ export interface ILockerRepository {
     warehouseId?: string;
     departmentId?: number;
     divisionId?: number;
+    divisionIds?: number[];
     status?: string;
   }): Promise<any[]>;
 }

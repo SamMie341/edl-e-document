@@ -10,6 +10,7 @@ export interface FolderFilterParams {
   warehouseId?: string;
   departmentId?: number;
   divisionId?: number;
+  divisionIds?: number[];
   search?: string;
 }
 

@@ -10,6 +10,7 @@ export interface ShelfFilterParams {
   warehouseId?: string;
   departmentId?: number;
   divisionId?: number;
+  divisionIds?: number[];
   status?: string;
 }
 

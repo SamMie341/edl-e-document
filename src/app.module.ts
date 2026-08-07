@@ -18,6 +18,7 @@ import { ShelfModule } from './modules/shelf/shelf.module';
 import { WarehouseModule } from './modules/warehouse/warehouse.module';
 import { DocumentBorrowModule } from './modules/document-borrow/document-borrow.module';
 import { SearchModule } from './modules/search/search.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SearchModule } from './modules/search/search.module';
     DocumentBorrowModule,
     SearchModule,
     HrmModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [],

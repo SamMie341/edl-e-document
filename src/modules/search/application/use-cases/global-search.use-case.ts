@@ -205,12 +205,12 @@ export class GlobalSearchUseCase {
               orderBy: { createdAt: 'desc' },
               select: {
                 id: true,
-                dueDate: true,
                 borrow: {
                   select: {
                     id: true,
                     borrower: true,
                     borrowedAt: true,
+                    dueDate: true,
                     purpose: true,
                     toDivision: { select: { id: true, name: true } },
                   },
@@ -534,7 +534,7 @@ export class GlobalSearchUseCase {
             isBorrowed: true,
             borrowedBy: activeBorrow.borrower,
             borrowedAt: activeBorrow.borrowedAt,
-            dueDate: activeBorrowItem?.dueDate ?? null,
+            dueDate: activeBorrow.dueDate ?? null,
             purpose: activeBorrow.purpose ?? null,
             toDivision: activeBorrow.toDivision ?? null,
           }

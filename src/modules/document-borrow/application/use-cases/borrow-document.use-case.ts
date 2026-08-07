@@ -21,7 +21,6 @@ export class BorrowDocumentUseCase {
       for (const docId of dto.documentIds) {
         itemDataList.push({
           documentId: docId,
-          dueDate: parsedDueDate,
           note: dto.note,
         });
       }
@@ -31,7 +30,6 @@ export class BorrowDocumentUseCase {
       for (const fId of dto.folderIds) {
         itemDataList.push({
           folderId: fId,
-          dueDate: parsedDueDate,
           note: dto.note,
         });
       }
@@ -44,6 +42,7 @@ export class BorrowDocumentUseCase {
     const createdBorrow = await this.borrowRepository.create({
       borrower: dto.borrower,
       phone: dto.phone,
+      dueDate: parsedDueDate,
       purpose: dto.purpose,
       toDivisionId: dto.toDivisionId,
       toLocation: dto.toLocation,
