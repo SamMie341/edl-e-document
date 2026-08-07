@@ -338,7 +338,8 @@ model DocumentBorrowModel {
   borrower String
   phone    String? // ເບີໂທ
 
-  borrowedAt DateTime @default(now()) // ວັນທີ/ເວລາຢືມ
+  borrowedAt DateTime  @default(now()) // ວັນທີ/ເວລາຢືມ
+  dueDate    DateTime? // ກຳນົດສົ່ງ
 
   purpose String? // ຈຸດປະສົງ
 
@@ -374,7 +375,6 @@ model DocumentBorrowItemModel {
   folderId String?
   folder   FolderModel? @relation(fields: [folderId], references: [id])
 
-  dueDate    DateTime? // ກຳນົດສົ່ງ
   returnedAt DateTime? // null = ຍັງບໍ່ຄືນ
   status     String    @default("BORROWED") // ສະຖານະ (e.g. BORROWED, RETURNED)
 

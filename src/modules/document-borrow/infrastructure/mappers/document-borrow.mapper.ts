@@ -12,6 +12,7 @@ export class DocumentBorrowMapper {
       model.borrower,       // scalar String
       model.phone,          // scalar String?
       model.borrowedAt,
+      model.dueDate,
       model.purpose,
       model.toDivisionId,
       model.toLocation,

@@ -23,6 +23,7 @@ import { GetDropdownShelvesUseCase } from '../../application/use-cases/get-dropd
 import { CleanupEmptyFoldersUseCase } from '../../application/use-cases/cleanup-empty-folders.use-case';
 import { CreateShelvesDto } from '../../application/dtos/create-shelf.dto';
 import { UpdateShelfDto } from '../../application/dtos/update-shelf.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('shelves')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,6 +36,7 @@ export class ShelfController {
     private readonly updateShelfUseCase: UpdateShelfUseCase,
     private readonly deleteShelfUseCase: DeleteShelfUseCase,
     private readonly cleanupEmptyFoldersUseCase: CleanupEmptyFoldersUseCase,
+    private readonly prisma: PrismaService,
   ) { }
 
   @Post('cleanup-empty-folders')
@@ -75,15 +77,31 @@ export class ShelfController {
     @Query('lockerId') lockerId?: string,
     @Query('warehouseId') warehouseId?: string,
     @Query('status') status?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const result = await this.getAllShelvesUseCase.execute({
@@ -94,6 +112,7 @@ export class ShelfController {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     });
     return { message: 'Success', ...result };
@@ -108,15 +127,31 @@ export class ShelfController {
     @Query('warehouseId') warehouseId?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const data = await this.getDropdownShelvesUseCase.execute({
@@ -124,6 +159,7 @@ export class ShelfController {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
       search,
     });

@@ -22,6 +22,7 @@ import { CreateLockerDto } from '../../application/dtos/create-locker.dto';
 import { UpdateLockerDto } from '../../application/dtos/update-locker.dto';
 import { Roles } from 'src/core/auth/decorators/roles.decorator';
 import { Role } from 'src/core/auth/constants/role.enum';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('lockers')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -33,6 +34,7 @@ export class LockerController {
     private readonly deleteLockerUseCase: DeleteLockerUseCase,
     private readonly getLockerByIdUseCase: GetLockerByIdUseCase,
     private readonly getDropdownLockersUseCase: GetDropdownLockersUseCase,
+    private readonly prisma: PrismaService,
   ) { }
 
   // ─── GET ALL (paginated + filter) — HQ ເຫັນທັງໝົດ, Branch ເຫັນສະເພາະຕົນ ──
@@ -45,15 +47,31 @@ export class LockerController {
     @Query('search') search?: string,
     @Query('warehouseId') warehouseId?: string,
     @Query('status') status?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const result = await this.getAllLockerUseCase.execute({
@@ -63,6 +81,7 @@ export class LockerController {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     });
     return { message: 'Success', ...result };
@@ -75,21 +94,38 @@ export class LockerController {
     @Req() req: any,
     @Query('warehouseId') warehouseId?: string,
     @Query('status') status?: string,
+    @Query('departmentId') departmentIdQuery?: string,
+    @Query('divisionId') divisionIdQuery?: string,
   ) {
     const user = req.user;
     let departmentId: number | undefined;
     let divisionId: number | undefined;
+    let divisionIds: number[] | undefined;
 
     if (user.role === Role.BRANCH_ADMIN) {
-      departmentId = user.departmentId || -1;
+      const userDivs = await this.prisma.userDivisionModel.findMany({
+        where: { userId: user.userId },
+        select: { divisionId: true },
+      });
+      divisionIds = userDivs.map((ud) => ud.divisionId);
+      if (divisionIds.length === 0 && user.divisionId) {
+        divisionIds = [user.divisionId];
+      }
+      if (divisionIds.length === 0) {
+        divisionIds = [-1];
+      }
     } else if (user.role === Role.USER) {
-      divisionId = user.divisionId || -1;
+      departmentId = user.departmentId || -1;
+    } else {
+      if (departmentIdQuery) departmentId = parseInt(departmentIdQuery, 10);
+      if (divisionIdQuery) divisionId = parseInt(divisionIdQuery, 10);
     }
 
     const data = await this.getDropdownLockersUseCase.execute({
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     });
     return { message: 'Success', data };

@@ -27,6 +27,7 @@ export class PrismaShelfRepository implements IShelfRepository {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     } = params;
     const skip = (page - 1) * limit;
@@ -35,11 +36,12 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (status) where.status = status;
     if (lockerId) where.lockerId = lockerId;
 
-    if (warehouseId || departmentId || divisionId) {
+    if (warehouseId || departmentId || divisionId || divisionIds) {
       const warehouseFilter: any = {};
       if (warehouseId) warehouseFilter.id = warehouseId;
       if (departmentId) warehouseFilter.departmentId = departmentId;
       if (divisionId) warehouseFilter.divisionId = divisionId;
+      if (divisionIds) warehouseFilter.divisionId = { in: divisionIds };
       where.locker = { is: { warehouse: { is: warehouseFilter } } };
     }
 
@@ -223,6 +225,7 @@ export class PrismaShelfRepository implements IShelfRepository {
       warehouseId,
       departmentId,
       divisionId,
+      divisionIds,
       status,
     } = params || {};
 
@@ -230,11 +233,12 @@ export class PrismaShelfRepository implements IShelfRepository {
     if (status) where.status = status;
     if (lockerId) where.lockerId = lockerId;
 
-    if (warehouseId || departmentId || divisionId) {
+    if (warehouseId || departmentId || divisionId || divisionIds) {
       const warehouseFilter: any = {};
       if (warehouseId) warehouseFilter.id = warehouseId;
       if (departmentId) warehouseFilter.departmentId = departmentId;
       if (divisionId) warehouseFilter.divisionId = divisionId;
+      if (divisionIds) warehouseFilter.divisionId = { in: divisionIds };
       where.locker = { is: { warehouse: { is: warehouseFilter } } };
     }
 

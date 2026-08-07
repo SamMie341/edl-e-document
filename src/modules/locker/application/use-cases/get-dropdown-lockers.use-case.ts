@@ -12,6 +12,7 @@ export class GetDropdownLockersUseCase {
     warehouseId?: string;
     departmentId?: number;
     divisionId?: number;
+    divisionIds?: number[];
     status?: string;
   }) {
     return this.lockerRepository.getDropdown(params);

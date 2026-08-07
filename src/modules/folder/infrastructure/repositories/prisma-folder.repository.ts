@@ -16,7 +16,7 @@ export class PrismaFolderRepository implements IFolderRepository {
     async findAll(
         params?: FolderFilterParams & { skip?: number; take?: number },
     ): Promise<{ data: Folder[]; total: number }> {
-        const { skip, take, shelfId, lockerId, warehouseId, departmentId, divisionId, search } = params || {};
+        const { skip, take, shelfId, lockerId, warehouseId, departmentId, divisionId, divisionIds, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
@@ -33,11 +33,12 @@ export class PrismaFolderRepository implements IFolderRepository {
         const shelfFilter: any = {};
         if (lockerId) shelfFilter.lockerId = lockerId;
 
-        if (warehouseId || departmentId || divisionId) {
+        if (warehouseId || departmentId || divisionId || divisionIds) {
             const warehouseFilter: any = {};
             if (warehouseId) warehouseFilter.id = warehouseId;
             if (departmentId) warehouseFilter.departmentId = departmentId;
             if (divisionId) warehouseFilter.divisionId = divisionId;
+            if (divisionIds) warehouseFilter.divisionId = { in: divisionIds };
 
             shelfFilter.locker = {
                 is: {
@@ -283,7 +284,7 @@ export class PrismaFolderRepository implements IFolderRepository {
     }
 
     async getDropdown(params?: FolderFilterParams): Promise<any[]> {
-        const { shelfId, lockerId, warehouseId, departmentId, divisionId, search } = params || {};
+        const { shelfId, lockerId, warehouseId, departmentId, divisionId, divisionIds, search } = params || {};
 
         const where: any = {};
         if (shelfId) where.shelfId = shelfId;
@@ -300,11 +301,12 @@ export class PrismaFolderRepository implements IFolderRepository {
         const shelfFilter: any = {};
         if (lockerId) shelfFilter.lockerId = lockerId;
 
-        if (warehouseId || departmentId || divisionId) {
+        if (warehouseId || departmentId || divisionId || divisionIds) {
             const warehouseFilter: any = {};
             if (warehouseId) warehouseFilter.id = warehouseId;
             if (departmentId) warehouseFilter.departmentId = departmentId;
             if (divisionId) warehouseFilter.divisionId = divisionId;
+            if (divisionIds) warehouseFilter.divisionId = { in: divisionIds };
 
             shelfFilter.locker = {
                 is: {
