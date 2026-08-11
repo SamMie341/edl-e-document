@@ -75,10 +75,10 @@
   * ຜູ້ໃຊ້ (`SUPER_ADMIN`, `USER`, `HQ_ADMIN`, `BRANCH_ADMIN`) ສາມາດສ້າງເອກະສານໃໝ່.
   * ສາມາດແນບໄຟລ໌ເອກະສານໄດ້ພ້ອມກັນສູງສຸດ 10 ໄຟລ໌ ໂດຍລະບົບຈະທຳການບີບອັດ ແລະ ບັນທຶກໄຟລ໌ອັດຕະໂນມັດ.
 * **Read (ອ່ານ/ຄົ້ນຫາ):** `GET /documents`
-  * ຄົ້ນຫາ ແລະ ດຶງຂໍ້ມູນເອກະສານທັງໝົດແບບແບ່ງໜ້າ (Pagination) ພ້ອມທັງສາມາດກັ່ນຕອງ (Filter):
+  * ຄົ້ນຫາ ແລະ ດຶງຂໍ້ມູນເອກະສານທັງໝົດແບບແບ່ງໜ້າ (Pagination) ພ້ອມທັງສາມາດກັ່ນຕອງ (Filter) (ໂດຍ default ຈະບໍ່ສະແດງເອກະສານທີ່ໝົດອາຍຸ ເພາະມີ endpoint `GET /documents/expired` ແຍກແລ້ວ):
     * `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`
-    * **[ໃໝ່]** `retentionStatus` — ກອງຕາມສະຖານະ (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
-    * **[ໃໝ່]** `warehouseId`, `lockerId`, `shelfId` — ກອງຕາມສະຖານທີ່ຈັດເກັບ
+    * `retentionStatus` — ກອງຕາມສະຖານະ (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
+    * `warehouseId`, `lockerId`, `shelfId` — ກອງຕາມສະຖານທີ່ຈັດເກັບ
   * `HQ_ADMIN` ແລະ `SUPER_ADMIN` ເຫັນເອກະສານທັງໝົດ. `BRANCH_ADMIN` ແລະ `USER` ເຫັນສະເພາະ division ຂອງຕົນ.
   * `GET /documents/:id` — ດຶງຂໍ້ມູນລະອຽດຂອງເອກະສານ; ກວດສອບສິດຕາມ division.
   * `GET /documents/attachments/:attachmentId` — ເປີດ/ສະຕຣີມໄຟລ໌ແນບ.
@@ -187,7 +187,9 @@
   * ທຸກລະດັບສິດ.
   * **[ອັບເດດ]** Fields: `documentIds` (array ທາງເລືອກ), `folderIds` (array ທາງເລືອກ), `borrower` (ຕ້ອງມີ), `phone` (ທາງເລືອກ), `purpose` (ທາງເລືອກ), `toDivisionId` (ທາງເລືอก), `toLocation` (ທາງເລືອກ), `note` (ທາງເລືອກ), `dueDate` (ທາງເລືອກ).
   * ຕ້ອງລະບຸ `documentIds` ຫຼື `folderIds` ຢ່າງໜ້ອຍ 1 ອັນ.
-* **Update (ແກ້ໄຂ/ຄືນ):** `PUT /document-borrows/:id/return` — ທຸກລະດັບສິດ.
+* **Update (ແກ້ໄຂ/ຄືນ):**
+  * `PUT /document-borrows/:id/return` — ຄືນເອກະສານທັງໝົດໃນໃບຢືມ. ທຸກລະດັບສິດ.
+  * **[ໃໝ່]** `PUT /document-borrows/items/:itemId/return` — ຄືນເອກະສານ/ແຟ້ມ ສະເພາະລາຍການດຽວໃນໃບຢືມ. ທຸກລະດັບສິດ.
 * **Read (ອ່ານ):**
   * `GET /document-borrows` — ລາຍການໜ້າ. Filters: `documentId`, `borrowerId`, `divisionId`, `activeOnly`. Scope ຕາມສິດ.
   * `GET /document-borrows/active` — ລາຍການທີ່ຍັງຢືມຢູ່.
@@ -264,12 +266,42 @@
 ---
 
 ### 15. ໂມດູນບັນທຶກປະຫວັດ (Audit Log Module)
-* **Create (ສ້າງ):** ລະບົບຈະບັນທຶກປະຫວັດໂດຍອັດຕະໂນມັດ.
-* **Read / Update / Delete:** ບໍ່ມີ API ເປີດເຜີຍ.
+* **Create (ສ້າງ):** ລະບົບຈະບັນທຶກປະຫວັດໂດຍອັດຕະໂນມັດຜ່ານ `AuditService`.
+* **Read (ອ່ານ):**
+  * `GET /audit` — ດຶງຂໍ້ມູນ Audit Logs ແບບແບ່ງໜ້າ ພ້ອມ Filter: `page`, `limit`, `search`, `action`, `entityType`, `entityId`, `actorId`, `departmentId`, `divisionId`, `status`, `startDate`, `endDate`. ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `GET /audit/entity/:entityId` — ດຶງປະຫວັດ Audit Logs ທັງໝົດຂອງ Entity ສະເພາະ (ເຊັ່ນ Document ID). ສິດ: ທຸກລະດັບສິດ.
+  * `GET /audit/:id` — ດຶງຂໍ້ມູນ Audit Log ດ່ຽວຕາມ ID. ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+* **Update / Delete:** ບໍ່ອະນຸຍາດໃຫ້ແກ້ໄຂ ຫຼື ລົບປະຫວັດ ເພື່ອຄວາມປອດໄພ.
+
+---
+
+### 16. ໂມດູນ Dashboard *(ໃໝ່)*
+ສະຫຼຸບຂໍ້ມູນສະຖິຕິພາບລວມ ແລະ ປະລິມານເອກະສານໃນລະບົບ.
+* **Read (ອ່ານ):** `GET /dashboard/stats`
+  * ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`, `USER`.
+  * Query param: `departmentId` (ທາງເລືອກ) — ກອງຂໍ້ມູນຕາມພະແນກ. `BRANCH_ADMIN` ຈະຖືກກັ່ນຕອງຕາມພະແນກຕົນເອງໂດຍອັດຕະໂນມັດ.
+  * ສົ່ງຄືນຈຳນວນ Warehouse, Locker, Shelf, Folder, DocumentType, Document, Active Borrows ແລະ ຈຳນວນເອກະສານຕາມแต่ละ Department.
 
 ---
 
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
+
+### ເວີຊັ່ນ 2026-08-10
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **ໂມດູນ Dashboard ໃໝ່** | ເພີ່ມ `GET /dashboard/stats` ສຳລັບດຶງຂໍ້ມູນສະຖິຕິພາບລວມ ແລະ ການກະຈາຍເອກະສານຕາມພະແນກ. |
+| **API ດຶງປະຫວັດ Audit Log** | ເພີ່ມ `GET /audit`, `GET /audit/entity/:entityId` ແລະ `GET /audit/:id`. |
+| **ຄືນເອກະສານສະເພາະລາຍການ** | ເພີ່ມ `PUT /document-borrows/items/:itemId/return` ສຳລັບຄືນເອກະສານ/ແຟ້ມສະເພາະລາຍການ. |
+
+#### 🔄 ສິ່ງທີ່ອັບເດດ (Updated)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **`GET /documents` Default Filter** | ຊ່ອນເອກະສານທີ່ໝົດອາຍຸອອກຈາກ `findAll` ໂດຍ default (ສາມາດດຶງເອກະສານໝົດອາຍຸໄດ້ຜ່ານ `GET /documents/expired`). |
+| **`GET /document-borrows` filters** | ເພີ່ມ query params `type`, `borrowedAt`, `returnedAt`, `status`, `search`. |
+
+---
 
 ### ເວີຊັ່ນ 2026-08-03
 

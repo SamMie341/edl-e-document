@@ -102,6 +102,8 @@ export class LoginUseCase {
     const payload = {
       sub: user.id,
       email: user.email,
+      firstNameLa: user.firstNameLa,
+      lastNameLa: user.lastNameLa,
       role: user.role,
       departmentId: user.departmentId,
       divisionId: primaryDiv ? primaryDiv.id : null,

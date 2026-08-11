@@ -77,11 +77,11 @@ Manages digital attachments and physical document metadata.
   * Required fields: `docNo`, `docDate`, `title`, `docExpire`, `folderId`, `documentTypeId`.
   * Optional fields: `shortName`, `subDocNo`, `subDocDate`, `description`, `qrCode`, `isContractBound`, `departmentId`, `divisionId`.
 * **Read:**
-  * `GET /documents` — Retrieve a paginated list of documents with filters:
+  * `GET /documents` — Retrieve a paginated list of documents with filters (by default, excludes expired documents as they are accessed via `GET /documents/expired`):
     * `documentTypeId`, `startDate`, `endDate`, `search`, `folderId`, `departmentId`, `divisionId`
     * `retentionStatus` — filter by retention status (`ACTIVE`, `DESTROYABLE`, `EXPIRED`, `DESTROYABLE_HOLD`)
     * `warehouseId`, `lockerId`, `shelfId` — filter by physical storage location
-    * **[New]** `isDestroyed` / `isDeleted` — filter by destruction status (`true` / `false`)
+    * `isDestroyed` / `isDeleted` — filter by destruction status (`true` / `false`)
   * `SUPER_ADMIN` and `HQ_ADMIN` see all documents.
   * `BRANCH_ADMIN` and `USER` see only documents within their assigned divisions (`userDivisionIds` from `UserDivisionModel`).
   * `GET /documents/:id` — Retrieve document details by ID; also enforces division-based access for `BRANCH_ADMIN` and `USER`.
@@ -201,9 +201,9 @@ Tracks the physical borrowing and return of documents and folders.
   * Authorized roles: All roles.
   * **[Updated]** Fields: `documentIds` (optional array), `folderIds` (optional array), `borrower` (required), `phone` (optional), `purpose` (optional), `toDivisionId` (optional), `toLocation` (optional), `note` (optional), `dueDate` (optional).
   * At least one of `documentIds` or `folderIds` must be provided.
-* **Update (Return):** `PUT /document-borrows/:id/return`
-  * Authorized roles: All roles.
-  * Marks the borrow record as returned by setting `returnedAt` timestamp.
+* **Update (Return):**
+  * `PUT /document-borrows/:id/return` — Marks the entire borrow record as returned by setting `returnedAt` timestamp. Roles: All roles.
+  * **[New]** `PUT /document-borrows/items/:itemId/return` — Marks a single borrowed item (document or folder) as returned. Roles: All roles.
 * **Read:**
   * `GET /document-borrows` — Paginated list. Filters: `documentId`, `borrowerId`, `divisionId`, `activeOnly`. Scope enforced by role.
   * `GET /document-borrows/active` — Currently unreturned borrow records. Scoped by role.
@@ -303,8 +303,21 @@ Manages user accounts, permissions, and HRM integration.
 ---
 
 ### 15. Audit Log Module
-* **Create:** Automatically logged on creation/update/view actions.
-* **Read / Update / Delete:** No exposed APIs to preserve audit integrity.
+* **Create:** Automatically logged on creation/update/view actions via `AuditService`.
+* **Read:**
+  * `GET /audit` — Retrieve paginated audit logs with search & filters: `page`, `limit`, `search`, `action`, `entityType`, `entityId`, `actorId`, `departmentId`, `divisionId`, `status`, `startDate`, `endDate`. Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+  * `GET /audit/entity/:entityId` — Retrieve full audit log history for a specific entity ID (e.g. Document ID). Roles: All roles.
+  * `GET /audit/:id` — Retrieve details of a single audit log record by ID. Roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`.
+* **Update / Delete:** Direct modification or deletion of audit logs is prohibited to preserve audit integrity.
+
+---
+
+### 16. Dashboard Module *(New)*
+Provides system overview statistics and document distribution metrics.
+* **Read:** `GET /dashboard/stats`
+  * Authorized roles: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`, `USER`.
+  * Optional query param: `departmentId` (Number) — Filter stats by department. `BRANCH_ADMIN` is automatically scoped to their own department.
+  * Returns counts for Warehouses, Lockers, Shelves, Folders, DocumentTypes, Documents, Active Borrows, and document count breakdown per Department.
 
 ---
 
@@ -336,6 +349,23 @@ Both **Folders** and **Documents** have unique QR codes:
 ---
 
 ## 📋 Changelog
+
+### Version 2026-08-10
+
+#### ✅ Added
+| Item | Detail |
+|---|---|
+| **New Module: Dashboard** | Added `GET /dashboard/stats` endpoint for overview statistics and department document distribution. |
+| **Audit Log Read APIs** | Added `GET /audit` (paginated & filtered), `GET /audit/entity/:entityId`, and `GET /audit/:id` endpoints. |
+| **Itemized Borrow Return** | Added `PUT /document-borrows/items/:itemId/return` to return individual borrowed documents/folders from a borrow record. |
+
+#### 🔄 Updated
+| Item | Detail |
+|---|---|
+| **`GET /documents` Default Filter** | Excluded expired documents by default in `findAll` (expired documents are accessed via `GET /documents/expired`). |
+| **`GET /document-borrows` filters** | Added `type`, `borrowedAt`, `returnedAt`, `status`, `search` query parameters to document borrow list. |
+
+---
 
 ### Version 2026-08-03
 
