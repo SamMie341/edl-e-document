@@ -1520,6 +1520,50 @@
           "response": []
         },
         {
+          "name": "PUT /document-borrows/items/:itemId/return (Roles)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/document-borrows/items/:itemId/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "document-borrows",
+                "items",
+                ":itemId",
+                "return"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": "borrow-item-uuid-here",
+                  "description": "Document Borrow Item ID"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Return a single borrowed item (document or folder) from a borrow record."
+          },
+          "response": []
+        },
+        {
           "name": "GET /document-borrows/active (Roles)",
           "request": {
             "method": "GET",
@@ -1565,7 +1609,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/document-borrows",
+              "raw": "{{baseUrl}}/document-borrows?page=1&limit=10&documentId=&borrowerId=&divisionId=&activeOnly=&borrowedAt=&returnedAt=&type=&status=&search=",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1612,6 +1656,21 @@
                   "key": "returnedAt",
                   "value": "",
                   "description": "Query parameter: returnedAt (ISO 8601)"
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": ""
                 }
               ],
               "variable": []
@@ -4125,6 +4184,239 @@
                 }
               ]
             }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Audit Log",
+      "item": [
+        {
+          "name": "GET /audit (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audit"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": ""
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "action",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "entityType",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "entityId",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "actorId",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "divisionId",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "startDate",
+                  "value": "",
+                  "description": ""
+                },
+                {
+                  "key": "endDate",
+                  "value": "",
+                  "description": ""
+                }
+              ],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Get paginated audit logs with search and filters."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /audit/entity/:entityId (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit/entity/:entityId",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audit",
+                "entity",
+                ":entityId"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "entityId",
+                  "value": "uuid-or-id-here",
+                  "description": "Target Entity ID (e.g. Document ID)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Get audit history for a specific entity ID."
+          },
+          "response": []
+        },
+        {
+          "name": "GET /audit/:id (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "audit",
+                ":id"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "audit-log-uuid-here",
+                  "description": "Audit Log ID"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Get a single audit log entry by ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "GET /dashboard/stats (Roles)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "stats"
+              ],
+              "query": [
+                {
+                  "key": "departmentId",
+                  "value": "",
+                  "description": "Filter statistics by department ID (optional for Admin)"
+                }
+              ],
+              "variable": []
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "accessToken",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Get overview dashboard statistics (counts, department document distribution)."
           },
           "response": []
         }

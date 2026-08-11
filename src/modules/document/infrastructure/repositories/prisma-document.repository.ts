@@ -158,27 +158,27 @@ export class PrismaDocumentRepository implements IDocumentRepository {
         }
 
         // ─── retentionStatus filter ───────────────────────────────────────────────
-        if (retentionStatus) {
-            const now = new Date();
-            const todayStart = new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                0,
-                0,
-                0,
-                0,
-            );
-            const todayEnd = new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate(),
-                23,
-                59,
-                59,
-                999,
-            );
+        const now = new Date();
+        const todayStart = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            0,
+            0,
+            0,
+            0,
+        );
+        const todayEnd = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            23,
+            59,
+            59,
+            999,
+        );
 
+        if (retentionStatus) {
             let retentionDocExpire: any = {};
 
             switch (retentionStatus) {
@@ -208,6 +208,14 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             if (Object.keys(retentionDocExpire).length > 0) {
                 andConditions.push({ docExpire: retentionDocExpire });
             }
+        } else {
+            // ໂດຍ default ໃນ findAll: ບໍ່ສະແດງເອກະສານທີ່ໝົດອາຍຸ (ເພາະມີ endpoint GET /documents/expired ແຍກແລ້ວ)
+            andConditions.push({
+                OR: [
+                    { isContractBound: true },
+                    { docExpire: { gte: todayStart } },
+                ],
+            });
         }
 
         if (search) {
