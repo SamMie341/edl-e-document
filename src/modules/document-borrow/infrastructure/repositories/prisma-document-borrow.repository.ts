@@ -38,8 +38,8 @@ const BORROW_HEADER_INCLUDE = {
 };
 
 // ─── Helper: สร้าง scope where clause ────────────────────────────────────────
-// departmentId (BRANCH_ADMIN): กรองผ่าน items.document.departmentId หรือ toDivision.departmentId
-// divisionId   (USER):         กรองผ่าน toDivisionId (ฝั่งรับ)
+// departmentId (BRANCH_ADMIN): ກອງຜ່ານ items.document.departmentId, items.folder... ຫຼື toDivision.departmentId
+// divisionId   (USER):         ກອງຜ່ານ items.document.divisionId, items.folder... ຫຼື toDivisionId (ຝັງຮັບ)
 function buildScopeWhere(
   departmentId?: number,
   divisionId?: number,
@@ -48,12 +48,19 @@ function buildScopeWhere(
     return {
       OR: [
         { items: { some: { document: { is: { departmentId } } } } },
+        { items: { some: { folder: { is: { documents: { some: { departmentId } } } } } } },
         { toDivision: { is: { departmentId } } },
       ],
     };
   }
   if (divisionId) {
-    return { toDivisionId: divisionId };
+    return {
+      OR: [
+        { items: { some: { document: { is: { divisionId } } } } },
+        { items: { some: { folder: { is: { documents: { some: { divisionId } } } } } } },
+        { toDivisionId: divisionId },
+      ],
+    };
   }
   return {};
 }
@@ -107,7 +114,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
       andConditions.push({ items: { some: { documentId } } });
     }
     if (folderId) {
-      andConditions.push({ items: { some: { OR: [{ folderId }, { document: { folderId } }] } } });
+      andConditions.push({ items: { some: { OR: [{ folderId }, { document: { is: { folderId } } }] } } });
     }
     if (activeOnly) {
       andConditions.push({ status: { in: ['BORROWED', 'PARTIALLY_RETURNED'] } });
@@ -216,11 +223,26 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     departmentId?: number,
     divisionId?: number,
   ): Promise<DocumentBorrowEntity[]> {
+    const doc = await this.prisma.documentModel.findUnique({
+      where: { id: documentId },
+      select: { folderId: true },
+    });
+
+    const itemCondition = doc?.folderId
+      ? { OR: [{ documentId }, { folderId: doc.folderId }] }
+      : { documentId };
+
+    const docWhere: any = { items: { some: itemCondition } };
+
     const scope = buildScopeWhere(departmentId, divisionId);
-    const where: any = {
-      items: { some: { documentId } },
-      ...scope,
-    };
+    let where: any;
+    if (scope.OR) {
+      where = { AND: [docWhere, { OR: scope.OR }] };
+    } else if (scope.toDivisionId) {
+      where = { AND: [docWhere, { toDivisionId: scope.toDivisionId }] };
+    } else {
+      where = docWhere;
+    }
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
@@ -239,7 +261,7 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     const folderWhere = {
       items: {
         some: {
-          OR: [{ folderId }, { document: { folderId } }],
+          OR: [{ folderId }, { document: { is: { folderId } } }],
         },
       },
     };
@@ -281,20 +303,29 @@ export class PrismaDocumentBorrowRepository implements IDocumentBorrowRepository
     upcomingDays?: number,
   ): Promise<DocumentBorrowEntity[]> {
     const scope = buildScopeWhere(departmentId, divisionId);
-    const where: any = {
-      status: { in: ['BORROWED', 'PARTIALLY_RETURNED'] },
-      ...scope,
-    };
+    const andConditions: any[] = [
+      { status: { in: ['BORROWED', 'PARTIALLY_RETURNED'] } },
+    ];
+
+    if (scope.OR) {
+      andConditions.push({ OR: scope.OR });
+    } else if (scope.toDivisionId) {
+      andConditions.push({ toDivisionId: scope.toDivisionId });
+    }
 
     if (upcomingDays && upcomingDays > 0) {
       const now = new Date();
       const futureDate = new Date();
       futureDate.setDate(now.getDate() + upcomingDays);
-      where.dueDate = {
-        gte: now,
-        lte: futureDate,
-      };
+      andConditions.push({
+        dueDate: {
+          gte: now,
+          lte: futureDate,
+        },
+      });
     }
+
+    const where = { AND: andConditions };
 
     const models = await this.prisma.documentBorrowModel.findMany({
       where,
