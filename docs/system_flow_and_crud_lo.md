@@ -284,9 +284,51 @@
 
 ---
 
+### 17. ໂມດູນລາຍງານ (Report Module) *(ໃໝ່)*
+ສ້າງລາຍງານ 5 ປະເພດໃນຮູບແບບ JSON API ຜ່ານ `GET /reports/...` ທຸກ endpoint ສົ່ງຄືນ `summary` + `data` + `pagination` (ຍົກເວັ້ນ storage).
+
+> **RBAC Scope:** `SUPER_ADMIN` / `HQ_ADMIN` ເຫັນທຸກຂໍ້ມູນ. `BRANCH_ADMIN` ຈຳກັດຕາມ `departmentId`. `USER` ຈຳກັດຕາມ `divisionId`.
+
+#### 17.1 ລາຍງານເອກະສານ (Document Report)
+* `GET /reports/documents` — ສິດ: ທຸກລະດັບ
+* Query params: `page`, `limit`, `startDate`, `endDate`, `departmentId`, `divisionId`, `documentTypeId`, `retentionStatus` (`ACTIVE|DESTROYABLE|EXPIRED|DESTROYABLE_HOLD`), `warehouseId`, `lockerId`, `shelfId`, `folderId`, `search`
+* Response: `summary` (total, byStatus, byType) + `data` (ລາຍຊື່ Document ຜ່ານ Location) + `pagination`
+
+#### 17.2 ລາຍງານການຢືມ-ຄືນ (Borrow Report)
+* `GET /reports/borrows` — ສິດ: ທຸກລະດັບ
+* Query params: `page`, `limit`, `startDate`, `endDate`, `status` (`BORROWED|PARTIALLY_RETURNED|RETURNED`), `departmentId`, `divisionId`, `search`, `overdueOnly` (`true/false`)
+* Response: `summary` (total, active, returned, overdue) + `data` (ລາຍຊື່ Borrow + items) + `pagination`
+
+#### 17.3 ລາຍງານ Retention/Destruction
+* `GET /reports/retention` — ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`
+* Query params: `page`, `limit`, `retentionStatus`, `departmentId`, `divisionId`, `warehouseId`, `lockerId`, `shelfId`, `startDate`, `endDate` (ຊ່ວງ `docExpire`)
+* Response: `summary` (destroyable, expired, destroyableHold) + `data` (Document + `daysUntilExpiry`) + `pagination`
+
+#### 17.4 ລາຍງານຄວາມຈຸ (Storage Report)
+* `GET /reports/storage` — ສິດ: ທຸກລະດັບ
+* Query params: `departmentId`, `divisionId`, `warehouseId`, `groupBy` (`warehouse|locker|shelf`, default: `warehouse`)
+* Response: `summary` (totalCapacity, usedCapacity, availableCapacity, usagePercentage, totalWarehouses, totalLockers, totalShelves) + `data` (ຂໍ້ມູນຕາມ groupBy level)
+
+#### 17.5 ລາຍງານ Audit Log
+* `GET /reports/audit` — ສິດ: `SUPER_ADMIN`, `HQ_ADMIN`, `BRANCH_ADMIN`
+* Query params: `page`, `limit`, `startDate`, `endDate`, `action`, `entityType`, `actorId`, `departmentId`, `divisionId`, `search`
+* Response: `summary` (total, byAction, byEntityType) + `data` (AuditLog records) + `pagination`
+
+---
+
 ## 📋 ປະຫວັດການປ່ຽນແປງ (Changelog)
 
+### ເວີຊັ່ນ 2026-08-13
+
+#### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
+| ລາຍການ | ລາຍລະອຽດ |
+|--------|-----------|
+| **ໂມດູນລາຍງານ (Report Module)** | ເພີ່ມ `GET /reports/documents`, `GET /reports/borrows`, `GET /reports/retention`, `GET /reports/storage`, `GET /reports/audit` — ລາຍງານ 5 ປະເພດ ສົ່ງຄືນ `summary` + `data` + `pagination`. RBAC scope ອັດຕະໂນມັດ. |
+
+---
+
 ### ເວີຊັ່ນ 2026-08-10
+
 
 #### ✅ ສິ່ງທີ່ເພີ່ມໃໝ່ (Added)
 | ລາຍການ | ລາຍລະອຽດ |
